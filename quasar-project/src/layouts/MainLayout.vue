@@ -4,37 +4,29 @@ import { ethers } from 'ethers';
 import EssentialLink from 'components/EssentialLink.vue';
 
 const provider = new ethers.BrowserProvider(window.ethereum);
-
-const gamesArray = ref([]);
 const isConnected = ref(false);
 const balance = ref(BigInt(0));
 
-function formatDate() {
-  const d = new Date(Date.now());
-  let month = '' + (d.getMonth() + 1);
-  let day = '' + d.getDate();
-  const year = d.getFullYear();
+const datesArray = ref([]);
+const selectedDate = ref(new Date(Date.now()).toISOString().split('T')[0]);
+const gamesArray = ref([]);
 
-  if (month.length < 2) {
-    month = '0' + month;
+function getDatesArray() {
+  const dates = [];
+  const today = new Date(Date.now());
+  const todayFormatted = today.toISOString().split('T')[0];
+  dates.push(todayFormatted);
+  for (let i = -7; i <= 7; i++) {
+    const nextDay = new Date(today);
+    nextDay.setDate(today.getDate() + i);
+    const nextDayFormatted = nextDay.toISOString().split('T')[0];
+    if (!dates.includes(nextDayFormatted)) {
+      dates.push(nextDayFormatted);
+    }
   }
-  if (day.length < 2) {
-    day = '0' + day;
-  }
-
-  return [year, month, day].join('-');
+  dates.sort();
+  datesArray.value = dates;
 }
-
-const getGames = async () => {
-  await fetch(
-    `https://www.balldontlie.io/api/v1/games?start_date=${formatDate()}&end_date=${formatDate()}`
-  ).then((responseData) =>
-    responseData
-      .json()
-      .then((data) => (gamesArray.value = data.data), console.log(gamesArray))
-  );
-};
-
 const currentAccounts = () => {
   return window.ethereum._state.accounts;
 };
@@ -51,11 +43,19 @@ const getSigner = async () => {
     await provider.getSigner();
   }
 };
-
+//
 watchEffect(async () => {
-  if (gamesArray.value.length === 0) {
-    await getGames();
+  if (datesArray.value.length === 0) {
+    getDatesArray();
   }
+  await fetch(
+    `https://www.balldontlie.io/api/v1/games?start_date=${selectedDate.value}&end_date=${selectedDate.value}`
+  ).then((responseData) =>
+    responseData
+      .json()
+      .then((data) => (gamesArray.value = data.data), console.log(gamesArray))
+  );
+
   if (window.ethereum != null) {
     isConnected.value = true;
     try {
@@ -125,7 +125,7 @@ function toggleLeftDrawer() {
 
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
+    <q-header class="bg-grey-4" elevated>
       <q-toolbar class="bg-blue-grey-10">
         <q-btn
           flat
@@ -179,38 +179,61 @@ function toggleLeftDrawer() {
       </q-toolbar>
       <div class="text-center">
         <div class="q-my-md">
-          <span class="todaySign bg-grey-1 text-black q-pa-sm">
-            Today's Games: (<span class="text-red">{{
-              new Date(Date.now()).toLocaleDateString()
-            }}</span
+          <span class="todaySign bg-blue-grey-10 q-pa-sm">
+            Today's Games: (<span class="text-red">{{ selectedDate }}</span
             >)
           </span>
         </div>
-        <template v-if="gamesArray.length > 0">
-          <div class="row bg-grey-1 q-mt-sm q-mb-md gameRow">
-            <div class="gameCard" v-for="game in gamesArray" :key="game.id">
-              <div class="q-my-auto">
-                <div>
-                  {{
-                    new Date(game.date).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })
-                  }}
-                </div>
-                <div>
-                  <span class="text-yellow-14">@</span>
-                  {{ game.home_team.abbreviation }}
-                </div>
 
-                <q-separator color="white" />
-                <div>
-                  {{ game.visitor_team.abbreviation }}
-                </div>
+        <q-carousel
+          v-model="selectedDate"
+          swipeable
+          animated
+          infinite
+          control-color="red"
+          arrows
+          height="150px"
+        >
+          >
+          <q-carousel-slide
+            v-for="date in datesArray"
+            :key="date"
+            :name="date"
+            class="text-center"
+          >
+            <q-scroll-area class="fit" style="height: 100px; max-width: auto">
+              <div class="row no-wrap bg-grey-1 gameRow">
+                <template v-if="gamesArray.length > 0">
+                  <div v-for="game in gamesArray" :key="game.id">
+                    <div class="gameCard">
+                      <div>
+                        {{
+                          new Date(game.date).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        }}
+                      </div>
+                      <div>
+                        {{ game.visitor_team.abbreviation }}
+                      </div>
+                      <q-separator color="white" />
+                      <div>
+                        <span class="text-yellow-14">@</span>
+                        {{ game.home_team.abbreviation }}
+                      </div>
+                    </div>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="text-blue-grey-10 text-center q-mx-auto q-py-lg">
+                    No games scheduled today
+                  </div>
+                </template>
               </div>
-            </div>
-          </div>
-        </template>
+            </q-scroll-area>
+          </q-carousel-slide>
+        </q-carousel>
       </div>
     </q-header>
 
@@ -251,13 +274,17 @@ function toggleLeftDrawer() {
 }
 
 .gameRow {
-  border-top: 2px $blue-grey-10 solid;
-  border-bottom: 2px $blue-grey-10 solid;
+  border: 2px $blue-grey-10 solid;
+  border-radius: 5px;
+  width: 92%;
+  margin: auto;
+  padding: 5px;
+  height: 100px;
 }
 
 .todaySign {
-  color: $blue-grey-10;
-  border: 3px $yellow-14 solid;
+  color: $yellow-14;
+  border: 3px red solid;
   border-radius: 5px;
   font-weight: 1000;
 }

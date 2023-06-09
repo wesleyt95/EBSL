@@ -1,42 +1,42 @@
-<template>
-  <q-page class="row items-center justify-evenly">
-    <example-component
-      title="Example component"
-      active
-      :todos="todos"
-      :meta="meta"
-    ></example-component>
-  </q-page>
-</template>
-
-<script setup lang="ts">
-import { Todo, Meta } from 'components/models';
-import ExampleComponent from 'components/ExampleComponent.vue';
+<script setup>
+// import { Todo, Meta } from 'components/models';
+// import ExampleComponent from 'components/ExampleComponent.vue';
 import { ref } from 'vue';
 
-const todos = ref<Todo[]>([
-  {
-    id: 1,
-    content: 'ct1'
-  },
-  {
-    id: 2,
-    content: 'ct2'
-  },
-  {
-    id: 3,
-    content: 'ct3'
-  },
-  {
-    id: 4,
-    content: 'ct4'
-  },
-  {
-    id: 5,
-    content: 'ct5'
-  }
-]);
-const meta = ref<Meta>({
-  totalCount: 1200
-});
+const history = ref('Example');
 </script>
+
+<template>
+  <q-page class="row items-center justify-evenly">
+    <q-card class="text-blue-grey-10 bg-grey-1">
+      <q-card-section>
+        <div class="text-h6">Our Changing Planet</div>
+        <div class="text-subtitle2">by John Doe</div>
+      </q-card-section>
+
+      <q-card-section class="q-pt-none">
+        <div>{{ history }}</div>
+      </q-card-section>
+    </q-card>
+    <q-card class="text-blue-grey-10 bg-grey-1">
+      <q-card-section>
+        <div class="text-h6">Our Changing Planet</div>
+        <div class="text-subtitle2">by John Doe</div>
+      </q-card-section>
+
+      <q-card-section class="q-pt-none">
+        <div>{{ history }}</div>
+      </q-card-section>
+    </q-card>
+    <q-card class="text-blue-grey-10 bg-grey-1">
+      <q-card-section>
+        <div class="text-h6">Our Changing Planet</div>
+        <div class="text-subtitle2">by John Doe</div>
+      </q-card-section>
+
+      <q-card-section class="q-pt-none">
+        <div>{{ history }}</div>
+      </q-card-section>
+    </q-card>
+  </q-page>
+</template>
