@@ -6,6 +6,8 @@ import EssentialLink from 'components/EssentialLink.vue';
 const provider = new ethers.BrowserProvider(window.ethereum);
 const isConnected = ref(false);
 const balance = ref(BigInt(0));
+const searchValue = ref('');
+const searchArray = ref([]);
 
 const datesArray = ref([]);
 const selectedDate = ref(new Date(Date.now()).toISOString().split('T')[0]);
@@ -43,17 +45,22 @@ const getSigner = async () => {
     await provider.getSigner();
   }
 };
-//
+
+const getSearchResults = async () => {
+  await fetch(
+    `https://www.balldontlie.io/api/v1/players?search=${searchValue.value}`
+  ).then((responseData) =>
+    responseData.json().then((data) => (searchArray.value = data.data))
+  );
+};
 watchEffect(async () => {
-  if (datesArray.value.length === 0) {
+  if (datesArray.value?.length === 0) {
     getDatesArray();
   }
   await fetch(
     `https://www.balldontlie.io/api/v1/games?start_date=${selectedDate.value}&end_date=${selectedDate.value}`
   ).then((responseData) =>
-    responseData
-      .json()
-      .then((data) => (gamesArray.value = data.data), console.log(gamesArray))
+    responseData.json().then((data) => (gamesArray.value = data.data))
   );
 
   if (window.ethereum != null) {
@@ -63,7 +70,7 @@ watchEffect(async () => {
         balance.value = currentBalance;
       });
     } catch (error) {
-      console.log(error);
+      alert(error);
     }
   } else {
     isConnected.value = false;
@@ -73,10 +80,10 @@ watchEffect(async () => {
 
 const essentialLinks = [
   {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev',
+    title: 'Home',
+    caption: 'Dashboard',
+    icon: 'home',
+    link: '/',
   },
   {
     title: 'Github',
@@ -205,24 +212,37 @@ function toggleLeftDrawer() {
               <div class="row no-wrap bg-grey-1 gameRow">
                 <template v-if="gamesArray.length > 0">
                   <div v-for="game in gamesArray" :key="game.id">
-                    <div class="gameCard">
-                      <div>
-                        {{
-                          new Date(game.date).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })
-                        }}
+                    <RouterLink
+                      style="text-decoration: none"
+                      :to="`/games/${game.id}`"
+                    >
+                      <div class="gameCard">
+                        <div>
+                          {{
+                            game.period === 0
+                              ? new Date(game.date).toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
+                              : game.status
+                          }}
+                        </div>
+                        <div>
+                          {{ game.visitor_team.abbreviation }}
+                          <span v-if="game.period > 0"
+                            >: {{ game.visitor_team_score }}</span
+                          >
+                        </div>
+                        <q-separator color="white" />
+                        <div>
+                          <span class="text-yellow-14">@</span>
+                          {{ game.home_team.abbreviation }}
+                          <span v-if="game.period > 0"
+                            >: {{ game.home_team_score }}</span
+                          >
+                        </div>
                       </div>
-                      <div>
-                        {{ game.visitor_team.abbreviation }}
-                      </div>
-                      <q-separator color="white" />
-                      <div>
-                        <span class="text-yellow-14">@</span>
-                        {{ game.home_team.abbreviation }}
-                      </div>
-                    </div>
+                    </RouterLink>
                   </div>
                 </template>
                 <template v-else>
@@ -239,7 +259,39 @@ function toggleLeftDrawer() {
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
-        <q-item-label header> Essential Links </q-item-label>
+        <q-item-label class="text-center" header> Menu </q-item-label>
+        <q-input
+          square
+          outlined
+          v-model="searchValue"
+          label="Search Players"
+          type="search"
+        >
+          <template v-slot:append>
+            <q-icon
+              name="search"
+              class="cursor-pointer"
+              @click="getSearchResults"
+            >
+              <q-popup-proxy cover :breakpoint="600">
+                <div>
+                  <div class="text-h6 text-center">Results</div>
+                  <div v-for="player in searchArray" :key="player.id">
+                    <q-card>
+                      <q-card-section>
+                        <q-item-label>{{ player.team.full_name }}</q-item-label>
+                        <div>
+                          {{ player.first_name }}{{ ' ' + player.last_name }}
+                        </div>
+                      </q-card-section>
+                    </q-card>
+                  </div>
+                </div>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
+
         <EssentialLink
           v-for="link in essentialLinks"
           :key="link.title"
@@ -256,7 +308,7 @@ function toggleLeftDrawer() {
 
 <style lang="scss" scoped>
 .menuWallet {
-  color: $blue-8;
+  color: $blue-grey-10;
   background-color: $grey-1;
   border: 2px red solid;
   border-radius: 5px;
