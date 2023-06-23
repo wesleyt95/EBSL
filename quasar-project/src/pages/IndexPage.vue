@@ -7,7 +7,7 @@ const history = ref('Example');
 </script>
 
 <template>
-  <q-page class="row items-center justify-evenly bg-grey-4">
+  <q-page class="row items-center justify-evenly">
     <q-card class="mainCard">
       <q-card-section>
         <div class="text-h4 mainSign">Past Transactions</div>
@@ -53,7 +53,7 @@ const history = ref('Example');
 }
 .mainCard {
   margin: 1em;
-  border: 2px $blue-grey-10 solid;
+  border: 3px $grey-4 solid;
   border-radius: 5px;
   padding: 1em;
   color: $blue-grey-10;

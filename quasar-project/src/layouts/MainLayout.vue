@@ -6,17 +6,21 @@ import EssentialLink from 'components/EssentialLink.vue';
 const provider = new ethers.BrowserProvider(window.ethereum);
 const isConnected = ref(false);
 const balance = ref(BigInt(0));
+
 const searchValue = ref('');
 const searchArray = ref([]);
-
 const datesArray = ref([]);
-const selectedDate = ref(new Date(Date.now()).toISOString().split('T')[0]);
+const today = new Date(Date.now());
+const year = today.getFullYear();
+const month = (today.getMonth() + 1).toString().padStart(2, '0');
+const day = today.getDate().toString().padStart(2, '0');
+const todayFormatted = ref(`${year}-${month}-${day}`);
+const selectedDate = ref(todayFormatted.value);
 const gamesArray = ref([]);
 
 function getDatesArray() {
   const dates = [];
-  const today = new Date(Date.now());
-  const todayFormatted = today.toISOString().split('T')[0];
+
   dates.push(todayFormatted);
   for (let i = -7; i <= 7; i++) {
     const nextDay = new Date(today);
@@ -47,14 +51,16 @@ const getSigner = async () => {
 };
 
 const getSearchResults = async () => {
-  await fetch(
-    `https://www.balldontlie.io/api/v1/players?search=${searchValue.value}`
-  ).then((responseData) =>
-    responseData.json().then((data) => (searchArray.value = data.data))
-  );
+  if (searchValue.value.length > 0) {
+    await fetch(
+      `https://www.balldontlie.io/api/v1/players?search=${searchValue.value}`
+    ).then((responseData) =>
+      responseData.json().then((data) => (searchArray.value = data.data))
+    );
+  }
 };
 watchEffect(async () => {
-  if (datesArray.value?.length === 0) {
+  if (datesArray.value.length === 0) {
     getDatesArray();
   }
   await fetch(
@@ -70,7 +76,7 @@ watchEffect(async () => {
         balance.value = currentBalance;
       });
     } catch (error) {
-      alert(error);
+      console.log(error);
     }
   } else {
     isConnected.value = false;
@@ -86,16 +92,16 @@ const essentialLinks = [
     link: '/',
   },
   {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework',
+    title: 'Games',
+    caption: 'Recent & Upcoming Games',
+    icon: 'scoreboard',
+    link: '/#/games',
   },
   {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev',
+    title: 'Teams',
+    caption: 'NBA Teams',
+    icon: 'sports_basketball',
+    link: '/#/teams',
   },
   {
     title: 'Forum',
@@ -155,7 +161,7 @@ function toggleLeftDrawer() {
         <div
           v-else-if="
             isConnected == true &&
-            getCurrentChain() !== '0x1' &&
+            getCurrentChain() !== '0x5' &&
             currentAccounts().length > 0
           "
         >
@@ -170,24 +176,35 @@ function toggleLeftDrawer() {
           v-else-if="
             isConnected == true &&
             currentAccounts().length > 0 &&
-            getCurrentChain() === '0x1'
+            getCurrentChain() === '0x5'
           "
         >
-          <span class="menuWallet">Escrow: 0 |Balance: {{ balance }}</span>
+          <span class="menuWallet">
+            Escrow: <span class="text-grey-1">0</span>
+            | Balance:
+            <span class="text-grey-1">{{ balance }}</span>
+          </span>
         </div>
         <div v-else-if="isConnected == true && currentAccounts().length === 0">
           <q-btn
             @click="getSigner"
-            color="white"
-            text-color="blue"
-            label="Connect Wallet"
+            color="purple"
+            text-color="grey-1"
+            label="Connect zkEVM"
           />
         </div>
       </q-toolbar>
       <div class="text-center">
         <div class="q-my-md">
-          <span class="todaySign bg-blue-grey-10 q-pa-sm">
+          <span
+            v-if="selectedDate === todayFormatted"
+            class="todaySign bg-blue-grey-10 q-pa-sm"
+          >
             Today's Games: (<span class="text-red">{{ selectedDate }}</span
+            >)
+          </span>
+          <span v-else class="todaySign bg-blue-grey-10 q-pa-sm">
+            (<span class="text-red">{{ selectedDate }}</span
             >)
           </span>
         </div>
@@ -277,14 +294,29 @@ function toggleLeftDrawer() {
                 <div>
                   <div class="text-h6 text-center">Results</div>
                   <div v-for="player in searchArray" :key="player.id">
-                    <q-card>
-                      <q-card-section>
-                        <q-item-label>{{ player.team.full_name }}</q-item-label>
-                        <div>
-                          {{ player.first_name }}{{ ' ' + player.last_name }}
-                        </div>
-                      </q-card-section>
-                    </q-card>
+                    <RouterLink
+                      style="text-decoration: none"
+                      :to="`/players/${player.id}`"
+                      replace
+                    >
+                      <q-card class="text-red bg-blue-grey-10">
+                        <q-card-section>
+                          <q-item-label>{{
+                            player.team.full_name
+                          }}</q-item-label>
+                          <div>
+                            {{ player.first_name
+                            }}{{ ' ' + player.last_name }}|{{
+                              player.height_feet +
+                              "'" +
+                              player.height_inches +
+                              ' ' +
+                              player.position
+                            }}
+                          </div>
+                        </q-card-section>
+                      </q-card>
+                    </RouterLink>
                   </div>
                 </div>
               </q-popup-proxy>
@@ -308,9 +340,9 @@ function toggleLeftDrawer() {
 
 <style lang="scss" scoped>
 .menuWallet {
-  color: $blue-grey-10;
-  background-color: $grey-1;
-  border: 2px red solid;
+  color: $lime-12;
+  background-color: black;
+  border: 3px $grey-1 solid;
   border-radius: 5px;
   padding: 5px;
 }

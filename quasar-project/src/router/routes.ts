@@ -7,10 +7,26 @@ const routes: RouteRecordRaw[] = [
     children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
   },
   {
-    path: '/games/:id',
+    path: '/games',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/games/GameIndex.vue') },
+      { path: '', component: () => import('pages/games/MainScoreboard.vue') },
+      { path: ':id', component: () => import('pages/games/GameIndex.vue') },
+    ],
+  },
+  {
+    path: '/teams',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { path: '', component: () => import('pages/teams/TeamsPage.vue') },
+      { path: ':id', component: () => import('pages/teams/TeamIndex.vue') },
+    ],
+  },
+  {
+    path: '/players',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { path: ':id', component: () => import('pages/players/PlayerIndex.vue') },
     ],
   },
 
