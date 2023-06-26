@@ -66,7 +66,6 @@ contract Bet {
   ) public view returns (uint256) {
     uint256 bettingTeam = totalBetOnTeam[gameID][bettingTeamID];
     uint256 opposingTeam = totalBetOnTeam[gameID][opposingTeamID];
-
     if (bettingTeam > 0) {
       uint256 odds = bettingTeam / (bettingTeam + opposingTeam);
       return odds * 100;

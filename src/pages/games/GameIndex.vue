@@ -68,11 +68,18 @@ const returnHomeBetType = computed(() => {
 });
 
 const returnAwayMoneyline = computed(() => {
-  return awayCurrentMoneyline.value[1];
+  if (awayCurrentMoneyline.value == undefined) {
+    return null;
+  } else {
+    return awayCurrentMoneyline.value[1];
+  }
 });
-
 const returnHomeMoneyline = computed(() => {
-  return homeCurrentMoneyline.value[1];
+  if (homeCurrentMoneyline.value == undefined) {
+    return null;
+  } else {
+    return awayCurrentMoneyline.value[1];
+  }
 });
 
 const statColumns = [
@@ -100,7 +107,7 @@ const statColumns = [
 ];
 
 watchEffect(async () => {
-  if (user.value == undefined && window.ethereum !== null) {
+  if (user.value == undefined && window.ethereum._state != undefined) {
     user.value = window.ethereum._state.accounts[0];
   }
   await fetch(

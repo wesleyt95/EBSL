@@ -30,7 +30,7 @@ const gamesArray = ref([]);
 
 function getDatesArray() {
   const dates = [];
-  dates.push(todayFormatted);
+  dates.push(todayFormatted.value);
   for (let i = -7; i <= 7; i++) {
     const nextDay = new Date(today);
     nextDay.setDate(today.getDate() + i);
@@ -40,6 +40,7 @@ function getDatesArray() {
     }
   }
   dates.sort();
+  console.log(dates);
   datesArray.value = dates;
 }
 const currentAccount = computed(() => {
@@ -50,6 +51,16 @@ const getCurrentChain = computed(() => {
   return chainId.value;
 });
 
+const returnETH = computed(() => {
+  return balance.value;
+});
+const returnEscrow = computed(() => {
+  return escrow.value;
+});
+
+const returnSelectedDate = computed(() => {
+  return selectedDate.value;
+});
 const getSigner = async () => {
   if (window.ethereum == null) {
     console.log('MetaMask not installed; using read-only defaults');
@@ -69,10 +80,10 @@ const getSearchResults = async () => {
   }
 };
 watchEffect(async () => {
-  if (user.value == undefined && window.ethereum != null) {
+  if (user.value == undefined && window.ethereum._state != undefined) {
     user.value = window.ethereum._state.accounts[0];
   }
-  if (chainId.value == undefined && window.ethereum != null) {
+  if (chainId.value == undefined && window.ethereum.chainId != undefined) {
     chainId.value = window.ethereum.chainId;
   }
   if (datesArray.value.length === 0) {
@@ -87,9 +98,8 @@ watchEffect(async () => {
   if (window.ethereum != null) {
     isConnected.value = true;
     try {
-      await provider.getBalance(currentAccount.value).then((currentBalance) => {
-        balance.value = currentBalance;
-      });
+      const weiBalance = await provider.getBalance(currentAccount.value);
+      balance.value = ethers.formatEther(weiBalance).substring(0, 6);
     } catch (error) {
       console.log(error);
     }
@@ -199,9 +209,9 @@ function toggleLeftDrawer() {
           "
         >
           <span class="menuWallet">
-            Escrow: <span class="text-grey-1">{{ escrow }}</span>
+            Escrow: <span class="text-grey-1">{{ returnEscrow + ' ETH' }}</span>
             | Balance:
-            <span class="text-grey-1">{{ balance }}</span>
+            <span class="text-grey-1">{{ returnETH + ' ETH' }}</span>
           </span>
         </div>
         <div v-else-if="isConnected == true && currentAccount.length === 0">
@@ -219,11 +229,13 @@ function toggleLeftDrawer() {
             v-if="selectedDate === todayFormatted"
             class="todaySign bg-blue-grey-10 q-pa-sm"
           >
-            Today's Games: (<span class="text-red">{{ selectedDate }}</span
+            Today's Games: (<span class="text-red">{{
+              returnSelectedDate
+            }}</span
             >)
           </span>
           <span v-else class="todaySign bg-blue-grey-10 q-pa-sm">
-            (<span class="text-red">{{ selectedDate }}</span
+            (<span class="text-red">{{ returnSelectedDate }}</span
             >)
           </span>
         </div>
@@ -239,8 +251,8 @@ function toggleLeftDrawer() {
         >
           >
           <q-carousel-slide
-            v-for="date in datesArray"
-            :key="date"
+            v-for="(date, index) in datesArray"
+            :key="index"
             :name="date"
             class="text-center"
           >
