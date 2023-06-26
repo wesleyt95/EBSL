@@ -1,11 +1,21 @@
 <script setup>
-import { ref, watchEffect } from 'vue';
+import { ref, watchEffect, computed } from 'vue';
 import { ethers } from 'ethers';
 import EssentialLink from 'components/EssentialLink.vue';
 
 const provider = new ethers.BrowserProvider(window.ethereum);
+const user = ref();
+const chainId = ref();
+const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
+const betContract = new ethers.Contract(
+  process.env.CONTRACT_ADDRESS,
+  contract.abi,
+  provider
+);
+
 const isConnected = ref(false);
 const balance = ref(BigInt(0));
+const escrow = ref();
 
 const searchValue = ref('');
 const searchArray = ref([]);
@@ -20,7 +30,6 @@ const gamesArray = ref([]);
 
 function getDatesArray() {
   const dates = [];
-
   dates.push(todayFormatted);
   for (let i = -7; i <= 7; i++) {
     const nextDay = new Date(today);
@@ -33,13 +42,13 @@ function getDatesArray() {
   dates.sort();
   datesArray.value = dates;
 }
-const currentAccounts = () => {
-  return window.ethereum._state.accounts;
-};
+const currentAccount = computed(() => {
+  return user.value;
+});
 
-const getCurrentChain = () => {
-  return window.ethereum.chainId;
-};
+const getCurrentChain = computed(() => {
+  return chainId.value;
+});
 
 const getSigner = async () => {
   if (window.ethereum == null) {
@@ -60,6 +69,12 @@ const getSearchResults = async () => {
   }
 };
 watchEffect(async () => {
+  if (user.value == undefined && window.ethereum != null) {
+    user.value = window.ethereum._state.accounts[0];
+  }
+  if (chainId.value == undefined && window.ethereum != null) {
+    chainId.value = window.ethereum.chainId;
+  }
   if (datesArray.value.length === 0) {
     getDatesArray();
   }
@@ -72,7 +87,7 @@ watchEffect(async () => {
   if (window.ethereum != null) {
     isConnected.value = true;
     try {
-      await provider.getBalance(currentAccounts()[0]).then((currentBalance) => {
+      await provider.getBalance(currentAccount.value).then((currentBalance) => {
         balance.value = currentBalance;
       });
     } catch (error) {
@@ -81,6 +96,10 @@ watchEffect(async () => {
   } else {
     isConnected.value = false;
     balance.value = BigInt(0);
+  }
+
+  if (escrow.value == undefined) {
+    escrow.value = await betContract.returnEscrow();
   }
 });
 
@@ -161,8 +180,8 @@ function toggleLeftDrawer() {
         <div
           v-else-if="
             isConnected == true &&
-            getCurrentChain() !== '0x5' &&
-            currentAccounts().length > 0
+            getCurrentChain !== '0x5' &&
+            currentAccount.length > 0
           "
         >
           <q-btn
@@ -175,17 +194,17 @@ function toggleLeftDrawer() {
         <div
           v-else-if="
             isConnected == true &&
-            currentAccounts().length > 0 &&
-            getCurrentChain() === '0x5'
+            currentAccount.length > 0 &&
+            getCurrentChain === '0x5'
           "
         >
           <span class="menuWallet">
-            Escrow: <span class="text-grey-1">0</span>
+            Escrow: <span class="text-grey-1">{{ escrow }}</span>
             | Balance:
             <span class="text-grey-1">{{ balance }}</span>
           </span>
         </div>
-        <div v-else-if="isConnected == true && currentAccounts().length === 0">
+        <div v-else-if="isConnected == true && currentAccount.length === 0">
           <q-btn
             @click="getSigner"
             color="purple"
@@ -276,7 +295,7 @@ function toggleLeftDrawer() {
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
-        <q-item-label class="text-center" header> Menu </q-item-label>
+        <q-item-label class="text-center" header> {{ user }} </q-item-label>
         <q-input
           square
           outlined

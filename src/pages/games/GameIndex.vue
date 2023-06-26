@@ -4,8 +4,14 @@ import { useRoute } from 'vue-router';
 import { ethers } from 'ethers';
 
 const router = useRoute();
+const user = ref();
 const provider = new ethers.BrowserProvider(window.ethereum);
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
+const betContract = new ethers.Contract(
+  process.env.CONTRACT_ADDRESS,
+  contract.abi,
+  provider
+);
 
 const gameArray = ref([]);
 const gameTotal = ref();
@@ -28,6 +34,12 @@ const awayMoneyline = ref();
 const awaySpread = ref();
 const awayTotal = ref();
 
+const awayCurrentMoneyline = ref();
+const homeCurrentMoneyline = ref();
+
+const returnUser = computed(() => {
+  return user.value;
+});
 const returnGameTotal = computed(() => {
   return gameTotal.value;
 });
@@ -40,11 +52,11 @@ const returnAwayTotal = computed(() => {
 });
 
 const returnHomeOdds = computed(() => {
-  return Number(homeOdds.value) * 100;
+  return homeOdds.value;
 });
 
 const returnAwayOdds = computed(() => {
-  return Number(awayOdds.value) * 100;
+  return awayOdds.value;
 });
 
 const returnAwayBetType = computed(() => {
@@ -53,6 +65,14 @@ const returnAwayBetType = computed(() => {
 
 const returnHomeBetType = computed(() => {
   return homeBetType.value;
+});
+
+const returnAwayMoneyline = computed(() => {
+  return awayCurrentMoneyline.value[1];
+});
+
+const returnHomeMoneyline = computed(() => {
+  return homeCurrentMoneyline.value[1];
 });
 
 const statColumns = [
@@ -80,6 +100,9 @@ const statColumns = [
 ];
 
 watchEffect(async () => {
+  if (user.value == undefined && window.ethereum !== null) {
+    user.value = window.ethereum._state.accounts[0];
+  }
   await fetch(
     `https://www.balldontlie.io/api/v1/games/${Number(router.params.id)}`
   ).then((responseData) =>
@@ -99,11 +122,6 @@ watchEffect(async () => {
         (row) => row.team.id === gameArray.value.home_team.id
       );
     })
-  );
-  const betContract = new ethers.Contract(
-    process.env.CONTRACT_ADDRESS,
-    contract.abi,
-    provider
   );
 
   if (gameTotal.value == undefined) {
@@ -137,6 +155,22 @@ watchEffect(async () => {
       gameArray.value.home_team.id
     );
   }
+
+  if (homeCurrentMoneyline.value == undefined) {
+    homeCurrentMoneyline.value = await betContract.returnMoneyLineBetReceipt(
+      Number(router.params.id),
+      gameArray.value.home_team.id
+    );
+    console.log(homeCurrentMoneyline.value);
+  }
+
+  if (awayCurrentMoneyline.value == undefined) {
+    awayCurrentMoneyline.value = await betContract.returnMoneyLineBetReceipt(
+      Number(router.params.id),
+      gameArray.value.visitor_team.id
+    );
+    console.log(awayCurrentMoneyline.value);
+  }
 });
 
 const sendBetAway = async () => {
@@ -152,13 +186,53 @@ const sendBetAway = async () => {
     };
     try {
       const tx = await betContract.moneyLineBet(
+        returnUser.value,
         Number(router.params.id),
         gameArray.value.visitor_team.id,
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
+        gameArray.value.date,
         overrides
       );
 
+      console.log(tx);
+    } catch (err) {
+      console.log(err);
+    }
+  } else if (returnAwayBetType.value === 'spread') {
+    const overrides = {
+      value: awaySpread.value,
+    };
+    try {
+      const tx = await betContract.pointSpreadBet(
+        returnUser.value,
+        Number(router.params.id),
+        gameArray.value.visitor_team.id,
+        gameArray.value.home_team.id,
+        gameArray.value.visitor_team.id,
+        gameArray.value.date,
+        14,
+        overrides
+      );
+      console.log(tx);
+    } catch (err) {
+      console.log(err);
+    }
+  } else if (returnAwayBetType.value === 'total') {
+    const overrides = {
+      value: awayTotal.value,
+    };
+    try {
+      const tx = await betContract.pointTotalBet(
+        returnUser.value,
+        Number(router.params.id),
+        200,
+        gameArray.value.home_team.id,
+        gameArray.value.visitor_team.id,
+        gameArray.value.date,
+        -1,
+        overrides
+      );
       console.log(tx);
     } catch (err) {
       console.log(err);
@@ -179,13 +253,53 @@ const sendBetHome = async () => {
     };
     try {
       const tx = await betContract.moneyLineBet(
+        returnUser.value,
         Number(router.params.id),
         gameArray.value.home_team.id,
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
+        gameArray.value.date,
         overrides
       );
 
+      console.log(tx);
+    } catch (err) {
+      console.log(err);
+    }
+  } else if (returnHomeBetType.value === 'spread') {
+    const overrides = {
+      value: homeSpread.value,
+    };
+    try {
+      const tx = await betContract.pointSpreadBet(
+        returnUser.value,
+        Number(router.params.id),
+        gameArray.value.home_team.id,
+        gameArray.value.home_team.id,
+        gameArray.value.visitor_team.id,
+        gameArray.value.date,
+        14,
+        overrides
+      );
+      console.log(tx);
+    } catch (err) {
+      console.log(err);
+    }
+  } else if (returnHomeBetType.value === 'total') {
+    const overrides = {
+      value: homeTotal.value,
+    };
+    try {
+      const tx = await betContract.pointTotalBet(
+        returnUser.value,
+        Number(router.params.id),
+        200,
+        gameArray.value.home_team.id,
+        gameArray.value.visitor_team.id,
+        gameArray.value.date,
+        -1,
+        overrides
+      );
       console.log(tx);
     } catch (err) {
       console.log(err);
@@ -275,6 +389,9 @@ const sendBetHome = async () => {
 
                       <q-card-section class="q-pt-none">
                         Place your wager on who you think will win the game
+                        <div>
+                          {{ returnAwayMoneyline }}
+                        </div>
                       </q-card-section>
                     </q-radio>
                     <div v-if="awayBetType === 'moneyline'">
@@ -418,6 +535,9 @@ const sendBetHome = async () => {
 
                       <q-card-section class="q-pt-none">
                         Place your wager on who you think will win the game
+                        <div>
+                          {{ returnHomeMoneyline }}
+                        </div>
                       </q-card-section>
                     </q-radio>
                     <div v-if="homeBetType === 'moneyline'">

@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\quasar-project\\contracts\\Bet.sol": {
-      "lastModificationDate": 1687319078584,
-      "contentHash": "d8e1379da1c46056c7f66c6e82dbe124",
+      "lastModificationDate": 1687742270986,
+      "contentHash": "f515c3c020dda0730c099106ae009f70",
       "sourceName": "contracts/Bet.sol",
       "solcConfig": {
         "version": "0.8.0",
