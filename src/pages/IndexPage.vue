@@ -1,21 +1,48 @@
 <script setup>
 // import { Todo, Meta } from 'components/models';
 // import ExampleComponent from 'components/ExampleComponent.vue';
-import { ref } from 'vue';
+import { ref, watchEffect } from 'vue';
+import { ethers } from 'ethers';
 
-const history = ref('Example');
+const provider = new ethers.BrowserProvider(window.ethereum);
+const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
+
+const transactionHistory = ref();
+
+watchEffect(async () => {
+  const betContract = new ethers.Contract(
+    process.env.CONTRACT_ADDRESS,
+    contract.abi,
+    await provider.getSigner()
+  );
+  const data = await betContract.returnReceipts();
+  transactionHistory.value = data.map((tx) =>
+    JSON.stringify(tx, (_, v) => (typeof v === 'bigint' ? v.toString() : v))
+  );
+});
+
+const getETH = async () => {
+  const betContract = new ethers.Contract(
+    process.env.CONTRACT_ADDRESS,
+    contract.abi,
+    await provider.getSigner()
+  );
+  await betContract.transferEther();
+};
 </script>
 
 <template>
   <q-page class="row items-center justify-evenly">
     <q-card class="mainCard">
       <q-card-section>
-        <div class="text-h4 mainSign">Past Transactions</div>
-        <div class="text-subtitle2">by John Doe</div>
+        <div class="text-h4 mainSign" @click="getETH">Past Transactions</div>
+        <div v-for="(tx, index) in transactionHistory" :key="index">
+          <div>{{ JSON.parse(tx)[1] + ' ETH' }} | {{ JSON.parse(tx)[4] }}</div>
+        </div>
       </q-card-section>
 
       <q-card-section class="q-pt-none">
-        <div>{{ history }}</div>
+        <div>{{ null }}</div>
       </q-card-section>
     </q-card>
     <q-card class="mainCard">
@@ -25,7 +52,7 @@ const history = ref('Example');
       </q-card-section>
 
       <q-card-section class="q-pt-none">
-        <div>{{ history }}</div>
+        <div>{{ null }}</div>
       </q-card-section>
     </q-card>
     <q-card class="mainCard">
@@ -35,7 +62,7 @@ const history = ref('Example');
       </q-card-section>
 
       <q-card-section class="q-pt-none">
-        <div>{{ history }}</div>
+        <div>{{ null }}</div>
       </q-card-section>
     </q-card>
   </q-page>

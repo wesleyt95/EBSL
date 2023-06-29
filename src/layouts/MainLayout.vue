@@ -40,7 +40,6 @@ function getDatesArray() {
     }
   }
   dates.sort();
-  console.log(dates);
   datesArray.value = dates;
 }
 const currentAccount = computed(() => {
@@ -64,7 +63,7 @@ const returnSelectedDate = computed(() => {
 const getSigner = async () => {
   if (window.ethereum == null) {
     console.log('MetaMask not installed; using read-only defaults');
-    await ethers.getDefaultProvider();
+    ethers.getDefaultProvider();
   } else {
     await provider.getSigner();
   }
@@ -80,10 +79,13 @@ const getSearchResults = async () => {
   }
 };
 watchEffect(async () => {
-  if (user.value == undefined && window.ethereum._state != undefined) {
+  if (
+    window.ethereum._state.accounts &&
+    window.ethereum._state.accounts.length > 0
+  ) {
     user.value = window.ethereum._state.accounts[0];
   }
-  if (chainId.value == undefined && window.ethereum.chainId != undefined) {
+  if (chainId.value == undefined && window.ethereum.chainId) {
     chainId.value = window.ethereum.chainId;
   }
   if (datesArray.value.length === 0) {
@@ -95,13 +97,15 @@ watchEffect(async () => {
     responseData.json().then((data) => (gamesArray.value = data.data))
   );
 
-  if (window.ethereum != null) {
+  if (window.ethereum) {
     isConnected.value = true;
-    try {
-      const weiBalance = await provider.getBalance(currentAccount.value);
-      balance.value = ethers.formatEther(weiBalance).substring(0, 6);
-    } catch (error) {
-      console.log(error);
+    if (typeof user.value === 'string') {
+      try {
+        const weiBalance = await provider.getBalance(currentAccount.value);
+        balance.value = ethers.formatEther(weiBalance).substring(0, 6);
+      } catch (error) {
+        console.log(error);
+      }
     }
   } else {
     isConnected.value = false;
@@ -110,6 +114,7 @@ watchEffect(async () => {
 
   if (escrow.value == undefined) {
     escrow.value = await betContract.returnEscrow();
+    console.log(Number(escrow.value));
   }
 });
 

@@ -37,9 +37,6 @@ const awayTotal = ref();
 const awayCurrentMoneyline = ref();
 const homeCurrentMoneyline = ref();
 
-const returnUser = computed(() => {
-  return user.value;
-});
 const returnGameTotal = computed(() => {
   return gameTotal.value;
 });
@@ -59,14 +56,6 @@ const returnAwayOdds = computed(() => {
   return awayOdds.value;
 });
 
-const returnAwayBetType = computed(() => {
-  return awayBetType.value;
-});
-
-const returnHomeBetType = computed(() => {
-  return homeBetType.value;
-});
-
 const returnAwayMoneyline = computed(() => {
   if (awayCurrentMoneyline.value == undefined) {
     return null;
@@ -78,7 +67,7 @@ const returnHomeMoneyline = computed(() => {
   if (homeCurrentMoneyline.value == undefined) {
     return null;
   } else {
-    return awayCurrentMoneyline.value[1];
+    return JSON.parse(homeCurrentMoneyline.value)[1] + ' ETH';
   }
 });
 
@@ -107,7 +96,10 @@ const statColumns = [
 ];
 
 watchEffect(async () => {
-  if (user.value == undefined && window.ethereum._state != undefined) {
+  if (
+    window.ethereum._state.accounts &&
+    window.ethereum._state.accounts.length > 0
+  ) {
     user.value = window.ethereum._state.accounts[0];
   }
   await fetch(
@@ -164,11 +156,18 @@ watchEffect(async () => {
   }
 
   if (homeCurrentMoneyline.value == undefined) {
-    homeCurrentMoneyline.value = await betContract.returnMoneyLineBetReceipt(
+    const betContract = new ethers.Contract(
+      process.env.CONTRACT_ADDRESS,
+      contract.abi,
+      await provider.getSigner()
+    );
+    const receipt = await betContract.returnMoneyLineBetReceipt(
       Number(router.params.id),
       gameArray.value.home_team.id
     );
-    console.log(homeCurrentMoneyline.value);
+    homeCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
+      typeof v === 'bigint' ? v.toString() : v
+    );
   }
 
   if (awayCurrentMoneyline.value == undefined) {
@@ -176,7 +175,6 @@ watchEffect(async () => {
       Number(router.params.id),
       gameArray.value.visitor_team.id
     );
-    console.log(awayCurrentMoneyline.value);
   }
 });
 
@@ -187,13 +185,13 @@ const sendBetAway = async () => {
     contract.abi,
     signer
   );
-  if (returnAwayBetType.value === 'moneyline') {
+  if (awayBetType.value === 'moneyline') {
     const overrides = {
       value: awayMoneyline.value,
     };
     try {
       const tx = await betContract.moneyLineBet(
-        returnUser.value,
+        user.value,
         Number(router.params.id),
         gameArray.value.visitor_team.id,
         gameArray.value.home_team.id,
@@ -206,13 +204,13 @@ const sendBetAway = async () => {
     } catch (err) {
       console.log(err);
     }
-  } else if (returnAwayBetType.value === 'spread') {
+  } else if (awayBetType.value === 'spread') {
     const overrides = {
       value: awaySpread.value,
     };
     try {
       const tx = await betContract.pointSpreadBet(
-        returnUser.value,
+        user.value,
         Number(router.params.id),
         gameArray.value.visitor_team.id,
         gameArray.value.home_team.id,
@@ -225,13 +223,13 @@ const sendBetAway = async () => {
     } catch (err) {
       console.log(err);
     }
-  } else if (returnAwayBetType.value === 'total') {
+  } else if (awayBetType.value === 'total') {
     const overrides = {
       value: awayTotal.value,
     };
     try {
       const tx = await betContract.pointTotalBet(
-        returnUser.value,
+        user.value,
         Number(router.params.id),
         200,
         gameArray.value.home_team.id,
@@ -254,13 +252,13 @@ const sendBetHome = async () => {
     contract.abi,
     signer
   );
-  if (returnHomeBetType.value === 'moneyline') {
+  if (homeBetType.value === 'moneyline') {
     const overrides = {
       value: homeMoneyline.value,
     };
     try {
       const tx = await betContract.moneyLineBet(
-        returnUser.value,
+        user.value,
         Number(router.params.id),
         gameArray.value.home_team.id,
         gameArray.value.home_team.id,
@@ -273,13 +271,13 @@ const sendBetHome = async () => {
     } catch (err) {
       console.log(err);
     }
-  } else if (returnHomeBetType.value === 'spread') {
+  } else if (homeBetType.value === 'spread') {
     const overrides = {
       value: homeSpread.value,
     };
     try {
       const tx = await betContract.pointSpreadBet(
-        returnUser.value,
+        user.value,
         Number(router.params.id),
         gameArray.value.home_team.id,
         gameArray.value.home_team.id,
@@ -292,13 +290,13 @@ const sendBetHome = async () => {
     } catch (err) {
       console.log(err);
     }
-  } else if (returnHomeBetType.value === 'total') {
+  } else if (homeBetType.value === 'total') {
     const overrides = {
       value: homeTotal.value,
     };
     try {
       const tx = await betContract.pointTotalBet(
-        returnUser.value,
+        user.value,
         Number(router.params.id),
         200,
         gameArray.value.home_team.id,
@@ -391,14 +389,16 @@ const sendBetHome = async () => {
                       unchecked-icon="null"
                     >
                       <q-card-section>
-                        <div class="text-h6">Money Line</div>
+                        <div class="text-h6">
+                          Money Line
+                          <div>
+                            {{ returnAwayMoneyline }}
+                          </div>
+                        </div>
                       </q-card-section>
 
                       <q-card-section class="q-pt-none">
                         Place your wager on who you think will win the game
-                        <div>
-                          {{ returnAwayMoneyline }}
-                        </div>
                       </q-card-section>
                     </q-radio>
                     <div v-if="awayBetType === 'moneyline'">
@@ -537,14 +537,16 @@ const sendBetHome = async () => {
                       unchecked-icon="null"
                     >
                       <q-card-section>
-                        <div class="text-h6">Money Line</div>
+                        <div>
+                          <span class="text-h6"> Money Line</span>
+                          <div class="betValue">
+                            {{ returnHomeMoneyline }}
+                          </div>
+                        </div>
                       </q-card-section>
 
                       <q-card-section class="q-pt-none">
                         Place your wager on who you think will win the game
-                        <div>
-                          {{ returnHomeMoneyline }}
-                        </div>
                       </q-card-section>
                     </q-radio>
                     <div v-if="homeBetType === 'moneyline'">
@@ -690,7 +692,9 @@ const sendBetHome = async () => {
   width: 80%;
 }
 
-input[type='radio'] .betTypes {
-  display: none;
+.betValue {
+  border: 3px $blue-grey-10 solid;
+  width: 5em;
+  margin: 0 auto;
 }
 </style>

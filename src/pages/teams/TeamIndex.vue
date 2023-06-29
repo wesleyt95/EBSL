@@ -25,18 +25,43 @@ watchEffect(async () => {
   <h1>
     {{ TEAMS.find((row) => row.id === Number($route.params.id)).full_name }}
   </h1>
-  <div v-for="game in gamesArray" :key="game.id">
-    <RouterLink style="text-decoration: none" :to="`/games/${game.id}`" replace>
-      <q-card class="text-red bg-blue-grey-10 q-ma-md text-center">
-        <q-card-section>
-          <q-item-label>{{
-            game.home_team.full_name + ' vs. ' + game.visitor_team.full_name
-          }}</q-item-label>
+  <div class="row text-center">
+    <div v-for="game in gamesArray" :key="game.id">
+      <RouterLink style="text-decoration: none" :to="`/games/${game.id}`">
+        <div class="gameCard">
           <div>
-            {{ game.home_team_score + ' - ' + game.visitor_team_score }}
+            {{
+              game.period === 0
+                ? new Date(game.date).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : game.status
+            }}
           </div>
-        </q-card-section>
-      </q-card>
-    </RouterLink>
+          <div>
+            {{ game.visitor_team.abbreviation }}
+            <span v-if="game.period > 0">: {{ game.visitor_team_score }}</span>
+          </div>
+          <q-separator color="white" />
+          <div>
+            <span class="text-yellow-14">@</span>
+            {{ game.home_team.abbreviation }}
+            <span v-if="game.period > 0">: {{ game.home_team_score }}</span>
+          </div>
+        </div>
+      </RouterLink>
+    </div>
   </div>
 </template>
+<style scoped lang="scss">
+.gameCard {
+  color: $grey-1;
+  margin: 5px;
+  background-color: $blue-grey-10;
+  border: 2px red solid;
+  border-radius: 5px;
+  padding: 5px;
+  width: 8em;
+}
+</style>

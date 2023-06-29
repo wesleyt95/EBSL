@@ -88,34 +88,33 @@ contract Bet {
       teamID == homeTeamID || teamID == awayTeamID,
       'You must bet on a team that is playing in this game'
     );
-    uint256 currentAmountBet = newMoneyLineBet[gameID]
-    .receipt[teamID][msg.sender].amount;
     uint256 tax = (msg.value / 100) * 5;
     uint256 msgValue = (msg.value / 100) * 95;
+    MoneyLine storage moneyLine = newMoneyLineBet[gameID];
+    User storage userStruct = balances[msg.sender];
+    Transaction[] storage receipt = userStruct.receipts;
+    Transaction storage transaction = moneyLine.receipt[teamID][msg.sender];
+    address[] storage usersArray = moneyLine.usersArray[teamID];
     admin.transfer(tax);
-    balances[user].escrow += msgValue;
-    balances[user].receipts.push(
+    userStruct.escrow += msgValue;
+    receipt.push(
       Transaction(msg.sender, msgValue, teamID, gameID, 'Money Line')
     );
     totalBetOnGame[gameID] += msg.value;
     totalBetOnTeam[gameID][teamID] += msg.value;
-    newMoneyLineBet[gameID].total += msgValue;
-    newMoneyLineBet[gameID].teamTotal[teamID] += msgValue;
-    newMoneyLineBet[gameID].homeTeamID = homeTeamID;
-    newMoneyLineBet[gameID].awayTeamID = awayTeamID;
-    newMoneyLineBet[gameID].startTime = datetimeToUnix(startTime);
-    if (
-      newMoneyLineBet[gameID].receipt[teamID][msg.sender].addr != msg.sender
-    ) {
-      newMoneyLineBet[gameID].usersArray[teamID].push(msg.sender);
+    moneyLine.total += msgValue;
+    moneyLine.teamTotal[teamID] += msgValue;
+    moneyLine.homeTeamID = homeTeamID;
+    moneyLine.awayTeamID = awayTeamID;
+    moneyLine.startTime = datetimeToUnix(startTime);
+    if (moneyLine.receipt[teamID][msg.sender].addr != msg.sender) {
+      usersArray.push(msg.sender);
     }
-    newMoneyLineBet[gameID].receipt[teamID][msg.sender] = Transaction(
-      msg.sender,
-      currentAmountBet + msgValue,
-      teamID,
-      gameID,
-      'Money Line'
-    );
+    transaction.addr = msg.sender;
+    transaction.amount += msgValue;
+    transaction.teamID = teamID;
+    transaction.gameID = gameID;
+    transaction.betType = 'Money Line';
   }
 
   function pointSpreadBet(
@@ -133,35 +132,34 @@ contract Bet {
       teamID == homeTeamID || teamID == awayTeamID,
       'You must bet on a team that is playing in this game'
     );
-    uint256 currentAmountBet = newPointSpreadBet[gameID]
-    .receipt[teamID][msg.sender].amount;
     uint256 tax = (msg.value / 100) * 5;
     uint256 msgValue = (msg.value / 100) * 95;
+    PointSpread storage pointSpread = newPointSpreadBet[gameID];
+    User storage userStruct = balances[msg.sender];
+    Transaction[] storage receipt = userStruct.receipts;
+    Transaction storage transaction = pointSpread.receipt[teamID][msg.sender];
+    address[] storage usersArray = pointSpread.usersArray[teamID];
     admin.transfer(tax);
-    balances[user].escrow += msgValue;
-    balances[user].receipts.push(
+    userStruct.escrow += msgValue;
+    receipt.push(
       Transaction(msg.sender, msgValue, teamID, gameID, 'Point Spread')
     );
     totalBetOnGame[gameID] += msg.value;
     totalBetOnTeam[gameID][teamID] += msg.value;
-    newPointSpreadBet[gameID].total += msgValue;
-    newPointSpreadBet[gameID].teamTotal[teamID] += msgValue;
-    newPointSpreadBet[gameID].homeTeamID = homeTeamID;
-    newPointSpreadBet[gameID].awayTeamID = awayTeamID;
-    newPointSpreadBet[gameID].startTime = datetimeToUnix(startTime);
-    newPointSpreadBet[gameID].spreadAmount[teamID] = spread;
-    if (
-      newPointSpreadBet[gameID].receipt[teamID][msg.sender].addr != msg.sender
-    ) {
-      newPointSpreadBet[gameID].usersArray[teamID].push(msg.sender);
+    pointSpread.total += msgValue;
+    pointSpread.teamTotal[teamID] += msgValue;
+    pointSpread.homeTeamID = homeTeamID;
+    pointSpread.awayTeamID = awayTeamID;
+    pointSpread.startTime = datetimeToUnix(startTime);
+    pointSpread.spreadAmount[teamID] = spread;
+    if (pointSpread.receipt[teamID][msg.sender].addr != msg.sender) {
+      usersArray.push(msg.sender);
     }
-    newPointSpreadBet[gameID].receipt[teamID][msg.sender] = Transaction(
-      msg.sender,
-      currentAmountBet + msgValue,
-      teamID,
-      gameID,
-      'Point Spread'
-    );
+    transaction.addr = msg.sender;
+    transaction.amount += msgValue;
+    transaction.teamID = teamID;
+    transaction.gameID = gameID;
+    transaction.betType = 'Point Spread';
   }
 
   function pointTotalBet(
@@ -175,34 +173,31 @@ contract Bet {
   ) public payable {
     require(msg.sender == user, 'You must bet from your own address');
     require(msg.value > 0, 'You must bet something');
-    uint256 currentAmountBet = newPointTotalBet[gameID]
-    .receipt[value][msg.sender].amount;
     uint256 tax = (msg.value / 100) * 5;
     uint256 msgValue = (msg.value / 100) * 95;
+    PointTotal storage pointTotal = newPointTotalBet[gameID];
+    User storage userStruct = balances[msg.sender];
+    Transaction[] storage receipt = userStruct.receipts;
+    Transaction storage transaction = pointTotal.receipt[value][msg.sender];
+    address[] storage usersArray = pointTotal.usersArray[value];
     admin.transfer(tax);
-    balances[user].escrow += msgValue;
-    balances[user].receipts.push(
-      Transaction(msg.sender, msgValue, 0, gameID, 'Point Total')
-    );
+    userStruct.escrow += msgValue;
+    receipt.push(Transaction(msg.sender, msgValue, 0, gameID, 'Point Total'));
     totalBetOnGame[gameID] += msg.value;
-    newPointTotalBet[gameID].total += msgValue;
-    newPointTotalBet[gameID].betTotal[value] += msgValue;
-    newPointTotalBet[gameID].homeTeamID = homeTeamID;
-    newPointTotalBet[gameID].awayTeamID = awayTeamID;
-    newPointTotalBet[gameID].startTime = datetimeToUnix(startTime);
-    newPointTotalBet[gameID].pointAmount = pointAmount;
-    if (
-      newPointTotalBet[gameID].receipt[value][msg.sender].addr != msg.sender
-    ) {
-      newPointTotalBet[gameID].usersArray[value].push(msg.sender);
+    pointTotal.total += msgValue;
+    pointTotal.betTotal[value] += msgValue;
+    pointTotal.homeTeamID = homeTeamID;
+    pointTotal.awayTeamID = awayTeamID;
+    pointTotal.startTime = datetimeToUnix(startTime);
+    pointTotal.pointAmount = pointAmount;
+    if (pointTotal.receipt[value][msg.sender].addr != msg.sender) {
+      usersArray.push(msg.sender);
     }
-    newPointTotalBet[gameID].receipt[value][msg.sender] = Transaction(
-      msg.sender,
-      currentAmountBet + msgValue,
-      0,
-      gameID,
-      'Point Total'
-    );
+    transaction.addr = msg.sender;
+    transaction.amount += msgValue;
+    transaction.teamID = 0;
+    transaction.gameID = gameID;
+    transaction.betType = 'Point Total';
   }
 
   function returnMoneyLineBetReceipt(
