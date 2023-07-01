@@ -49,11 +49,15 @@ const returnAwayTotal = computed(() => {
 });
 
 const returnHomeOdds = computed(() => {
-  return homeOdds.value;
+  if (homeOdds.value == undefined) {
+    return 0;
+  } else return homeOdds.value;
 });
 
 const returnAwayOdds = computed(() => {
-  return awayOdds.value;
+  if (awayOdds.value == undefined) {
+    return 0;
+  } else return awayOdds.value;
 });
 
 const returnAwayMoneyline = computed(() => {
@@ -143,15 +147,13 @@ watchEffect(async () => {
   if (homeOdds.value == undefined) {
     homeOdds.value = await betContract.returnOdds(
       Number(router.params.id),
-      gameArray.value.home_team.id,
-      gameArray.value.visitor_team.id
+      gameArray.value.home_team.id
     );
   }
   if (awayOdds.value == undefined) {
     awayOdds.value = await betContract.returnOdds(
       Number(router.params.id),
-      gameArray.value.visitor_team.id,
-      gameArray.value.home_team.id
+      gameArray.value.visitor_team.id
     );
   }
 

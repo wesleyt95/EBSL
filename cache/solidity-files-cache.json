@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\Bet.sol": {
-      "lastModificationDate": 1687993031204,
-      "contentHash": "d3240b76c925434ba18309b3d1f890fd",
+      "lastModificationDate": 1688162875439,
+      "contentHash": "a8b9e363bcc2e567acda86eb98d0945d",
       "sourceName": "contracts/Bet.sol",
       "solcConfig": {
         "version": "0.8.0",

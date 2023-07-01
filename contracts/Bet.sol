@@ -18,6 +18,7 @@ contract Bet {
     uint256 teamID;
     uint256 gameID;
     string betType;
+    uint256 time;
   }
   struct MoneyLine {
     uint256 startTime;
@@ -52,7 +53,7 @@ contract Bet {
     int result;
   }
 
-  mapping(address => User) public balances;
+  mapping(address => User) public userReceipts;
   mapping(uint256 => uint256) public totalBetOnGame;
   mapping(uint256 => mapping(uint256 => uint256)) public totalBetOnTeam;
   mapping(uint256 => MoneyLine) public newMoneyLineBet;
@@ -61,17 +62,12 @@ contract Bet {
 
   function returnOdds(
     uint256 gameID,
-    uint256 bettingTeamID,
-    uint256 opposingTeamID
+    uint256 bettingTeamID
   ) public view returns (uint256) {
     uint256 bettingTeam = totalBetOnTeam[gameID][bettingTeamID];
-    uint256 opposingTeam = totalBetOnTeam[gameID][opposingTeamID];
-    if (bettingTeam > 0) {
-      uint256 odds = bettingTeam / (bettingTeam + opposingTeam);
-      return odds * 100;
-    } else {
-      return 0;
-    }
+    uint256 gameTotal = totalBetOnGame[gameID];
+    uint256 odds = (bettingTeam * 100) / gameTotal;
+    return odds;
   }
 
   function moneyLineBet(
@@ -82,23 +78,30 @@ contract Bet {
     uint256 awayTeamID,
     string memory startTime
   ) public payable {
+    require(homeTeamID != awayTeamID);
     require(msg.sender == user, 'You must bet from your own address');
     require(msg.value > 0, 'You must bet something');
     require(
       teamID == homeTeamID || teamID == awayTeamID,
       'You must bet on a team that is playing in this game'
     );
-    uint256 tax = (msg.value / 100) * 5;
-    uint256 msgValue = (msg.value / 100) * 95;
+    uint256 tax = (msg.value * 5) / 100;
+    uint256 msgValue = (msg.value * 95) / 100;
     MoneyLine storage moneyLine = newMoneyLineBet[gameID];
-    User storage userStruct = balances[msg.sender];
-    Transaction[] storage receipt = userStruct.receipts;
+    Transaction[] storage receipt = userReceipts[msg.sender].receipts;
     Transaction storage transaction = moneyLine.receipt[teamID][msg.sender];
     address[] storage usersArray = moneyLine.usersArray[teamID];
     admin.transfer(tax);
-    userStruct.escrow += msgValue;
+    userReceipts[msg.sender].escrow += msgValue;
     receipt.push(
-      Transaction(msg.sender, msgValue, teamID, gameID, 'Money Line')
+      Transaction(
+        msg.sender,
+        msgValue,
+        teamID,
+        gameID,
+        'Money Line',
+        block.timestamp
+      )
     );
     totalBetOnGame[gameID] += msg.value;
     totalBetOnTeam[gameID][teamID] += msg.value;
@@ -107,7 +110,9 @@ contract Bet {
     moneyLine.homeTeamID = homeTeamID;
     moneyLine.awayTeamID = awayTeamID;
     moneyLine.startTime = datetimeToUnix(startTime);
-    if (moneyLine.receipt[teamID][msg.sender].addr != msg.sender) {
+    if (
+      newMoneyLineBet[gameID].receipt[teamID][msg.sender].addr != msg.sender
+    ) {
       usersArray.push(msg.sender);
     }
     transaction.addr = msg.sender;
@@ -115,6 +120,7 @@ contract Bet {
     transaction.teamID = teamID;
     transaction.gameID = gameID;
     transaction.betType = 'Money Line';
+    transaction.time = block.timestamp;
   }
 
   function pointSpreadBet(
@@ -126,23 +132,30 @@ contract Bet {
     string memory startTime,
     int spread
   ) public payable {
+    require(homeTeamID != awayTeamID);
     require(msg.sender == user, 'You must bet from your own address');
     require(msg.value > 0, 'You must bet something');
     require(
       teamID == homeTeamID || teamID == awayTeamID,
       'You must bet on a team that is playing in this game'
     );
-    uint256 tax = (msg.value / 100) * 5;
-    uint256 msgValue = (msg.value / 100) * 95;
+    uint256 tax = (msg.value * 5) / 100;
+    uint256 msgValue = (msg.value * 95) / 100;
     PointSpread storage pointSpread = newPointSpreadBet[gameID];
-    User storage userStruct = balances[msg.sender];
-    Transaction[] storage receipt = userStruct.receipts;
+    Transaction[] storage receipt = userReceipts[msg.sender].receipts;
     Transaction storage transaction = pointSpread.receipt[teamID][msg.sender];
     address[] storage usersArray = pointSpread.usersArray[teamID];
     admin.transfer(tax);
-    userStruct.escrow += msgValue;
+    userReceipts[msg.sender].escrow += msgValue;
     receipt.push(
-      Transaction(msg.sender, msgValue, teamID, gameID, 'Point Spread')
+      Transaction(
+        msg.sender,
+        msgValue,
+        teamID,
+        gameID,
+        'Point Spread',
+        block.timestamp
+      )
     );
     totalBetOnGame[gameID] += msg.value;
     totalBetOnTeam[gameID][teamID] += msg.value;
@@ -152,7 +165,9 @@ contract Bet {
     pointSpread.awayTeamID = awayTeamID;
     pointSpread.startTime = datetimeToUnix(startTime);
     pointSpread.spreadAmount[teamID] = spread;
-    if (pointSpread.receipt[teamID][msg.sender].addr != msg.sender) {
+    if (
+      newPointSpreadBet[gameID].receipt[teamID][msg.sender].addr != msg.sender
+    ) {
       usersArray.push(msg.sender);
     }
     transaction.addr = msg.sender;
@@ -160,6 +175,7 @@ contract Bet {
     transaction.teamID = teamID;
     transaction.gameID = gameID;
     transaction.betType = 'Point Spread';
+    transaction.time = block.timestamp;
   }
 
   function pointTotalBet(
@@ -171,18 +187,27 @@ contract Bet {
     string memory startTime,
     int value
   ) public payable {
+    require(homeTeamID != awayTeamID);
     require(msg.sender == user, 'You must bet from your own address');
     require(msg.value > 0, 'You must bet something');
-    uint256 tax = (msg.value / 100) * 5;
-    uint256 msgValue = (msg.value / 100) * 95;
+    uint256 tax = (msg.value * 5) / 100;
+    uint256 msgValue = (msg.value * 95) / 100;
     PointTotal storage pointTotal = newPointTotalBet[gameID];
-    User storage userStruct = balances[msg.sender];
-    Transaction[] storage receipt = userStruct.receipts;
+    Transaction[] storage receipt = userReceipts[msg.sender].receipts;
     Transaction storage transaction = pointTotal.receipt[value][msg.sender];
     address[] storage usersArray = pointTotal.usersArray[value];
     admin.transfer(tax);
-    userStruct.escrow += msgValue;
-    receipt.push(Transaction(msg.sender, msgValue, 0, gameID, 'Point Total'));
+    userReceipts[msg.sender].escrow += msgValue;
+    receipt.push(
+      Transaction(
+        msg.sender,
+        msgValue,
+        0,
+        gameID,
+        'Point Total',
+        block.timestamp
+      )
+    );
     totalBetOnGame[gameID] += msg.value;
     pointTotal.total += msgValue;
     pointTotal.betTotal[value] += msgValue;
@@ -190,7 +215,9 @@ contract Bet {
     pointTotal.awayTeamID = awayTeamID;
     pointTotal.startTime = datetimeToUnix(startTime);
     pointTotal.pointAmount = pointAmount;
-    if (pointTotal.receipt[value][msg.sender].addr != msg.sender) {
+    if (
+      newPointTotalBet[gameID].receipt[value][msg.sender].addr != msg.sender
+    ) {
       usersArray.push(msg.sender);
     }
     transaction.addr = msg.sender;
@@ -198,6 +225,7 @@ contract Bet {
     transaction.teamID = 0;
     transaction.gameID = gameID;
     transaction.betType = 'Point Total';
+    transaction.time = block.timestamp;
   }
 
   function returnMoneyLineBetReceipt(
@@ -256,11 +284,11 @@ contract Bet {
   }
 
   function returnEscrow() public view returns (uint256) {
-    return balances[msg.sender].escrow;
+    return userReceipts[msg.sender].escrow;
   }
 
   function returnReceipts() public view returns (Transaction[] memory) {
-    return balances[msg.sender].receipts;
+    return userReceipts[msg.sender].receipts;
   }
 
   function datetimeToUnix(
@@ -269,7 +297,7 @@ contract Bet {
     return uint256(keccak256(abi.encodePacked(datetimeString)));
   }
 
-  function transferEther() external {
+  function transferEther() public {
     require(msg.sender == admin, 'You are not the admin');
     admin.transfer(address(this).balance);
   }

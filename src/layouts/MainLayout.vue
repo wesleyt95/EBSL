@@ -112,9 +112,8 @@ watchEffect(async () => {
     balance.value = BigInt(0);
   }
 
-  if (escrow.value == undefined) {
+  if (escrow.value == undefined && user.value != undefined) {
     escrow.value = await betContract.returnEscrow();
-    console.log(Number(escrow.value));
   }
 });
 
