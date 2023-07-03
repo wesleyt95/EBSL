@@ -297,6 +297,26 @@ contract Bet {
     return uint256(keccak256(abi.encodePacked(datetimeString)));
   }
 
+  function rewardMoneyLineWinners(
+    address payable user,
+    uint256 gameID,
+    uint256 teamID
+  ) private {
+    for (
+      uint i = 0;
+      i < newMoneyLineBet[gameID].usersArray[teamID].length;
+      i++
+    ) {
+      if (newMoneyLineBet[gameID].usersArray[teamID][i] == user) {
+        uint256 msgValue = newMoneyLineBet[gameID].receipt[teamID][user].amount;
+        user.transfer(msgValue / newMoneyLineBet[gameID].total);
+        userReceipts[user].escrow -= msgValue;
+      }
+    }
+  }
+
+  // DELETE LATER!!!
+
   function transferEther() public {
     require(msg.sender == admin, 'You are not the admin');
     admin.transfer(address(this).balance);

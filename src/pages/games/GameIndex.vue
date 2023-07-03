@@ -64,7 +64,7 @@ const returnAwayMoneyline = computed(() => {
   if (awayCurrentMoneyline.value == undefined) {
     return null;
   } else {
-    return awayCurrentMoneyline.value[1];
+    return JSON.parse(awayCurrentMoneyline.value)[1] + ' ETH';
   }
 });
 const returnHomeMoneyline = computed(() => {
@@ -170,13 +170,23 @@ watchEffect(async () => {
     homeCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
       typeof v === 'bigint' ? v.toString() : v
     );
+    console.log('home:', homeCurrentMoneyline.value);
   }
 
   if (awayCurrentMoneyline.value == undefined) {
-    awayCurrentMoneyline.value = await betContract.returnMoneyLineBetReceipt(
+    const betContract = new ethers.Contract(
+      process.env.CONTRACT_ADDRESS,
+      contract.abi,
+      await provider.getSigner()
+    );
+    const receipt = await betContract.returnMoneyLineBetReceipt(
       Number(router.params.id),
       gameArray.value.visitor_team.id
     );
+    awayCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
+      typeof v === 'bigint' ? v.toString() : v
+    );
+    console.log('away:', awayCurrentMoneyline.value);
   }
 });
 
@@ -391,9 +401,9 @@ const sendBetHome = async () => {
                       unchecked-icon="null"
                     >
                       <q-card-section>
-                        <div class="text-h6">
-                          Money Line
-                          <div>
+                        <div>
+                          <span class="text-h6"> Money Line</span>
+                          <div class="betValue">
                             {{ returnAwayMoneyline }}
                           </div>
                         </div>

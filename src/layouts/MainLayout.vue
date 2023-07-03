@@ -7,11 +7,6 @@ const provider = new ethers.BrowserProvider(window.ethereum);
 const user = ref();
 const chainId = ref();
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
-const betContract = new ethers.Contract(
-  process.env.CONTRACT_ADDRESS,
-  contract.abi,
-  provider
-);
 
 const isConnected = ref(false);
 const balance = ref(BigInt(0));
@@ -113,6 +108,11 @@ watchEffect(async () => {
   }
 
   if (escrow.value == undefined && user.value != undefined) {
+    const betContract = new ethers.Contract(
+      process.env.CONTRACT_ADDRESS,
+      contract.abi,
+      await provider.getSigner()
+    );
     escrow.value = await betContract.returnEscrow();
   }
 });
@@ -193,9 +193,7 @@ function toggleLeftDrawer() {
         </div>
         <div
           v-else-if="
-            isConnected == true &&
-            getCurrentChain !== '0x5' &&
-            currentAccount.length > 0
+            getCurrentChain !== '0xaa36a7' && currentAccount != undefined
           "
         >
           <q-btn
@@ -205,13 +203,7 @@ function toggleLeftDrawer() {
             label="Invalid Network"
           />
         </div>
-        <div
-          v-else-if="
-            isConnected == true &&
-            currentAccount.length > 0 &&
-            getCurrentChain === '0x5'
-          "
-        >
+        <div v-else-if="isConnected == true && getCurrentChain === '0xaa36a7'">
           <span class="menuWallet">
             Escrow: <span class="text-grey-1">{{ returnEscrow + ' ETH' }}</span>
             | Balance:
@@ -311,7 +303,9 @@ function toggleLeftDrawer() {
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
-        <q-item-label class="text-center" header> {{ user }} </q-item-label>
+        <q-item-label class="text-center" header>
+          {{ currentAccount }}
+        </q-item-label>
         <q-input
           square
           outlined

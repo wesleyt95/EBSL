@@ -2,6 +2,7 @@
 // import { Todo, Meta } from 'components/models';
 // import ExampleComponent from 'components/ExampleComponent.vue';
 import { ref, watchEffect } from 'vue';
+import { TEAMS } from './teams/nba-teams.js';
 import { ethers } from 'ethers';
 
 const provider = new ethers.BrowserProvider(window.ethereum);
@@ -37,7 +38,30 @@ const getETH = async () => {
       <q-card-section>
         <div class="text-h4 mainSign" @click="getETH">Past Transactions</div>
         <div v-for="(tx, index) in transactionHistory" :key="index">
-          <div>{{ JSON.parse(tx)[1] + ' ETH' }} | {{ JSON.parse(tx)[4] }}</div>
+          <RouterLink
+            style="text-decoration: none"
+            :to="`/games/${JSON.parse(tx)[3]}`"
+          >
+            <div class="receiptItem">
+              <div class="text-center text-red text-weight-bold">
+                {{
+                  new Date(
+                    Number(JSON.parse(tx)[5]) * 1000
+                  ).toLocaleDateString()
+                }}
+              </div>
+              <div class="row justify-between">
+                <div>{{ JSON.parse(tx)[4] }}</div>
+                <div style="float: left; margin-left: -1em" class="text-grey-1">
+                  {{
+                    TEAMS.find((row) => row.id === Number(JSON.parse(tx)[2]))
+                      .name
+                  }}
+                </div>
+                <div>{{ JSON.parse(tx)[1] + ' ETH' }}</div>
+              </div>
+            </div>
+          </RouterLink>
         </div>
       </q-card-section>
 
@@ -69,21 +93,26 @@ const getETH = async () => {
 </template>
 <style lang="scss" scoped>
 .mainSign {
-  color: $yellow-14;
-  border: 3px red solid;
   border-radius: 5px;
   font-weight: 1000;
-  background: $blue-grey-10;
   padding: auto;
   margin: auto;
   text-align: center;
 }
 .mainCard {
   margin: 1em;
-  border: 3px $grey-4 solid;
+  border: 5px $grey-4 solid;
   border-radius: 5px;
   padding: 1em;
   color: $blue-grey-10;
   background: $grey-1;
+}
+.receiptItem {
+  border: 4px red solid;
+  border-radius: 5px;
+  color: $yellow-14;
+  background: $blue-grey-10;
+  margin: 1em 0;
+  padding: 0.5em;
 }
 </style>
