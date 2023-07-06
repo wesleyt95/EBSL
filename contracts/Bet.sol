@@ -13,8 +13,8 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
 
   constructor() ConfirmedOwner(msg.sender) {
     admin = payable(msg.sender);
-    setChainlinkToken(0x779877A7B0D9E8603169DdbD7836e478b4624789);
-    setChainlinkOracle(0x6090149792dAAeE9D1D568c9f9a6F6B46AA29eFD);
+    setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
+    setChainlinkOracle(0xCC79157eb46F5624204f47AB42b3906cAA40eaB7);
     jobId = 'ca98366cc7314957b8c012c72f05aeeb';
     fee = (1 * LINK_DIVISIBILITY) / 10;
   }
@@ -168,14 +168,15 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
         modules: new Module[](3),
         args: new bytes[](3)
       });
-      bytes4 selector = bytes4(keccak256(bytes('checker(uint256)')));
       moduleData.modules[0] = Module.RESOLVER;
       moduleData.modules[1] = Module.PROXY;
       moduleData.modules[2] = Module.SINGLE_EXEC;
-
       moduleData.args[0] = _resolverModuleArg(
         moneyLineResolverAddress,
-        abi.encodeWithSelector(selector, (gameID))
+        abi.encodeWithSelector(
+          bytes4(keccak256(bytes('checker(uint256)'))),
+          (gameID)
+        )
       );
       moduleData.args[1] = _proxyModuleArg();
       moduleData.args[2] = _singleExecModuleArg();
