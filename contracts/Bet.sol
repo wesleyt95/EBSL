@@ -9,7 +9,7 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
   address payable admin;
   bytes32 private jobId;
   uint256 private fee;
-  address moneyLineResolverAddress;
+  address public moneyLineResolverAddress;
 
   constructor(address _moneyLineResolverAddress) ConfirmedOwner(msg.sender) {
     admin = payable(msg.sender);
@@ -181,7 +181,7 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
       );
       moduleData.args[1] = _proxyModuleArg();
       moduleData.args[2] = _singleExecModuleArg();
-      address executor = 0x683913B3A32ada4F8100458A3E1675425BdAa7DF;
+      address executor = 0xc1C6805B857Bef1f412519C4A842522431aFed39;
       _createTask(
         executor,
         abi.encodeWithSelector(this.rewardMoneyLineWinners.selector, (gameID)),
@@ -401,9 +401,7 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
     return userReceipts[msg.sender].receipts;
   }
 
-  function rewardMoneyLineWinners(
-    uint256 gameID
-  ) public onlyDedicatedMsgSender {
+  function rewardMoneyLineWinners(uint256 gameID) public {
     uint256 teamID;
     uint256 losingTeamID;
     requestMultipleParameters(gameID);
