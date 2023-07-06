@@ -1,11 +1,22 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
+import 'https://github.com/gelatodigital/automate/blob/master/contracts/integrations/AutomateTaskCreator.sol';
+import 'https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/ChainlinkClient.sol';
+import 'https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/ConfirmedOwner.sol';
 
-contract Bet {
+abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
+  using Chainlink for Chainlink.Request;
   address payable admin;
+  bytes32 private jobId;
+  uint256 private fee;
+  address moneyLineResolverAddress;
 
-  constructor() {
+  constructor() ConfirmedOwner(msg.sender) {
     admin = payable(msg.sender);
+    setChainlinkToken(0x779877A7B0D9E8603169DdbD7836e478b4624789);
+    setChainlinkOracle(0x6090149792dAAeE9D1D568c9f9a6F6B46AA29eFD);
+    jobId = 'ca98366cc7314957b8c012c72f05aeeb';
+    fee = (1 * LINK_DIVISIBILITY) / 10;
   }
 
   struct User {
@@ -26,7 +37,7 @@ contract Bet {
     mapping(uint256 => uint256) teamTotal;
     uint256 homeTeamID;
     uint256 awayTeamID;
-    mapping(uint256 => address[]) usersArray;
+    mapping(uint256 => address payable[]) usersArray;
     mapping(uint256 => mapping(address => Transaction)) receipt;
     uint256 result;
   }
@@ -37,7 +48,7 @@ contract Bet {
     mapping(uint256 => uint256) teamTotal;
     uint256 homeTeamID;
     uint256 awayTeamID;
-    mapping(uint256 => address[]) usersArray;
+    mapping(uint256 => address payable[]) usersArray;
     mapping(uint256 => mapping(address => Transaction)) receipt;
     uint256 result;
   }
@@ -48,7 +59,7 @@ contract Bet {
     mapping(int => uint256) betTotal;
     uint256 homeTeamID;
     uint256 awayTeamID;
-    mapping(int => address[]) usersArray;
+    mapping(int => address payable[]) usersArray;
     mapping(int => mapping(address => Transaction)) receipt;
     int result;
   }
@@ -59,6 +70,73 @@ contract Bet {
   mapping(uint256 => MoneyLine) public newMoneyLineBet;
   mapping(uint256 => PointSpread) public newPointSpreadBet;
   mapping(uint256 => PointTotal) public newPointTotalBet;
+  mapping(uint256 => uint256) public visitor_team_score;
+  mapping(uint256 => uint256) public home_team_score;
+
+  event RequestMultipleFulfilled(
+    bytes32 indexed requestId,
+    uint256 game,
+    uint256 home,
+    uint256 visitor
+  );
+
+  function uint2str(uint256 _i) internal pure returns (string memory str) {
+    if (_i == 0) {
+      return '0';
+    }
+    uint256 j = _i;
+    uint256 length;
+    while (j != 0) {
+      length++;
+      j /= 10;
+    }
+    bytes memory bstr = new bytes(length);
+    uint256 k = length;
+    while (_i != 0) {
+      k = k - 1;
+      uint8 temp = uint8(48 + (_i % 10));
+      bytes1 b1 = bytes1(temp);
+      bstr[k] = b1;
+      _i /= 10;
+    }
+    str = string(bstr);
+  }
+
+  function requestMultipleParameters(uint256 currentGameID) public {
+    Chainlink.Request memory req = buildChainlinkRequest(
+      jobId,
+      address(this),
+      this.fulfillMultipleParameters.selector
+    );
+
+    string memory url = string.concat(
+      'https://www.balldontlie.io/api/v1/games/',
+      uint2str(currentGameID)
+    );
+    req.add('urlGame', url);
+    req.add('pathGame', 'id');
+    req.add('urlHome', url);
+    req.add('pathHome', 'home_team_score');
+    req.add('urlVisitor', url);
+    req.add('pathVisitor', 'visitor_team_score');
+    sendChainlinkRequest(req, fee); // MWR API.
+  }
+
+  function fulfillMultipleParameters(
+    bytes32 requestId,
+    uint256 gameResponse,
+    uint256 homeResponse,
+    uint256 visitorResponse
+  ) public recordChainlinkFulfillment(requestId) {
+    emit RequestMultipleFulfilled(
+      requestId,
+      gameResponse,
+      homeResponse,
+      visitorResponse
+    );
+    home_team_score[gameResponse] = homeResponse;
+    visitor_team_score[gameResponse] = visitorResponse;
+  }
 
   function returnOdds(
     uint256 gameID,
@@ -76,7 +154,7 @@ contract Bet {
     uint256 teamID,
     uint256 homeTeamID,
     uint256 awayTeamID,
-    string memory startTime
+    uint256 startTime
   ) public payable {
     require(homeTeamID != awayTeamID);
     require(msg.sender == user, 'You must bet from your own address');
@@ -85,12 +163,36 @@ contract Bet {
       teamID == homeTeamID || teamID == awayTeamID,
       'You must bet on a team that is playing in this game'
     );
+    if (newMoneyLineBet[gameID].total == 0) {
+      ModuleData memory moduleData = ModuleData({
+        modules: new Module[](3),
+        args: new bytes[](3)
+      });
+      bytes4 selector = bytes4(keccak256(bytes('checker(uint256)')));
+      moduleData.modules[0] = Module.RESOLVER;
+      moduleData.modules[1] = Module.PROXY;
+      moduleData.modules[2] = Module.SINGLE_EXEC;
+
+      moduleData.args[0] = _resolverModuleArg(
+        moneyLineResolverAddress,
+        abi.encodeWithSelector(selector, (gameID))
+      );
+      moduleData.args[1] = _proxyModuleArg();
+      moduleData.args[2] = _singleExecModuleArg();
+      address executor = 0x683913B3A32ada4F8100458A3E1675425BdAa7DF;
+      _createTask(
+        executor,
+        abi.encodeWithSelector(this.rewardMoneyLineWinners.selector, (gameID)),
+        moduleData,
+        0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE
+      );
+    }
     uint256 tax = (msg.value * 5) / 100;
     uint256 msgValue = (msg.value * 95) / 100;
     MoneyLine storage moneyLine = newMoneyLineBet[gameID];
     Transaction[] storage receipt = userReceipts[msg.sender].receipts;
     Transaction storage transaction = moneyLine.receipt[teamID][msg.sender];
-    address[] storage usersArray = moneyLine.usersArray[teamID];
+    address payable[] storage usersArray = moneyLine.usersArray[teamID];
     admin.transfer(tax);
     userReceipts[msg.sender].escrow += msgValue;
     receipt.push(
@@ -109,11 +211,11 @@ contract Bet {
     moneyLine.teamTotal[teamID] += msgValue;
     moneyLine.homeTeamID = homeTeamID;
     moneyLine.awayTeamID = awayTeamID;
-    moneyLine.startTime = datetimeToUnix(startTime);
+    moneyLine.startTime = startTime;
     if (
       newMoneyLineBet[gameID].receipt[teamID][msg.sender].addr != msg.sender
     ) {
-      usersArray.push(msg.sender);
+      usersArray.push(payable(msg.sender));
     }
     transaction.addr = msg.sender;
     transaction.amount += msgValue;
@@ -129,7 +231,7 @@ contract Bet {
     uint256 teamID,
     uint256 homeTeamID,
     uint256 awayTeamID,
-    string memory startTime,
+    uint256 startTime,
     int spread
   ) public payable {
     require(homeTeamID != awayTeamID);
@@ -144,7 +246,7 @@ contract Bet {
     PointSpread storage pointSpread = newPointSpreadBet[gameID];
     Transaction[] storage receipt = userReceipts[msg.sender].receipts;
     Transaction storage transaction = pointSpread.receipt[teamID][msg.sender];
-    address[] storage usersArray = pointSpread.usersArray[teamID];
+    address payable[] storage usersArray = pointSpread.usersArray[teamID];
     admin.transfer(tax);
     userReceipts[msg.sender].escrow += msgValue;
     receipt.push(
@@ -163,12 +265,12 @@ contract Bet {
     pointSpread.teamTotal[teamID] += msgValue;
     pointSpread.homeTeamID = homeTeamID;
     pointSpread.awayTeamID = awayTeamID;
-    pointSpread.startTime = datetimeToUnix(startTime);
+    pointSpread.startTime = startTime;
     pointSpread.spreadAmount[teamID] = spread;
     if (
       newPointSpreadBet[gameID].receipt[teamID][msg.sender].addr != msg.sender
     ) {
-      usersArray.push(msg.sender);
+      usersArray.push(payable(msg.sender));
     }
     transaction.addr = msg.sender;
     transaction.amount += msgValue;
@@ -184,7 +286,7 @@ contract Bet {
     uint256 pointAmount,
     uint256 homeTeamID,
     uint256 awayTeamID,
-    string memory startTime,
+    uint256 startTime,
     int value
   ) public payable {
     require(homeTeamID != awayTeamID);
@@ -195,7 +297,7 @@ contract Bet {
     PointTotal storage pointTotal = newPointTotalBet[gameID];
     Transaction[] storage receipt = userReceipts[msg.sender].receipts;
     Transaction storage transaction = pointTotal.receipt[value][msg.sender];
-    address[] storage usersArray = pointTotal.usersArray[value];
+    address payable[] storage usersArray = pointTotal.usersArray[value];
     admin.transfer(tax);
     userReceipts[msg.sender].escrow += msgValue;
     receipt.push(
@@ -213,12 +315,12 @@ contract Bet {
     pointTotal.betTotal[value] += msgValue;
     pointTotal.homeTeamID = homeTeamID;
     pointTotal.awayTeamID = awayTeamID;
-    pointTotal.startTime = datetimeToUnix(startTime);
+    pointTotal.startTime = startTime;
     pointTotal.pointAmount = pointAmount;
     if (
       newPointTotalBet[gameID].receipt[value][msg.sender].addr != msg.sender
     ) {
-      usersArray.push(msg.sender);
+      usersArray.push(payable(msg.sender));
     }
     transaction.addr = msg.sender;
     transaction.amount += msgValue;
@@ -252,21 +354,27 @@ contract Bet {
   function returnMoneyLineUsersArray(
     uint256 gameID,
     uint256 teamID
-  ) public view returns (address[] memory) {
+  ) public view returns (address payable[] memory) {
     return newMoneyLineBet[gameID].usersArray[teamID];
+  }
+
+  function returnMoneyLineStartTime(
+    uint256 gameID
+  ) public view returns (uint256) {
+    return newMoneyLineBet[gameID].startTime;
   }
 
   function returnPointSpreadUsersArray(
     uint256 gameID,
     uint256 teamID
-  ) public view returns (address[] memory) {
+  ) public view returns (address payable[] memory) {
     return newPointSpreadBet[gameID].usersArray[teamID];
   }
 
   function returnPointTotalUsersArray(
     uint256 gameID,
     int value
-  ) public view returns (address[] memory) {
+  ) public view returns (address payable[] memory) {
     return newPointTotalBet[gameID].usersArray[value];
   }
 
@@ -291,31 +399,61 @@ contract Bet {
     return userReceipts[msg.sender].receipts;
   }
 
-  function datetimeToUnix(
-    string memory datetimeString
-  ) public pure returns (uint256) {
-    return uint256(keccak256(abi.encodePacked(datetimeString)));
-  }
-
   function rewardMoneyLineWinners(
-    address payable user,
-    uint256 gameID,
-    uint256 teamID
-  ) private {
+    uint256 gameID
+  ) public onlyDedicatedMsgSender {
+    uint256 teamID;
+    uint256 losingTeamID;
+    requestMultipleParameters(gameID);
+    if (
+      visitor_team_score[gameID] > 0 &&
+      (visitor_team_score[gameID] > home_team_score[gameID])
+    ) {
+      teamID = newMoneyLineBet[gameID].awayTeamID;
+      losingTeamID = newMoneyLineBet[gameID].homeTeamID;
+    } else if (
+      home_team_score[gameID] > 0 &&
+      (home_team_score[gameID] > visitor_team_score[gameID])
+    ) {
+      teamID = newMoneyLineBet[gameID].homeTeamID;
+      losingTeamID = newMoneyLineBet[gameID].awayTeamID;
+    }
     for (
       uint i = 0;
       i < newMoneyLineBet[gameID].usersArray[teamID].length;
       i++
     ) {
-      if (newMoneyLineBet[gameID].usersArray[teamID][i] == user) {
-        uint256 msgValue = newMoneyLineBet[gameID].receipt[teamID][user].amount;
-        user.transfer(msgValue / newMoneyLineBet[gameID].total);
-        userReceipts[user].escrow -= msgValue;
-      }
+      uint256 msgValue = newMoneyLineBet[gameID]
+      .receipt[teamID][newMoneyLineBet[gameID].usersArray[teamID][i]].amount;
+      newMoneyLineBet[gameID].usersArray[teamID][i].transfer(
+        msgValue / newMoneyLineBet[gameID].total
+      );
+      userReceipts[newMoneyLineBet[gameID].usersArray[teamID][i]]
+        .escrow -= msgValue;
+    }
+    for (
+      uint i = 0;
+      i < newMoneyLineBet[gameID].usersArray[losingTeamID].length;
+      i++
+    ) {
+      uint256 msgValue = newMoneyLineBet[gameID]
+      .receipt[losingTeamID][
+        newMoneyLineBet[gameID].usersArray[losingTeamID][i]
+      ].amount;
+      userReceipts[newMoneyLineBet[gameID].usersArray[losingTeamID][i]]
+        .escrow -= msgValue;
     }
   }
 
-  // DELETE LATER!!!
+  function returnResponse(uint256 gameID) public returns (uint256) {
+    requestMultipleParameters(gameID);
+    return home_team_score[gameID];
+  }
+
+  function setMoneyLineResolverAddress(address addr) public {
+    require(msg.sender == admin, 'You are not the admin');
+    moneyLineResolverAddress = addr;
+  }
 
   function transferEther() public {
     require(msg.sender == admin, 'You are not the admin');

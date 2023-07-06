@@ -208,7 +208,7 @@ const sendBetAway = async () => {
         gameArray.value.visitor_team.id,
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
-        gameArray.value.date,
+        Date.parse(gameArray.value.date).getTime() / 1000,
         overrides
       );
 
@@ -227,7 +227,7 @@ const sendBetAway = async () => {
         gameArray.value.visitor_team.id,
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
-        gameArray.value.date,
+        Date.parse(gameArray.value.date).getTime() / 1000,
         14,
         overrides
       );
@@ -246,7 +246,7 @@ const sendBetAway = async () => {
         200,
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
-        gameArray.value.date,
+        Date.parse(gameArray.value.date).getTime() / 1000,
         -1,
         overrides
       );
@@ -275,7 +275,7 @@ const sendBetHome = async () => {
         gameArray.value.home_team.id,
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
-        gameArray.value.date,
+        Date.parse(gameArray.value.date).getTime() / 1000,
         overrides
       );
 
@@ -294,7 +294,7 @@ const sendBetHome = async () => {
         gameArray.value.home_team.id,
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
-        gameArray.value.date,
+        Date.parse(gameArray.value.date).getTime() / 1000,
         14,
         overrides
       );
@@ -313,7 +313,7 @@ const sendBetHome = async () => {
         200,
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
-        gameArray.value.date,
+        Date.parse(gameArray.value.date).getTime() / 1000,
         -1,
         overrides
       );
