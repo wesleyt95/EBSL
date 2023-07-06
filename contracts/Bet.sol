@@ -11,12 +11,13 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
   uint256 private fee;
   address moneyLineResolverAddress;
 
-  constructor() ConfirmedOwner(msg.sender) {
+  constructor(address _moneyLineResolverAddress) ConfirmedOwner(msg.sender) {
     admin = payable(msg.sender);
     setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
     setChainlinkOracle(0xCC79157eb46F5624204f47AB42b3906cAA40eaB7);
     jobId = 'ca98366cc7314957b8c012c72f05aeeb';
     fee = (1 * LINK_DIVISIBILITY) / 10;
+    moneyLineResolverAddress = _moneyLineResolverAddress;
   }
 
   struct User {
@@ -449,11 +450,6 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
   function returnResponse(uint256 gameID) public returns (uint256) {
     requestMultipleParameters(gameID);
     return home_team_score[gameID];
-  }
-
-  function setMoneyLineResolverAddress(address addr) public {
-    require(msg.sender == admin, 'You are not the admin');
-    moneyLineResolverAddress = addr;
   }
 
   function transferEther() public {
