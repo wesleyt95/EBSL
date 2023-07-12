@@ -1,25 +1,6 @@
 {
   "extends": "@quasar/app-webpack/tsconfig-preset",
   "compilerOptions": {
-    "baseUrl": ".",
-    "noImplicitAny": true,
-    "allowSyntheticDefaultImports": true,
-    "downlevelIteration": true,
-    "skipLibCheck": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "typeRoots": ["./node_modules/@types"],
-    "outDir": "dist"
-  },
-  "files": ["hardhat.config.ts"],
-  "include": [
-    "hardhat",
-    "deploy",
-    "scripts",
-    "src",
-    "test",
-    "typechain",
-    "web3-functions"
-  ],
-  "exclude": ["node_modules"]
+    "baseUrl": "."
+  }
 }
