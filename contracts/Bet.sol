@@ -11,6 +11,10 @@ contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
   address payable admin;
   bytes32 private jobId;
   uint256 private fee;
+<<<<<<< HEAD
+=======
+  address moneyLineResolverAddress;
+>>>>>>> parent of ca29b0f (Updated...small details)
 
   constructor()
     AutomateTaskCreator(
@@ -183,6 +187,10 @@ contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
       );
       moduleData.args[1] = _proxyModuleArg();
       moduleData.args[2] = _singleExecModuleArg();
+<<<<<<< HEAD
+=======
+      address executor = 0x683913B3A32ada4F8100458A3E1675425BdAa7DF;
+>>>>>>> parent of ca29b0f (Updated...small details)
       _createTask(
         address(this),
         abi.encodeWithSelector(this.rewardMoneyLineWinners.selector, (gameID)),
@@ -362,7 +370,9 @@ contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
     return userReceipts[msg.sender].receipts;
   }
 
-  function rewardMoneyLineWinners(uint256 gameID) public {
+  function rewardMoneyLineWinners(
+    uint256 gameID
+  ) public onlyDedicatedMsgSender {
     uint256 teamID;
     uint256 losingTeamID;
     requestMultipleParameters(gameID);
