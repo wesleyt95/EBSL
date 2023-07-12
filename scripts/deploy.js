@@ -1,10 +1,10 @@
 require('dotenv').config();
-const { ethers } = require('hardhat');
+const hre = require('hardhat');
+const { ethers } = hre;
 async function main() {
   const [deployer] = await ethers.getSigners();
   console.log('Deploying contracts with the account:', deployer.address);
   const contract = await ethers.deployContract('Bet');
-
   console.log('Contract address:', await contract.getAddress());
 }
 

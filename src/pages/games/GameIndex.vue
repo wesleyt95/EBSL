@@ -208,7 +208,7 @@ const sendBetAway = async () => {
         gameArray.value.visitor_team.id,
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
-        Date.parse(gameArray.value.date).getTime() / 1000,
+        Date.parse(gameArray.value.date) / 1000,
         overrides
       );
 
@@ -227,7 +227,7 @@ const sendBetAway = async () => {
         gameArray.value.visitor_team.id,
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
-        Date.parse(gameArray.value.date).getTime() / 1000,
+        Date.parse(gameArray.value.date) / 1000,
         14,
         overrides
       );
@@ -246,7 +246,7 @@ const sendBetAway = async () => {
         200,
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
-        Date.parse(gameArray.value.date).getTime() / 1000,
+        Date.parse(gameArray.value.date) / 1000,
         -1,
         overrides
       );
@@ -275,7 +275,7 @@ const sendBetHome = async () => {
         gameArray.value.home_team.id,
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
-        Date.parse(gameArray.value.date).getTime() / 1000,
+        Date.parse(gameArray.value.date) / 1000,
         overrides
       );
 
@@ -294,7 +294,7 @@ const sendBetHome = async () => {
         gameArray.value.home_team.id,
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
-        Date.parse(gameArray.value.date).getTime() / 1000,
+        Date.parse(gameArray.value.date) / 1000,
         14,
         overrides
       );
@@ -313,7 +313,7 @@ const sendBetHome = async () => {
         200,
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
-        Date.parse(gameArray.value.date).getTime() / 1000,
+        Date.parse(gameArray.value.date) / 1000,
         -1,
         overrides
       );
@@ -321,6 +321,21 @@ const sendBetHome = async () => {
     } catch (err) {
       console.log(err);
     }
+  }
+};
+const logResult = async () => {
+  const betContract = new ethers.Contract(
+    process.env.CONTRACT_ADDRESS,
+    contract.abi,
+    await provider.getSigner()
+  );
+  try {
+    const tx = await betContract.depositForCounter({
+      value: 9000000000000000,
+    });
+    console.log(tx);
+  } catch (err) {
+    console.log(err);
   }
 };
 </script>
@@ -657,7 +672,7 @@ const sendBetHome = async () => {
                 "
               />
             </div>
-            <div>
+            <div @click="logResult">
               <q-table
                 :title="gameArray.home_team.full_name"
                 :rows="statsArrayHome"

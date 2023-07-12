@@ -1,23 +1,29 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
-import 'https://github.com/gelatodigital/automate/blob/master/contracts/integrations/AutomateTaskCreator.sol';
-import 'https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/ChainlinkClient.sol';
-import 'https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/ConfirmedOwner.sol';
+pragma solidity ^0.8.12;
+import {AutomateTaskCreator} from './AutomateTaskCreator.sol';
+import {Module, ModuleData} from './Types.sol';
+import {ChainlinkClient} from '@chainlink/contracts/src/v0.8/ChainlinkClient.sol';
+import {Chainlink} from '@chainlink/contracts/src/v0.8/Chainlink.sol';
+import {ConfirmedOwner} from '@chainlink/contracts/src/v0.8/ConfirmedOwner.sol';
 
-abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
+contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
   using Chainlink for Chainlink.Request;
   address payable admin;
   bytes32 private jobId;
   uint256 private fee;
-  address public moneyLineResolverAddress;
 
-  constructor(address _moneyLineResolverAddress) ConfirmedOwner(msg.sender) {
+  constructor()
+    AutomateTaskCreator(
+      0xc1C6805B857Bef1f412519C4A842522431aFed39,
+      address(this)
+    )
+    ConfirmedOwner(msg.sender)
+  {
     admin = payable(msg.sender);
     setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
-    setChainlinkOracle(0xCC79157eb46F5624204f47AB42b3906cAA40eaB7);
-    jobId = 'ca98366cc7314957b8c012c72f05aeeb';
+    setChainlinkOracle(0x188b71C9d27cDeE01B9b0dfF5C1aff62E8D6F434);
+    jobId = '437d298d210c4fff935dcedb97ea8011';
     fee = (1 * LINK_DIVISIBILITY) / 10;
-    moneyLineResolverAddress = _moneyLineResolverAddress;
   }
 
   struct User {
@@ -75,13 +81,13 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
   mapping(uint256 => uint256) public home_team_score;
 
   event RequestMultipleFulfilled(
-    bytes32 indexed requestId,
-    uint256 game,
-    uint256 home,
-    uint256 visitor
+    bytes32 requestId,
+    uint256 indexed id,
+    uint256 indexed home_team_score,
+    uint256 indexed visitor_team_score
   );
 
-  function uint2str(uint256 _i) internal pure returns (string memory str) {
+  function uint256ToString(uint256 _i) public pure returns (string memory) {
     if (_i == 0) {
       return '0';
     }
@@ -100,7 +106,7 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
       bstr[k] = b1;
       _i /= 10;
     }
-    str = string(bstr);
+    return string(bstr);
   }
 
   function requestMultipleParameters(uint256 currentGameID) public {
@@ -109,34 +115,33 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
       address(this),
       this.fulfillMultipleParameters.selector
     );
-
+    string memory gameIdString = uint256ToString(currentGameID);
     string memory url = string.concat(
       'https://www.balldontlie.io/api/v1/games/',
-      uint2str(currentGameID)
+      gameIdString
     );
-    req.add('urlGame', url);
-    req.add('pathGame', 'id');
-    req.add('urlHome', url);
-    req.add('pathHome', 'home_team_score');
-    req.add('urlVisitor', url);
-    req.add('pathVisitor', 'visitor_team_score');
+    req.add('get', url);
+    req.add('path1', 'id');
+    req.add('path2', 'home_team_score');
+    req.add('path3', 'visitor_team_score');
+    req.addInt('times', 1);
     sendChainlinkRequest(req, fee); // MWR API.
   }
 
   function fulfillMultipleParameters(
     bytes32 requestId,
-    uint256 gameResponse,
-    uint256 homeResponse,
-    uint256 visitorResponse
+    uint256 idResponse,
+    uint256 home_team_scoreResponse,
+    uint256 visitor_team_scoreResponse
   ) public recordChainlinkFulfillment(requestId) {
     emit RequestMultipleFulfilled(
       requestId,
-      gameResponse,
-      homeResponse,
-      visitorResponse
+      idResponse,
+      home_team_scoreResponse,
+      visitor_team_scoreResponse
     );
-    home_team_score[gameResponse] = homeResponse;
-    visitor_team_score[gameResponse] = visitorResponse;
+    home_team_score[idResponse] = home_team_scoreResponse;
+    visitor_team_score[idResponse] = visitor_team_scoreResponse;
   }
 
   function returnOdds(
@@ -173,20 +178,16 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
       moduleData.modules[1] = Module.PROXY;
       moduleData.modules[2] = Module.SINGLE_EXEC;
       moduleData.args[0] = _resolverModuleArg(
-        moneyLineResolverAddress,
-        abi.encodeWithSelector(
-          bytes4(keccak256(bytes('checker(uint256)'))),
-          (gameID)
-        )
+        address(this),
+        abi.encodeCall(this.moneyLineChecker, (gameID))
       );
       moduleData.args[1] = _proxyModuleArg();
       moduleData.args[2] = _singleExecModuleArg();
-      address executor = 0xc1C6805B857Bef1f412519C4A842522431aFed39;
       _createTask(
-        executor,
+        address(this),
         abi.encodeWithSelector(this.rewardMoneyLineWinners.selector, (gameID)),
         moduleData,
-        0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE
+        ETH
       );
     }
     uint256 tax = (msg.value * 5) / 100;
@@ -227,60 +228,60 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
     transaction.time = block.timestamp;
   }
 
-  function pointSpreadBet(
-    address user,
-    uint256 gameID,
-    uint256 teamID,
-    uint256 homeTeamID,
-    uint256 awayTeamID,
-    uint256 startTime,
-    int spread
-  ) public payable {
-    require(homeTeamID != awayTeamID);
-    require(msg.sender == user, 'You must bet from your own address');
-    require(msg.value > 0, 'You must bet something');
-    require(
-      teamID == homeTeamID || teamID == awayTeamID,
-      'You must bet on a team that is playing in this game'
-    );
-    uint256 tax = (msg.value * 5) / 100;
-    uint256 msgValue = (msg.value * 95) / 100;
-    PointSpread storage pointSpread = newPointSpreadBet[gameID];
-    Transaction[] storage receipt = userReceipts[msg.sender].receipts;
-    Transaction storage transaction = pointSpread.receipt[teamID][msg.sender];
-    address payable[] storage usersArray = pointSpread.usersArray[teamID];
-    admin.transfer(tax);
-    userReceipts[msg.sender].escrow += msgValue;
-    receipt.push(
-      Transaction(
-        msg.sender,
-        msgValue,
-        teamID,
-        gameID,
-        'Point Spread',
-        block.timestamp
-      )
-    );
-    totalBetOnGame[gameID] += msg.value;
-    totalBetOnTeam[gameID][teamID] += msg.value;
-    pointSpread.total += msgValue;
-    pointSpread.teamTotal[teamID] += msgValue;
-    pointSpread.homeTeamID = homeTeamID;
-    pointSpread.awayTeamID = awayTeamID;
-    pointSpread.startTime = startTime;
-    pointSpread.spreadAmount[teamID] = spread;
-    if (
-      newPointSpreadBet[gameID].receipt[teamID][msg.sender].addr != msg.sender
-    ) {
-      usersArray.push(payable(msg.sender));
-    }
-    transaction.addr = msg.sender;
-    transaction.amount += msgValue;
-    transaction.teamID = teamID;
-    transaction.gameID = gameID;
-    transaction.betType = 'Point Spread';
-    transaction.time = block.timestamp;
-  }
+  // function pointSpreadBet(
+  //   address user,
+  //   uint256 gameID,
+  //   uint256 teamID,
+  //   uint256 homeTeamID,
+  //   uint256 awayTeamID,
+  //   uint256 startTime,
+  //   int spread
+  // ) public payable {
+  //   require(homeTeamID != awayTeamID);
+  //   require(msg.sender == user, 'You must bet from your own address');
+  //   require(msg.value > 0, 'You must bet something');
+  //   require(
+  //     teamID == homeTeamID || teamID == awayTeamID,
+  //     'You must bet on a team that is playing in this game'
+  //   );
+  //   uint256 tax = (msg.value * 5) / 100;
+  //   uint256 msgValue = (msg.value * 95) / 100;
+  //   PointSpread storage pointSpread = newPointSpreadBet[gameID];
+  //   Transaction[] storage receipt = userReceipts[msg.sender].receipts;
+  //   Transaction storage transaction = pointSpread.receipt[teamID][msg.sender];
+  //   address payable[] storage usersArray = pointSpread.usersArray[teamID];
+  //   admin.transfer(tax);
+  //   userReceipts[msg.sender].escrow += msgValue;
+  //   receipt.push(
+  //     Transaction(
+  //       msg.sender,
+  //       msgValue,
+  //       teamID,
+  //       gameID,
+  //       'Point Spread',
+  //       block.timestamp
+  //     )
+  //   );
+  //   totalBetOnGame[gameID] += msg.value;
+  //   totalBetOnTeam[gameID][teamID] += msg.value;
+  //   pointSpread.total += msgValue;
+  //   pointSpread.teamTotal[teamID] += msgValue;
+  //   pointSpread.homeTeamID = homeTeamID;
+  //   pointSpread.awayTeamID = awayTeamID;
+  //   pointSpread.startTime = startTime;
+  //   pointSpread.spreadAmount[teamID] = spread;
+  //   if (
+  //     newPointSpreadBet[gameID].receipt[teamID][msg.sender].addr != msg.sender
+  //   ) {
+  //     usersArray.push(payable(msg.sender));
+  //   }
+  //   transaction.addr = msg.sender;
+  //   transaction.amount += msgValue;
+  //   transaction.teamID = teamID;
+  //   transaction.gameID = gameID;
+  //   transaction.betType = 'Point Spread';
+  //   transaction.time = block.timestamp;
+  // }
 
   function pointTotalBet(
     address user,
@@ -353,46 +354,6 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
     return newPointTotalBet[gameID].receipt[value][msg.sender];
   }
 
-  function returnMoneyLineUsersArray(
-    uint256 gameID,
-    uint256 teamID
-  ) public view returns (address payable[] memory) {
-    return newMoneyLineBet[gameID].usersArray[teamID];
-  }
-
-  function returnMoneyLineStartTime(
-    uint256 gameID
-  ) public view returns (uint256) {
-    return newMoneyLineBet[gameID].startTime;
-  }
-
-  function returnPointSpreadUsersArray(
-    uint256 gameID,
-    uint256 teamID
-  ) public view returns (address payable[] memory) {
-    return newPointSpreadBet[gameID].usersArray[teamID];
-  }
-
-  function returnPointTotalUsersArray(
-    uint256 gameID,
-    int value
-  ) public view returns (address payable[] memory) {
-    return newPointTotalBet[gameID].usersArray[value];
-  }
-
-  function returnPointSpreadGameAmount(
-    uint256 gameID,
-    uint256 teamID
-  ) public view returns (int) {
-    return newPointSpreadBet[gameID].spreadAmount[teamID];
-  }
-
-  function returnPointTotalGameAmount(
-    uint256 gameID
-  ) public view returns (uint256) {
-    return newPointTotalBet[gameID].pointAmount;
-  }
-
   function returnEscrow() public view returns (uint256) {
     return userReceipts[msg.sender].escrow;
   }
@@ -450,8 +411,18 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
     return home_team_score[gameID];
   }
 
-  function transferEther() public {
+  function depositForCounter() external payable {
     require(msg.sender == admin, 'You are not the admin');
-    admin.transfer(address(this).balance);
+    _depositFunds(msg.value, ETH);
+  }
+
+  function moneyLineChecker(
+    uint256 currentGameID
+  ) external view returns (bool canExec, bytes memory execPayload) {
+    if (block.timestamp > newMoneyLineBet[currentGameID].startTime) {
+      execPayload = abi.encodeCall(this.rewardMoneyLineWinners, currentGameID);
+      canExec = true;
+      return (canExec, execPayload);
+    }
   }
 }
