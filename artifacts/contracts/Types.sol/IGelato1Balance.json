@@ -1,27 +1,17 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "ITaskTreasuryUpgradable",
+  "contractName": "IGelato1Balance",
   "sourceName": "contracts/Types.sol",
   "abi": [
     {
       "inputs": [
         {
           "internalType": "address",
-          "name": "receiver",
+          "name": "_sponsor",
           "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "token",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
         }
       ],
-      "name": "depositFunds",
+      "name": "depositNative",
       "outputs": [],
       "stateMutability": "payable",
       "type": "function"
@@ -29,22 +19,22 @@
     {
       "inputs": [
         {
-          "internalType": "address payable",
-          "name": "receiver",
+          "internalType": "address",
+          "name": "_sponsor",
           "type": "address"
         },
         {
           "internalType": "address",
-          "name": "token",
+          "name": "_token",
           "type": "address"
         },
         {
           "internalType": "uint256",
-          "name": "amount",
+          "name": "_amount",
           "type": "uint256"
         }
       ],
-      "name": "withdrawFunds",
+      "name": "depositToken",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

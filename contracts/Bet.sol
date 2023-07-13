@@ -1,22 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
-import 'https://github.com/gelatodigital/automate/blob/master/contracts/integrations/AutomateTaskCreator.sol';
-import 'https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/ChainlinkClient.sol';
-import 'https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/ConfirmedOwner.sol';
+pragma solidity ^0.8.12;
+import {AutomateTaskCreator} from './AutomateTaskCreator.sol';
+import {Module, ModuleData} from './Types.sol';
 
-abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
-  using Chainlink for Chainlink.Request;
+contract Bet is AutomateTaskCreator {
   address payable admin;
-  bytes32 private jobId;
-  uint256 private fee;
-  address moneyLineResolverAddress;
 
-  constructor() ConfirmedOwner(msg.sender) {
+  constructor()
+    AutomateTaskCreator(
+      0x2A6C106ae13B558BB9E2Ec64Bd2f1f7BEFF3A5E0,
+      address(this)
+    )
+  {
     admin = payable(msg.sender);
-    setChainlinkToken(0x779877A7B0D9E8603169DdbD7836e478b4624789);
-    setChainlinkOracle(0x6090149792dAAeE9D1D568c9f9a6F6B46AA29eFD);
-    jobId = 'ca98366cc7314957b8c012c72f05aeeb';
-    fee = (1 * LINK_DIVISIBILITY) / 10;
   }
 
   struct User {
@@ -73,71 +69,6 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
   mapping(uint256 => uint256) public visitor_team_score;
   mapping(uint256 => uint256) public home_team_score;
 
-  event RequestMultipleFulfilled(
-    bytes32 indexed requestId,
-    uint256 game,
-    uint256 home,
-    uint256 visitor
-  );
-
-  function uint2str(uint256 _i) internal pure returns (string memory str) {
-    if (_i == 0) {
-      return '0';
-    }
-    uint256 j = _i;
-    uint256 length;
-    while (j != 0) {
-      length++;
-      j /= 10;
-    }
-    bytes memory bstr = new bytes(length);
-    uint256 k = length;
-    while (_i != 0) {
-      k = k - 1;
-      uint8 temp = uint8(48 + (_i % 10));
-      bytes1 b1 = bytes1(temp);
-      bstr[k] = b1;
-      _i /= 10;
-    }
-    str = string(bstr);
-  }
-
-  function requestMultipleParameters(uint256 currentGameID) public {
-    Chainlink.Request memory req = buildChainlinkRequest(
-      jobId,
-      address(this),
-      this.fulfillMultipleParameters.selector
-    );
-
-    string memory url = string.concat(
-      'https://www.balldontlie.io/api/v1/games/',
-      uint2str(currentGameID)
-    );
-    req.add('urlGame', url);
-    req.add('pathGame', 'id');
-    req.add('urlHome', url);
-    req.add('pathHome', 'home_team_score');
-    req.add('urlVisitor', url);
-    req.add('pathVisitor', 'visitor_team_score');
-    sendChainlinkRequest(req, fee); // MWR API.
-  }
-
-  function fulfillMultipleParameters(
-    bytes32 requestId,
-    uint256 gameResponse,
-    uint256 homeResponse,
-    uint256 visitorResponse
-  ) public recordChainlinkFulfillment(requestId) {
-    emit RequestMultipleFulfilled(
-      requestId,
-      gameResponse,
-      homeResponse,
-      visitorResponse
-    );
-    home_team_score[gameResponse] = homeResponse;
-    visitor_team_score[gameResponse] = visitorResponse;
-  }
-
   function returnOdds(
     uint256 gameID,
     uint256 bettingTeamID
@@ -164,27 +95,26 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
       'You must bet on a team that is playing in this game'
     );
     if (newMoneyLineBet[gameID].total == 0) {
+      string memory web3ContractAddress = '';
       ModuleData memory moduleData = ModuleData({
-        modules: new Module[](3),
-        args: new bytes[](3)
+        modules: new Module[](2),
+        args: new bytes[](2)
       });
-      bytes4 selector = bytes4(keccak256(bytes('checker(uint256)')));
-      moduleData.modules[0] = Module.RESOLVER;
-      moduleData.modules[1] = Module.PROXY;
-      moduleData.modules[2] = Module.SINGLE_EXEC;
 
-      moduleData.args[0] = _resolverModuleArg(
-        moneyLineResolverAddress,
-        abi.encodeWithSelector(selector, (gameID))
+      moduleData.modules[0] = Module.PROXY;
+      moduleData.modules[1] = Module.WEB3_FUNCTION;
+
+      moduleData.args[0] = _proxyModuleArg();
+      moduleData.args[1] = _web3FunctionModuleArg(
+        web3ContractAddress,
+        abi.encode(gameID, startTime)
       );
-      moduleData.args[1] = _proxyModuleArg();
-      moduleData.args[2] = _singleExecModuleArg();
-      address executor = 0x683913B3A32ada4F8100458A3E1675425BdAa7DF;
+
       _createTask(
-        executor,
-        abi.encodeWithSelector(this.rewardMoneyLineWinners.selector, (gameID)),
+        address(this),
+        abi.encodeCall(this.rewardMoneyLineWinners, (gameID)),
         moduleData,
-        0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE
+        ETH
       );
     }
     uint256 tax = (msg.value * 5) / 100;
@@ -404,7 +334,6 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
   ) public onlyDedicatedMsgSender {
     uint256 teamID;
     uint256 losingTeamID;
-    requestMultipleParameters(gameID);
     if (
       visitor_team_score[gameID] > 0 &&
       (visitor_team_score[gameID] > home_team_score[gameID])
@@ -445,14 +374,9 @@ abstract contract Bet is AutomateTaskCreator, ChainlinkClient, ConfirmedOwner {
     }
   }
 
-  function returnResponse(uint256 gameID) public returns (uint256) {
-    requestMultipleParameters(gameID);
-    return home_team_score[gameID];
-  }
-
-  function setMoneyLineResolverAddress(address addr) public {
+  function depositForCounter() external payable {
     require(msg.sender == admin, 'You are not the admin');
-    moneyLineResolverAddress = addr;
+    _depositFunds1Balance(msg.value, ETH, admin);
   }
 
   function transferEther() public {
