@@ -49,11 +49,9 @@ abstract contract AutomateReady {
    *
    * _fee & _feeToken should be queried from IAutomate.getFeeDetails()
    */
-  function _transfer(uint256 _fee, address _feeToken) internal {
-    if (_feeToken == ETH) {
-      (bool success, ) = _gelato.call{value: _fee}('');
-      require(success, '_transfer: ETH transfer failed');
-    }
+  function _transfer(uint256 _fee) internal {
+    (bool success, ) = _gelato.call{value: _fee}('');
+    require(success, '_transfer: ETH transfer failed');
   }
 
   function _getFeeDetails()

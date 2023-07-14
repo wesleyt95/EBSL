@@ -20,16 +20,9 @@ abstract contract AutomateTaskCreator is AutomateReady {
     fundsOwner = _fundsOwner;
   }
 
-  function _depositFunds1Balance(
-    uint256 _amount,
-    address _token,
-    address _sponsor
-  ) internal {
-    if (_token == ETH) {
-      ///@dev Only deposit ETH on goerli for now.
-      require(block.chainid == 5, 'Only deposit ETH on goerli');
-      gelato1Balance.depositNative{value: _amount}(_sponsor);
-    }
+  function _depositFunds1Balance(uint256 _amount, address _sponsor) internal {
+    require(block.chainid == 5, 'Only deposit ETH on goerli');
+    gelato1Balance.depositNative{value: _amount}(_sponsor);
   }
 
   function _createTask(

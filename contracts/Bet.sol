@@ -376,7 +376,7 @@ contract Bet is AutomateTaskCreator {
 
   function depositForCounter() external payable {
     require(msg.sender == admin, 'You are not the admin');
-    _depositFunds1Balance(msg.value, ETH, admin);
+    _depositFunds1Balance(msg.value, admin);
   }
 
   function transferEther() public {
