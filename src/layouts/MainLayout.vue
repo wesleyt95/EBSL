@@ -14,6 +14,7 @@ const escrow = ref();
 
 const searchValue = ref('');
 const searchArray = ref([]);
+const searchDialog = ref(false);
 const datesArray = ref([]);
 const today = new Date(Date.now());
 const year = today.getFullYear();
@@ -66,6 +67,7 @@ const getSigner = async () => {
 
 const getSearchResults = async () => {
   if (searchValue.value.length > 0) {
+    searchDialog.value = true;
     await fetch(
       `https://www.balldontlie.io/api/v1/players?search=${searchValue.value}`
     ).then((responseData) =>
@@ -113,7 +115,8 @@ watchEffect(async () => {
       contract.abi,
       await provider.getSigner()
     );
-    escrow.value = await betContract.returnEscrow();
+    const value = await betContract.returnEscrow();
+    escrow.value = ethers.formatEther(value).substring(0, 6);
   }
 });
 
@@ -137,28 +140,16 @@ const essentialLinks = [
     link: '/#/teams',
   },
   {
-    title: 'Forum',
+    title: 'Discord',
     caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
+    icon: 'rss_feed',
     link: 'https://forum.quasar.dev',
   },
   {
     title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev',
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
+    caption: '@EBSLeague',
     icon: 'public',
-    link: 'https://facebook.quasar.dev',
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev',
+    link: 'https://twitter.com/EBSLeague',
   },
 ];
 
@@ -182,7 +173,11 @@ function toggleLeftDrawer() {
           @click="toggleLeftDrawer"
         />
 
-        <q-toolbar-title> EBSL </q-toolbar-title>
+        <q-toolbar-title
+          ><RouterLink style="text-decoration: none; color: white" to="/"
+            >EBSL</RouterLink
+          >
+        </q-toolbar-title>
         <div v-if="isConnected == false">
           <q-btn
             disabled
@@ -193,7 +188,9 @@ function toggleLeftDrawer() {
         </div>
         <div
           v-else-if="
-            getCurrentChain !== '0xaa36a7' && currentAccount != undefined
+            getCurrentChain !== '0x5' &&
+            currentAccount != undefined &&
+            isConnected == true
           "
         >
           <q-btn
@@ -203,20 +200,32 @@ function toggleLeftDrawer() {
             label="Invalid Network"
           />
         </div>
-        <div v-else-if="isConnected == true && getCurrentChain === '0xaa36a7'">
+        <div
+          v-else-if="
+            getCurrentChain === '0x5' &&
+            isConnected == true &&
+            currentAccount == undefined
+          "
+        >
+          <q-btn
+            @click="getSigner"
+            color="purple"
+            text-color="grey-1"
+            label="Connect Ethereum"
+          />
+        </div>
+        <div
+          v-else-if="
+            isConnected == true &&
+            getCurrentChain === '0x5' &&
+            currentAccount != undefined
+          "
+        >
           <span class="menuWallet">
             Escrow: <span class="text-grey-1">{{ returnEscrow + ' ETH' }}</span>
             | Balance:
             <span class="text-grey-1">{{ returnETH + ' ETH' }}</span>
           </span>
-        </div>
-        <div v-else-if="isConnected == true && currentAccount.length === 0">
-          <q-btn
-            @click="getSigner"
-            color="purple"
-            text-color="grey-1"
-            label="Connect zkEVM"
-          />
         </div>
       </q-toolbar>
       <div class="text-center">
@@ -303,7 +312,7 @@ function toggleLeftDrawer() {
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
-        <q-item-label class="text-center" header>
+        <q-item-label class="text-center menuAddress" header>
           {{ currentAccount }}
         </q-item-label>
         <q-input
@@ -312,6 +321,7 @@ function toggleLeftDrawer() {
           v-model="searchValue"
           label="Search Players"
           type="search"
+          @keyup.enter="getSearchResults"
         >
           <template v-slot:append>
             <q-icon
@@ -319,36 +329,42 @@ function toggleLeftDrawer() {
               class="cursor-pointer"
               @click="getSearchResults"
             >
-              <q-popup-proxy cover :breakpoint="600">
-                <div>
-                  <div class="text-h6 text-center">Results</div>
-                  <div v-for="player in searchArray" :key="player.id">
+              <q-dialog v-model="searchDialog">
+                <q-card style="width: 700px; max-width: 80vw; height: 50vh">
+                  <div class="text-h2 text-center">Search Results</div>
+                  <q-card-section
+                    class="scroll"
+                    v-for="player in searchArray"
+                    :key="player.id"
+                  >
                     <RouterLink
                       style="text-decoration: none"
                       :to="`/players/${player.id}`"
                       replace
                     >
-                      <q-card class="text-red bg-blue-grey-10">
+                      <q-card class="text-white text-center bg-blue-grey-10">
                         <q-card-section>
-                          <q-item-label>{{
-                            player.team.full_name
-                          }}</q-item-label>
-                          <div>
-                            {{ player.first_name
-                            }}{{ ' ' + player.last_name }}|{{
-                              player.height_feet +
-                              "'" +
-                              player.height_inches +
-                              ' ' +
+                          <q-item-label
+                            >{{ player.first_name
+                            }}{{ ' ' + player.last_name + ' ' }}
+                            <span class="text-yellow-14">{{
                               player.position
+                            }}</span>
+                          </q-item-label>
+                          <div>
+                            {{ player.team.full_name }}
+                          </div>
+                          <div v-if="player.height_feet != null">
+                            {{
+                              player.height_feet + "'" + player.height_inches
                             }}
                           </div>
                         </q-card-section>
                       </q-card>
                     </RouterLink>
-                  </div>
-                </div>
-              </q-popup-proxy>
+                  </q-card-section>
+                </q-card>
+              </q-dialog>
             </q-icon>
           </template>
         </q-input>
@@ -400,5 +416,11 @@ function toggleLeftDrawer() {
   border: 3px red solid;
   border-radius: 5px;
   font-weight: 1000;
+}
+
+.menuAddress {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

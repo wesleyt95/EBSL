@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\AutomateReady.sol": {
-      "lastModificationDate": 1689206065935,
-      "contentHash": "bd842b04b456948c1dbd6ef7aea633ec",
+      "lastModificationDate": 1689540406196,
+      "contentHash": "58b466908c7f44bde72485cbcefc9628",
       "sourceName": "contracts/AutomateReady.sol",
       "solcConfig": {
         "version": "0.8.14",
@@ -29,6 +29,7 @@
         }
       },
       "imports": [
+        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
         "./Types.sol"
       ],
       "versionPragmas": [
@@ -77,8 +78,8 @@
       ]
     },
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\AutomateTaskCreator.sol": {
-      "lastModificationDate": 1689224818329,
-      "contentHash": "aebd410c124686733a05afdbe1712a4e",
+      "lastModificationDate": 1689539321020,
+      "contentHash": "e64f6ff6f0ff308a0cdcb39ead6aabbe",
       "sourceName": "contracts/AutomateTaskCreator.sol",
       "solcConfig": {
         "version": "0.8.14",
@@ -104,7 +105,8 @@
         }
       },
       "imports": [
-        "./AutomateReady.sol"
+        "./AutomateReady.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol"
       ],
       "versionPragmas": [
         "^0.8.14"
@@ -114,8 +116,8 @@
       ]
     },
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\Bet.sol": {
-      "lastModificationDate": 1689228803546,
-      "contentHash": "f73a9a7f14efdd01627b6c79df955c7d",
+      "lastModificationDate": 1689543729150,
+      "contentHash": "8bfb1a36272737d5970de500adcccc1a",
       "sourceName": "contracts/Bet.sol",
       "solcConfig": {
         "version": "0.8.14",
@@ -149,6 +151,150 @@
       ],
       "artifacts": [
         "Bet"
+      ]
+    },
+    "C:\\Users\\Wes\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\utils\\SafeERC20.sol": {
+      "lastModificationDate": 1687320828420,
+      "contentHash": "a159c68235d1d18f16dd0a57a000daea",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
+      "solcConfig": {
+        "version": "0.8.14",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../IERC20.sol",
+        "../extensions/IERC20Permit.sol",
+        "../../../utils/Address.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "SafeERC20"
+      ]
+    },
+    "C:\\Users\\Wes\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\IERC20.sol": {
+      "lastModificationDate": 1687320828036,
+      "contentHash": "df36f7051335cd1e748b1b6463b7fdd3",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+      "solcConfig": {
+        "version": "0.8.14",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IERC20"
+      ]
+    },
+    "C:\\Users\\Wes\\node_modules\\@openzeppelin\\contracts\\utils\\Address.sol": {
+      "lastModificationDate": 1687320827051,
+      "contentHash": "211ffd288c1588ba8c10eae668ca3c66",
+      "sourceName": "@openzeppelin/contracts/utils/Address.sol",
+      "solcConfig": {
+        "version": "0.8.14",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.1"
+      ],
+      "artifacts": [
+        "Address"
+      ]
+    },
+    "C:\\Users\\Wes\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\extensions\\IERC20Permit.sol": {
+      "lastModificationDate": 1687320828052,
+      "contentHash": "aa849939a4ae83a4dcb2dca9b3e9e707",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol",
+      "solcConfig": {
+        "version": "0.8.14",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IERC20Permit"
       ]
     }
   }

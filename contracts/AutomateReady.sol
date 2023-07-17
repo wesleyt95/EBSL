@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.14;
+
+import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import './Types.sol';
 
 /**
@@ -49,9 +51,13 @@ abstract contract AutomateReady {
    *
    * _fee & _feeToken should be queried from IAutomate.getFeeDetails()
    */
-  function _transfer(uint256 _fee) internal {
-    (bool success, ) = _gelato.call{value: _fee}('');
-    require(success, '_transfer: ETH transfer failed');
+  function _transfer(uint256 _fee, address _feeToken) internal {
+    if (_feeToken == ETH) {
+      (bool success, ) = _gelato.call{value: _fee}('');
+      require(success, '_transfer: ETH transfer failed');
+    } else {
+      SafeERC20.safeTransfer(IERC20(_feeToken), _gelato, _fee);
+    }
   }
 
   function _getFeeDetails()

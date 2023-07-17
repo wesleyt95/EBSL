@@ -58,7 +58,12 @@ const getETH = async () => {
                       .name
                   }}
                 </div>
-                <div>{{ JSON.parse(tx)[1] + ' ETH' }}</div>
+                <div>
+                  {{
+                    ethers.formatEther(JSON.parse(tx)[1]).substring(0, 6) +
+                    ' ETH'
+                  }}
+                </div>
               </div>
             </div>
           </RouterLink>

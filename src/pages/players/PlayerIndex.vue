@@ -29,6 +29,10 @@ const team = computed(() => {
   return playerArray.value.team?.full_name;
 });
 
+const teamID = computed(() => {
+  return playerArray.value.team?.id;
+});
+
 const statColumns = [
   {
     name: 'game',
@@ -123,13 +127,22 @@ watchEffect(async () => {
             Name:
             {{ fullName }}
           </div>
-          <div>Position: {{ position }}</div>
-          <div>
+          <div
+            v-if="playerArray.position != null && playerArray.position !== ''"
+          >
+            Position: {{ position }}
+          </div>
+          <div v-if="playerArray.height_feet != null">
             Height:
             {{ height }}
           </div>
-          <div>Weight: {{ weight }}</div>
-          <div>Team: {{ team }}</div>
+          <div v-if="playerArray.weight_pounds != null">
+            Weight: {{ weight }}
+          </div>
+          <div>
+            Team:
+            <RouterLink :to="`/teams/${teamID}`">{{ team }}</RouterLink>
+          </div>
         </div>
 
         <div>

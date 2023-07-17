@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.12;
+
 import {AutomateTaskCreator} from './AutomateTaskCreator.sol';
 import {Module, ModuleData} from './Types.sol';
 
@@ -35,7 +36,7 @@ contract Bet is AutomateTaskCreator {
     uint256 awayTeamID;
     mapping(uint256 => address payable[]) usersArray;
     mapping(uint256 => mapping(address => Transaction)) receipt;
-    uint256 result;
+    bytes32 taskID;
   }
   struct PointSpread {
     mapping(uint256 => int) spreadAmount;
@@ -46,7 +47,7 @@ contract Bet is AutomateTaskCreator {
     uint256 awayTeamID;
     mapping(uint256 => address payable[]) usersArray;
     mapping(uint256 => mapping(address => Transaction)) receipt;
-    uint256 result;
+    bytes32 taskID;
   }
   struct PointTotal {
     uint256 pointAmount;
@@ -57,7 +58,7 @@ contract Bet is AutomateTaskCreator {
     uint256 awayTeamID;
     mapping(int => address payable[]) usersArray;
     mapping(int => mapping(address => Transaction)) receipt;
-    int result;
+    bytes32 taskID;
   }
 
   mapping(address => User) public userReceipts;
@@ -79,13 +80,22 @@ contract Bet is AutomateTaskCreator {
     return odds;
   }
 
+  function _getWeb3FunctionArgsHex(
+    address web3fAddress,
+    uint256 gameID,
+    uint256 startTime
+  ) internal pure returns (bytes memory web3FunctionArgsHex) {
+    web3FunctionArgsHex = abi.encode(web3fAddress, gameID, startTime);
+  }
+
   function moneyLineBet(
     address user,
     uint256 gameID,
     uint256 teamID,
     uint256 homeTeamID,
     uint256 awayTeamID,
-    uint256 startTime
+    uint256 startTime,
+    string memory web3ContractAddress
   ) public payable {
     require(homeTeamID != awayTeamID);
     require(msg.sender == user, 'You must bet from your own address');
@@ -94,8 +104,7 @@ contract Bet is AutomateTaskCreator {
       teamID == homeTeamID || teamID == awayTeamID,
       'You must bet on a team that is playing in this game'
     );
-    if (newMoneyLineBet[gameID].total == 0) {
-      string memory web3ContractAddress = '';
+    if (newMoneyLineBet[gameID].taskID == bytes32('')) {
       ModuleData memory moduleData = ModuleData({
         modules: new Module[](2),
         args: new bytes[](2)
@@ -107,15 +116,16 @@ contract Bet is AutomateTaskCreator {
       moduleData.args[0] = _proxyModuleArg();
       moduleData.args[1] = _web3FunctionModuleArg(
         web3ContractAddress,
-        abi.encode(gameID, startTime)
+        _getWeb3FunctionArgsHex(address(this), gameID, startTime)
       );
 
-      _createTask(
+      bytes32 id = _createTask(
         address(this),
-        abi.encodeCall(this.rewardMoneyLineWinners, (gameID)),
+        abi.encode(this.rewardMoneyLineWinners.selector),
         moduleData,
-        ETH
+        address(0)
       );
+      newMoneyLineBet[gameID].taskID = id;
     }
     uint256 tax = (msg.value * 5) / 100;
     uint256 msgValue = (msg.value * 95) / 100;
@@ -330,57 +340,39 @@ contract Bet is AutomateTaskCreator {
   }
 
   function rewardMoneyLineWinners(
-    uint256 gameID
+    uint256 gameID,
+    uint256 winnerID,
+    uint256 loserID
   ) public onlyDedicatedMsgSender {
-    uint256 teamID;
-    uint256 losingTeamID;
-    if (
-      visitor_team_score[gameID] > 0 &&
-      (visitor_team_score[gameID] > home_team_score[gameID])
+    for (
+      uint i = 0;
+      i < newMoneyLineBet[gameID].usersArray[winnerID].length;
+      i++
     ) {
-      teamID = newMoneyLineBet[gameID].awayTeamID;
-      losingTeamID = newMoneyLineBet[gameID].homeTeamID;
-    } else if (
-      home_team_score[gameID] > 0 &&
-      (home_team_score[gameID] > visitor_team_score[gameID])
-    ) {
-      teamID = newMoneyLineBet[gameID].homeTeamID;
-      losingTeamID = newMoneyLineBet[gameID].awayTeamID;
+      address payable winningUserID = newMoneyLineBet[gameID].usersArray[
+        winnerID
+      ][i];
+      uint256 msgValue = newMoneyLineBet[gameID]
+      .receipt[winnerID][winningUserID].amount;
+      winningUserID.transfer(msgValue / newMoneyLineBet[gameID].total);
+      userReceipts[winningUserID].escrow -= msgValue;
     }
     for (
       uint i = 0;
-      i < newMoneyLineBet[gameID].usersArray[teamID].length;
+      i < newMoneyLineBet[gameID].usersArray[loserID].length;
       i++
     ) {
+      address payable losingUserID = newMoneyLineBet[gameID].usersArray[
+        loserID
+      ][i];
       uint256 msgValue = newMoneyLineBet[gameID]
-      .receipt[teamID][newMoneyLineBet[gameID].usersArray[teamID][i]].amount;
-      newMoneyLineBet[gameID].usersArray[teamID][i].transfer(
-        msgValue / newMoneyLineBet[gameID].total
-      );
-      userReceipts[newMoneyLineBet[gameID].usersArray[teamID][i]]
-        .escrow -= msgValue;
-    }
-    for (
-      uint i = 0;
-      i < newMoneyLineBet[gameID].usersArray[losingTeamID].length;
-      i++
-    ) {
-      uint256 msgValue = newMoneyLineBet[gameID]
-      .receipt[losingTeamID][
-        newMoneyLineBet[gameID].usersArray[losingTeamID][i]
-      ].amount;
-      userReceipts[newMoneyLineBet[gameID].usersArray[losingTeamID][i]]
-        .escrow -= msgValue;
+      .receipt[loserID][losingUserID].amount;
+      userReceipts[losingUserID].escrow -= msgValue;
     }
   }
 
-  function depositForCounter() external payable {
+  function deposit() external payable {
     require(msg.sender == admin, 'You are not the admin');
-    _depositFunds1Balance(msg.value, admin);
-  }
-
-  function transferEther() public {
-    require(msg.sender == admin, 'You are not the admin');
-    admin.transfer(address(this).balance);
+    _depositFunds1Balance(msg.value, ETH, admin);
   }
 }

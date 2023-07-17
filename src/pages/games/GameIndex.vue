@@ -117,11 +117,11 @@ watchEffect(async () => {
       router.params.id
     )}`
   ).then((responseData) =>
-    responseData.json().then((data) => {
-      statsArrayAway.value = data.data.filter(
+    responseData.json().then(async (data) => {
+      statsArrayAway.value = await data.data.filter(
         (row) => row.team.id === gameArray.value.visitor_team.id
       );
-      statsArrayHome.value = data.data.filter(
+      statsArrayHome.value = await data.data.filter(
         (row) => row.team.id === gameArray.value.home_team.id
       );
     })
@@ -170,7 +170,6 @@ watchEffect(async () => {
     homeCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
       typeof v === 'bigint' ? v.toString() : v
     );
-    console.log('home:', homeCurrentMoneyline.value);
   }
 
   if (awayCurrentMoneyline.value == undefined) {
@@ -186,7 +185,6 @@ watchEffect(async () => {
     awayCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
       typeof v === 'bigint' ? v.toString() : v
     );
-    console.log('away:', awayCurrentMoneyline.value);
   }
 });
 
@@ -209,6 +207,7 @@ const sendBetAway = async () => {
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
         Date.parse(gameArray.value.date) / 1000,
+        'QmfKUhLdFnaF61DreQNjfWX1uqfSJ1jqwWaaJvh5ge7kSo',
         overrides
       );
 
@@ -276,6 +275,7 @@ const sendBetHome = async () => {
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
         Date.parse(gameArray.value.date) / 1000,
+        'QmfKUhLdFnaF61DreQNjfWX1uqfSJ1jqwWaaJvh5ge7kSo',
         overrides
       );
 
@@ -330,7 +330,7 @@ const logResult = async () => {
     await provider.getSigner()
   );
   try {
-    const tx = await betContract.depositForCounter({
+    const tx = await betContract.deposit({
       value: 9000000000000000,
     });
     console.log(tx);
@@ -418,14 +418,19 @@ const logResult = async () => {
                       <q-card-section>
                         <div>
                           <span class="text-h6"> Money Line</span>
-                          <div class="betValue">
+                          <div
+                            v-if="awayCurrentMoneyline !== undefined"
+                            class="betValue"
+                          >
                             {{ returnAwayMoneyline }}
                           </div>
                         </div>
                       </q-card-section>
 
                       <q-card-section class="q-pt-none">
-                        Place your wager on who you think will win the game
+                        Place your wager on
+                        {{ gameArray.visitor_team?.full_name }} winning the
+                        game.
                       </q-card-section>
                     </q-radio>
                     <div v-if="awayBetType === 'moneyline'">
@@ -566,14 +571,18 @@ const logResult = async () => {
                       <q-card-section>
                         <div>
                           <span class="text-h6"> Money Line</span>
-                          <div class="betValue">
+                          <div
+                            v-if="homeCurrentMoneyline !== undefined"
+                            class="betValue"
+                          >
                             {{ returnHomeMoneyline }}
                           </div>
                         </div>
                       </q-card-section>
 
                       <q-card-section class="q-pt-none">
-                        Place your wager on who you think will win the game
+                        Place your wager on
+                        {{ gameArray.home_team?.full_name }} winning the game
                       </q-card-section>
                     </q-radio>
                     <div v-if="homeBetType === 'moneyline'">
@@ -681,7 +690,7 @@ const logResult = async () => {
                 :rows-per-page-options="[0]"
                 :auto-width="true"
                 virtual-scroll
-                style="height: 30em; width: 45em"
+                style="height: 30em"
                 @row-click="
                   (evt, row, index) =>
                     this.$router.replace({ path: `/players/${row.player.id}` })
