@@ -9,7 +9,7 @@ const chainId = ref();
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 
 const isConnected = ref(false);
-const balance = ref(BigInt(0));
+const balance = ref();
 const escrow = ref();
 
 const searchValue = ref('');
@@ -40,10 +40,6 @@ function getDatesArray() {
 }
 const currentAccount = computed(() => {
   return user.value;
-});
-
-const getCurrentChain = computed(() => {
-  return chainId.value;
 });
 
 const returnETH = computed(() => {
@@ -82,7 +78,7 @@ watchEffect(async () => {
   ) {
     user.value = window.ethereum._state.accounts[0];
   }
-  if (chainId.value == undefined && window.ethereum.chainId) {
+  if (chainId.value === undefined && window.ethereum.chainId) {
     chainId.value = window.ethereum.chainId;
   }
   if (datesArray.value.length === 0) {
@@ -96,20 +92,17 @@ watchEffect(async () => {
 
   if (window.ethereum) {
     isConnected.value = true;
-    if (typeof user.value === 'string') {
+    if (typeof user.value === 'string' && balance.value === undefined) {
       try {
-        const weiBalance = await provider.getBalance(currentAccount.value);
+        const weiBalance = await provider.getBalance(user.value);
         balance.value = ethers.formatEther(weiBalance).substring(0, 6);
       } catch (error) {
         console.log(error);
       }
     }
-  } else {
-    isConnected.value = false;
-    balance.value = BigInt(0);
   }
 
-  if (escrow.value == undefined && user.value != undefined) {
+  if (escrow.value === undefined && user.value !== undefined) {
     const betContract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
       contract.abi,
@@ -178,7 +171,7 @@ function toggleLeftDrawer() {
             >EBSL</RouterLink
           >
         </q-toolbar-title>
-        <div v-if="isConnected == false">
+        <div v-if="isConnected === false && user === undefined">
           <q-btn
             disabled
             color="white"
@@ -186,27 +179,8 @@ function toggleLeftDrawer() {
             label="MetaMask Undetected"
           />
         </div>
-        <div
-          v-else-if="
-            getCurrentChain !== '0x5' &&
-            currentAccount != undefined &&
-            isConnected == true
-          "
-        >
-          <q-btn
-            disabled
-            color="white"
-            text-color="red"
-            label="Invalid Network"
-          />
-        </div>
-        <div
-          v-else-if="
-            getCurrentChain === '0x5' &&
-            isConnected == true &&
-            currentAccount == undefined
-          "
-        >
+
+        <div v-else-if="chainId === '0x5' && user === undefined">
           <q-btn
             @click="getSigner"
             color="purple"
@@ -214,13 +188,15 @@ function toggleLeftDrawer() {
             label="Connect Ethereum"
           />
         </div>
-        <div
-          v-else-if="
-            isConnected == true &&
-            getCurrentChain === '0x5' &&
-            currentAccount != undefined
-          "
-        >
+        <div v-else-if="chainId !== '0x5' && user !== undefined">
+          <q-btn
+            disabled
+            color="white"
+            text-color="red"
+            label="Invalid Network"
+          />
+        </div>
+        <div v-else-if="chainId === '0x5' && user !== undefined">
           <span class="menuWallet">
             Escrow: <span class="text-grey-1">{{ returnEscrow + ' ETH' }}</span>
             | Balance:

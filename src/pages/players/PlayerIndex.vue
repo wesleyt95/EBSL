@@ -18,7 +18,7 @@ const position = computed(() => {
 });
 
 const height = computed(() => {
-  return playerArray.value.height_feet + '\`' + playerArray.value.height_feet;
+  return playerArray.value.height_feet + '\`' + playerArray.value.height_inches;
 });
 
 const weight = computed(() => {
@@ -122,28 +122,30 @@ watchEffect(async () => {
   <q-card>
     <q-card-section>
       <div class="row items-center justify-evenly q-ma-auto q-pa-auto fit">
-        <div class="text-center">
-          <div>
-            Name:
-            {{ fullName }}
-          </div>
-          <div
-            v-if="playerArray.position != null && playerArray.position !== ''"
-          >
-            Position: {{ position }}
-          </div>
-          <div v-if="playerArray.height_feet != null">
-            Height:
-            {{ height }}
-          </div>
-          <div v-if="playerArray.weight_pounds != null">
-            Weight: {{ weight }}
-          </div>
-          <div>
-            Team:
-            <RouterLink :to="`/teams/${teamID}`">{{ team }}</RouterLink>
-          </div>
-        </div>
+        <q-card class="text-center">
+          <q-card-section>
+            <div>
+              Name:
+              {{ fullName }}
+            </div>
+            <div
+              v-if="playerArray.position != null && playerArray.position !== ''"
+            >
+              Position: {{ position }}
+            </div>
+            <div v-if="playerArray.height_feet != null">
+              Height:
+              {{ height }}
+            </div>
+            <div v-if="playerArray.weight_pounds != null">
+              Weight: {{ weight }}
+            </div>
+            <div>
+              Team:
+              <RouterLink :to="`/teams/${teamID}`">{{ team }}</RouterLink>
+            </div>
+          </q-card-section>
+        </q-card>
 
         <div>
           <q-table

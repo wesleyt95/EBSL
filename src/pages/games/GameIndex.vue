@@ -342,7 +342,10 @@ const logResult = async () => {
 <template>
   <q-page>
     <div>
-      <q-card class="mainCard">
+      <q-card v-if="gameArray.date" class="mainCard">
+        <div class="text-center">
+          {{ new Date(gameArray.date).toLocaleDateString() }}
+        </div>
         <q-card-section>
           <div class="row items-center justify-evenly text-h3 text-center">
             <div style="width: 40%">
@@ -726,6 +729,7 @@ const logResult = async () => {
   text-align: center;
   margin: 1em auto;
   width: 80%;
+  background: #fff;
 }
 
 .betValue {
