@@ -33,66 +33,84 @@ const getETH = async () => {
 </script>
 
 <template>
-  <q-page class="row items-center justify-evenly">
+  <q-page class="fit">
     <q-card class="mainCard">
-      <q-card-section>
-        <div class="text-h4 mainSign" @click="getETH">Past Transactions</div>
-        <div v-for="(tx, index) in transactionHistory" :key="index">
-          <RouterLink
-            style="text-decoration: none"
-            :to="`/games/${JSON.parse(tx)[3]}`"
-          >
-            <div class="receiptItem">
-              <div class="text-center text-red text-weight-bold">
-                {{
-                  new Date(
-                    Number(JSON.parse(tx)[5]) * 1000
-                  ).toLocaleDateString()
-                }}
-              </div>
-              <div class="row justify-between">
-                <div>{{ JSON.parse(tx)[4] }}</div>
-                <div style="float: left; margin-left: -1em" class="text-grey-1">
+      <q-scroll-area style="height: 48em">
+        <q-card-section>
+          <div class="text-h4 mainSign" @click="getETH">
+            Active Transactions
+          </div>
+          <div v-for="(tx, index) in transactionHistory" :key="index">
+            <RouterLink
+              style="text-decoration: none"
+              :to="`/games/${JSON.parse(tx)[3]}`"
+            >
+              <div class="receiptItem">
+                <div class="text-center text-red text-weight-bold">
                   {{
-                    TEAMS.find((row) => row.id === Number(JSON.parse(tx)[2]))
-                      .name
+                    new Date(
+                      Number(JSON.parse(tx)[5]) * 1000
+                    ).toLocaleDateString()
                   }}
                 </div>
-                <div>
-                  {{
-                    ethers.formatEther(JSON.parse(tx)[1]).substring(0, 6) +
-                    ' ETH'
-                  }}
+                <div class="row justify-between">
+                  <div>{{ JSON.parse(tx)[4] }}</div>
+                  <div
+                    style="float: left; margin-left: -1em"
+                    class="text-grey-1"
+                  >
+                    {{
+                      TEAMS.find((row) => row.id === Number(JSON.parse(tx)[2]))
+                        .name
+                    }}
+                  </div>
+                  <div>
+                    {{
+                      ethers.formatEther(JSON.parse(tx)[1]).substring(0, 6) +
+                      ' ETH'
+                    }}
+                  </div>
                 </div>
               </div>
-            </div>
-          </RouterLink>
-        </div>
-      </q-card-section>
-
-      <q-card-section class="q-pt-none">
-        <div>{{ null }}</div>
-      </q-card-section>
-    </q-card>
-    <q-card class="mainCard">
-      <q-card-section>
-        <div class="text-h4 mainSign">Active Transactions</div>
-        <div class="text-subtitle2">by John Doe</div>
-      </q-card-section>
-
-      <q-card-section class="q-pt-none">
-        <div>{{ null }}</div>
-      </q-card-section>
-    </q-card>
-    <q-card class="mainCard">
-      <q-card-section>
-        <div class="text-h4 mainSign">EBSL Leaderboard</div>
-        <div class="text-subtitle2">by John Doe</div>
-      </q-card-section>
-
-      <q-card-section class="q-pt-none">
-        <div>{{ null }}</div>
-      </q-card-section>
+            </RouterLink>
+          </div>
+          <div class="text-h4 mainSign" @click="getETH">Past Transactions</div>
+          <div v-for="(tx, index) in transactionHistory" :key="index">
+            <RouterLink
+              style="text-decoration: none"
+              :to="`/games/${JSON.parse(tx)[3]}`"
+            >
+              <div class="receiptItem">
+                <div class="text-center text-red text-weight-bold">
+                  {{
+                    new Date(
+                      Number(JSON.parse(tx)[5]) * 1000
+                    ).toLocaleDateString()
+                  }}
+                </div>
+                <div class="row justify-between">
+                  <div>{{ JSON.parse(tx)[4] }}</div>
+                  <div
+                    style="float: left; margin-left: -1em"
+                    class="text-grey-1"
+                  >
+                    {{
+                      TEAMS.find((row) => row.id === Number(JSON.parse(tx)[2]))
+                        .name
+                    }}
+                  </div>
+                  <div>
+                    {{
+                      ethers.formatEther(JSON.parse(tx)[1]).substring(0, 6) +
+                      ' ETH'
+                    }}
+                  </div>
+                </div>
+              </div>
+            </RouterLink>
+          </div>
+        </q-card-section>
+      </q-scroll-area>
     </q-card>
   </q-page>
 </template>
@@ -105,12 +123,15 @@ const getETH = async () => {
   text-align: center;
 }
 .mainCard {
-  margin: 1em;
+  margin: 1em 0.5em 0 0;
   border: 5px $grey-4 solid;
   border-radius: 5px;
   padding: 1em;
   color: $blue-grey-10;
   background: $grey-1;
+  height: 100%;
+  width: 25%;
+  float: right;
 }
 .receiptItem {
   border: 4px red solid;

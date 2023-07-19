@@ -210,7 +210,8 @@ const sendBetAway = async () => {
         'QmfKUhLdFnaF61DreQNjfWX1uqfSJ1jqwWaaJvh5ge7kSo',
         overrides
       );
-
+      await tx.wait();
+      window.location.reload();
       console.log(tx);
     } catch (err) {
       console.log(err);
@@ -230,6 +231,8 @@ const sendBetAway = async () => {
         14,
         overrides
       );
+      await tx.wait();
+      window.location.reload();
       console.log(tx);
     } catch (err) {
       console.log(err);
@@ -249,6 +252,8 @@ const sendBetAway = async () => {
         -1,
         overrides
       );
+      await tx.wait();
+      window.location.reload();
       console.log(tx);
     } catch (err) {
       console.log(err);
@@ -278,7 +283,8 @@ const sendBetHome = async () => {
         'QmfKUhLdFnaF61DreQNjfWX1uqfSJ1jqwWaaJvh5ge7kSo',
         overrides
       );
-
+      await tx.wait();
+      window.location.reload();
       console.log(tx);
     } catch (err) {
       console.log(err);
@@ -298,6 +304,8 @@ const sendBetHome = async () => {
         14,
         overrides
       );
+      await tx.wait();
+      window.location.reload();
       console.log(tx);
     } catch (err) {
       console.log(err);
@@ -317,6 +325,8 @@ const sendBetHome = async () => {
         -1,
         overrides
       );
+      await tx.wait();
+      window.location.reload();
       console.log(tx);
     } catch (err) {
       console.log(err);
@@ -333,6 +343,8 @@ const logResult = async () => {
     const tx = await betContract.deposit({
       value: 9000000000000000,
     });
+    await tx.wait();
+    window.location.reload();
     console.log(tx);
   } catch (err) {
     console.log(err);
@@ -349,11 +361,11 @@ const logResult = async () => {
         <q-card-section>
           <div class="row items-center justify-evenly text-h3 text-center">
             <div style="width: 40%">
-              {{ gameArray.visitor_team?.full_name + ` (%${returnAwayOdds})` }}
+              {{ gameArray.visitor_team?.full_name + ` (${returnAwayOdds}%)` }}
             </div>
             <div style="width: 10%">@</div>
             <div style="width: 40%">
-              {{ gameArray.home_team?.full_name + ` (%${returnHomeOdds})` }}
+              {{ gameArray.home_team?.full_name + ` (${returnHomeOdds}%)` }}
             </div>
           </div>
         </q-card-section>

@@ -19,7 +19,7 @@ watchEffect(async () => {
 </script>
 <template>
   <div class="text-h4 text-center q-my-xl">
-    Schedule: {{ selectedDate }}
+    Game Schedule: {{ selectedDate }}
     <q-icon name="event" class="cursor-pointer">
       <q-popup-proxy cover :breakpoint="600">
         <q-date v-model="date" minimal />

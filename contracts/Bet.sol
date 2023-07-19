@@ -18,6 +18,8 @@ contract Bet is AutomateTaskCreator {
 
   struct User {
     uint256 escrow;
+    Transaction[] active;
+    Transaction[] inactive;
     Transaction[] receipts;
   }
   struct Transaction {
@@ -131,11 +133,22 @@ contract Bet is AutomateTaskCreator {
     uint256 msgValue = (msg.value * 95) / 100;
     MoneyLine storage moneyLine = newMoneyLineBet[gameID];
     Transaction[] storage receipt = userReceipts[msg.sender].receipts;
+    Transaction[] storage active = userReceipts[msg.sender].active;
     Transaction storage transaction = moneyLine.receipt[teamID][msg.sender];
     address payable[] storage usersArray = moneyLine.usersArray[teamID];
     admin.transfer(tax);
     userReceipts[msg.sender].escrow += msgValue;
     receipt.push(
+      Transaction(
+        msg.sender,
+        msgValue,
+        teamID,
+        gameID,
+        'Money Line',
+        block.timestamp
+      )
+    );
+    active.push(
       Transaction(
         msg.sender,
         msgValue,
@@ -185,11 +198,22 @@ contract Bet is AutomateTaskCreator {
     uint256 msgValue = (msg.value * 95) / 100;
     PointSpread storage pointSpread = newPointSpreadBet[gameID];
     Transaction[] storage receipt = userReceipts[msg.sender].receipts;
+    Transaction[] storage active = userReceipts[msg.sender].active;
     Transaction storage transaction = pointSpread.receipt[teamID][msg.sender];
     address payable[] storage usersArray = pointSpread.usersArray[teamID];
     admin.transfer(tax);
     userReceipts[msg.sender].escrow += msgValue;
     receipt.push(
+      Transaction(
+        msg.sender,
+        msgValue,
+        teamID,
+        gameID,
+        'Point Spread',
+        block.timestamp
+      )
+    );
+    active.push(
       Transaction(
         msg.sender,
         msgValue,
@@ -236,11 +260,22 @@ contract Bet is AutomateTaskCreator {
     uint256 msgValue = (msg.value * 95) / 100;
     PointTotal storage pointTotal = newPointTotalBet[gameID];
     Transaction[] storage receipt = userReceipts[msg.sender].receipts;
+    Transaction[] storage active = userReceipts[msg.sender].active;
     Transaction storage transaction = pointTotal.receipt[value][msg.sender];
     address payable[] storage usersArray = pointTotal.usersArray[value];
     admin.transfer(tax);
     userReceipts[msg.sender].escrow += msgValue;
     receipt.push(
+      Transaction(
+        msg.sender,
+        msgValue,
+        0,
+        gameID,
+        'Point Total',
+        block.timestamp
+      )
+    );
+    active.push(
       Transaction(
         msg.sender,
         msgValue,

@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import EssentialLink from 'components/EssentialLink.vue';
 
 const provider = new ethers.BrowserProvider(window.ethereum);
-const user = ref();
+const user = ref('');
 const chainId = ref();
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 
@@ -39,7 +39,11 @@ function getDatesArray() {
   datesArray.value = dates;
 }
 const currentAccount = computed(() => {
-  return user.value;
+  if (user.value.length > 0) {
+    return user.value;
+  } else {
+    return 'Menu';
+  }
 });
 
 const returnETH = computed(() => {
@@ -76,10 +80,20 @@ watchEffect(async () => {
     window.ethereum._state.accounts &&
     window.ethereum._state.accounts.length > 0
   ) {
-    user.value = window.ethereum._state.accounts[0];
+    try {
+      console.log(window.ethereum._state.accounts[0]);
+      user.value = window.ethereum._state.accounts[0];
+    } catch (error) {
+      console.log(error);
+    }
   }
   if (chainId.value === undefined && window.ethereum.chainId) {
-    chainId.value = window.ethereum.chainId;
+    try {
+      console.log(window.ethereum.chainId);
+      chainId.value = window.ethereum.chainId;
+    } catch (error) {
+      console.log(error);
+    }
   }
   if (datesArray.value.length === 0) {
     getDatesArray();
@@ -92,9 +106,10 @@ watchEffect(async () => {
 
   if (window.ethereum) {
     isConnected.value = true;
-    if (typeof user.value === 'string' && balance.value === undefined) {
+    if (user.value.length > 0 && balance.value === undefined) {
       try {
         const weiBalance = await provider.getBalance(user.value);
+        console.log(weiBalance);
         balance.value = ethers.formatEther(weiBalance).substring(0, 6);
       } catch (error) {
         console.log(error);
@@ -102,14 +117,19 @@ watchEffect(async () => {
     }
   }
 
-  if (escrow.value === undefined && user.value !== undefined) {
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
-    const value = await betContract.returnEscrow();
-    escrow.value = ethers.formatEther(value).substring(0, 6);
+  if (escrow.value === undefined && user.value.length > 0) {
+    try {
+      const betContract = new ethers.Contract(
+        process.env.CONTRACT_ADDRESS,
+        contract.abi,
+        await provider.getSigner()
+      );
+      const value = await betContract.returnEscrow();
+      console.log(value);
+      escrow.value = ethers.formatEther(value).substring(0, 6);
+    } catch (error) {
+      console.log(error);
+    }
   }
 });
 
@@ -171,38 +191,58 @@ function toggleLeftDrawer() {
             >EBSL</RouterLink
           >
         </q-toolbar-title>
-        <div v-if="isConnected === false && user === undefined">
-          <q-btn
-            disabled
-            color="white"
-            text-color="black"
-            label="MetaMask Undetected"
-          />
-        </div>
+        <template
+          v-if="isConnected === true && user.length > 0 && chainId === '0x5'"
+        >
+          <div>
+            <span class="menuWallet">
+              Escrow:
+              <span class="text-grey-1">{{ returnEscrow + ' ETH' }}</span>
+              | Balance:
+              <span class="text-grey-1">{{ returnETH + ' ETH' }}</span>
+            </span>
+          </div>
+        </template>
 
-        <div v-else-if="chainId === '0x5' && user === undefined">
-          <q-btn
-            @click="getSigner"
-            color="purple"
-            text-color="grey-1"
-            label="Connect Ethereum"
-          />
-        </div>
-        <div v-else-if="chainId !== '0x5' && user !== undefined">
-          <q-btn
-            disabled
-            color="white"
-            text-color="red"
-            label="Invalid Network"
-          />
-        </div>
-        <div v-else-if="chainId === '0x5' && user !== undefined">
-          <span class="menuWallet">
-            Escrow: <span class="text-grey-1">{{ returnEscrow + ' ETH' }}</span>
-            | Balance:
-            <span class="text-grey-1">{{ returnETH + ' ETH' }}</span>
-          </span>
-        </div>
+        <template
+          v-else-if="
+            isConnected === true && chainId === '0x5' && user.length === 0
+          "
+        >
+          <div>
+            <q-btn
+              @click="getSigner"
+              text-color="grey-1"
+              label="Connect Ethereum"
+            />
+          </div>
+        </template>
+
+        <template
+          v-else-if="
+            isConnected === true && chainId !== '0x5' && user.length > 0
+          "
+        >
+          <div>
+            <q-btn
+              disabled
+              color="white"
+              text-color="red"
+              label="Invalid Network"
+            />
+          </div>
+        </template>
+
+        <template v-else-if="isConnected === false && user.length === 0">
+          <div>
+            <q-btn
+              disabled
+              color="white"
+              text-color="black"
+              label="MetaMask Undetected"
+            />
+          </div>
+        </template>
       </q-toolbar>
       <div class="text-center">
         <div class="q-my-md">
@@ -289,7 +329,7 @@ function toggleLeftDrawer() {
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
         <q-item-label class="text-center menuAddress" header>
-          {{ currentAccount }}
+          <span class="text-red">@</span>{{ currentAccount }}
         </q-item-label>
         <q-input
           square
