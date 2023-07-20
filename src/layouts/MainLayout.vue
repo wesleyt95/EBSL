@@ -81,7 +81,6 @@ watchEffect(async () => {
     window.ethereum._state.accounts.length > 0
   ) {
     try {
-      console.log(window.ethereum._state.accounts[0]);
       user.value = window.ethereum._state.accounts[0];
     } catch (error) {
       console.log(error);
@@ -89,7 +88,6 @@ watchEffect(async () => {
   }
   if (chainId.value === undefined && window.ethereum.chainId) {
     try {
-      console.log(window.ethereum.chainId);
       chainId.value = window.ethereum.chainId;
     } catch (error) {
       console.log(error);
@@ -109,7 +107,6 @@ watchEffect(async () => {
     if (user.value.length > 0 && balance.value === undefined) {
       try {
         const weiBalance = await provider.getBalance(user.value);
-        console.log(weiBalance);
         balance.value = ethers.formatEther(weiBalance).substring(0, 6);
       } catch (error) {
         console.log(error);
@@ -125,7 +122,6 @@ watchEffect(async () => {
         await provider.getSigner()
       );
       const value = await betContract.returnEscrow();
-      console.log(value);
       escrow.value = ethers.formatEther(value).substring(0, 6);
     } catch (error) {
       console.log(error);
