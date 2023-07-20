@@ -67,7 +67,10 @@ const getSigner = async () => {
 
 const getSearchResults = async () => {
   if (searchValue.value.length > 0) {
-    searchDialog.value = true;
+    if (searchDialog.value === false) {
+      searchDialog.value = true;
+    }
+
     await fetch(
       `https://www.balldontlie.io/api/v1/players?search=${searchValue.value}`
     ).then((responseData) =>
@@ -343,7 +346,17 @@ function toggleLeftDrawer() {
             >
               <q-dialog v-model="searchDialog">
                 <q-card style="width: 700px; max-width: 80vw; height: 50vh">
-                  <div class="text-h2 text-center">Search Results</div>
+                  <q-card-section
+                    ><q-input
+                      square
+                      outlined
+                      v-model="searchValue"
+                      label="Search Players"
+                      type="search"
+                      class="dialogSearchInput"
+                      @keyup.enter="getSearchResults"
+                  /></q-card-section>
+
                   <q-card-section
                     class="scroll"
                     v-for="player in searchArray"
@@ -434,5 +447,8 @@ function toggleLeftDrawer() {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.dialogSearchInput {
+  border: 2px $blue-grey-10 solid;
 }
 </style>
