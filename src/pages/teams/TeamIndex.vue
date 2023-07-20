@@ -44,7 +44,7 @@ watchEffect(async () => {
     ></q-img>
   </h3>
   <q-card v-if="gamesArrayPlayoffs.length > 0" class="text-center">
-    <div class="text-h4 q-pt-md">Post Season</div>
+    <div class="text-h4 q-pt-md">Playoffs</div>
     <q-card-section class="row">
       <div v-for="game in gamesArrayPlayoffs" :key="game.id">
         <RouterLink style="text-decoration: none" :to="`/games/${game.id}`">

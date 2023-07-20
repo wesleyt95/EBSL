@@ -186,7 +186,11 @@ function toggleLeftDrawer() {
         />
 
         <q-toolbar-title
-          ><RouterLink style="text-decoration: none; color: white" to="/"
+          ><RouterLink style="text-decoration: none; color: white" to="/">
+            <q-avatar>
+              <q-img
+                src="https://content.sportslogos.net/logos/6/982/full/8147__national_basketball_association-primary-2018.png"
+              /> </q-avatar
             >EBSL</RouterLink
           >
         </q-toolbar-title>

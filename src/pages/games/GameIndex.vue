@@ -2,6 +2,7 @@
 import { ref, watchEffect, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { ethers } from 'ethers';
+import { TEAMS } from '../teams/nba-teams.js';
 
 const router = useRoute();
 const user = ref();
@@ -633,10 +634,26 @@ const logResult = async () => {
         <q-card-section>
           <div class="row items-center justify-evenly text-h3 text-center">
             <div style="width: 40%">
+              <q-img
+                height="1.7em"
+                width="1.7em"
+                :src="
+                  TEAMS.find((row) => row.id === gameArray.visitor_team.id).logo
+                "
+                :key="gameArray.visitor_team.id"
+              />
               {{ gameArray.visitor_team?.full_name + ` (${returnAwayOdds}%)` }}
             </div>
             <div style="width: 10%">@</div>
             <div style="width: 40%">
+              <q-img
+                height="1.7em"
+                width="1.7em"
+                :src="
+                  TEAMS.find((row) => row.id === gameArray.home_team.id).logo
+                "
+                :key="gameArray.home_team.id"
+              />
               {{ gameArray.home_team?.full_name + ` (${returnHomeOdds}%)` }}
             </div>
           </div>
@@ -681,11 +698,10 @@ const logResult = async () => {
                 <q-card class="bg-grey-1 text-blue-grey-10">
                   <q-toolbar>
                     <q-avatar>
-                      <img
+                      <q-img
                         src="https://content.sportslogos.net/logos/6/982/full/8147__national_basketball_association-primary-2018.png"
                       />
                     </q-avatar>
-
                     <q-toolbar-title
                       ><span class="text-weight-bold">EBSL</span>
                     </q-toolbar-title>
@@ -694,7 +710,17 @@ const logResult = async () => {
                   </q-toolbar>
                   <q-card-section>
                     <div class="text-h3 text-center">
-                      {{ gameArray.visitor_team?.full_name }}
+                      {{ gameArray.visitor_team?.full_name
+                      }}<q-img
+                        height="1.7em"
+                        width="1.7em"
+                        :src="
+                          TEAMS.find(
+                            (row) => row.id === gameArray.visitor_team.id
+                          ).logo
+                        "
+                        :key="gameArray.visitor_team.id"
+                      />
                     </div>
                   </q-card-section>
                   <div class="betTypes">
@@ -871,7 +897,16 @@ const logResult = async () => {
                   </q-toolbar>
                   <q-card-section>
                     <div class="text-h3 text-center">
-                      {{ gameArray.home_team?.full_name }}
+                      {{ gameArray.home_team?.full_name
+                      }}<q-img
+                        height="1.7em"
+                        width="1.7em"
+                        :src="
+                          TEAMS.find((row) => row.id === gameArray.home_team.id)
+                            .logo
+                        "
+                        :key="gameArray.home_team.id"
+                      />
                     </div>
                   </q-card-section>
                   <div class="betTypes">
