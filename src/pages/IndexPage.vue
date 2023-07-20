@@ -131,6 +131,7 @@ const getETH = async () => {
   background: $grey-1;
   height: 100%;
   width: 25%;
+  min-width: 25em;
   float: right;
 }
 .receiptItem {

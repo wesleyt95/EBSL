@@ -207,7 +207,7 @@ const sendBetAway = async () => {
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
         Date.parse(gameArray.value.date) / 1000,
-        'QmfKUhLdFnaF61DreQNjfWX1uqfSJ1jqwWaaJvh5ge7kSo',
+        process.env.MONEYLINE_ADDRESS,
         overrides
       );
       await tx.wait();
@@ -229,6 +229,7 @@ const sendBetAway = async () => {
         gameArray.value.visitor_team.id,
         Date.parse(gameArray.value.date) / 1000,
         14,
+        process.env.POINTSPREAD_ADDRESS,
         overrides
       );
       await tx.wait();
@@ -250,6 +251,7 @@ const sendBetAway = async () => {
         gameArray.value.visitor_team.id,
         Date.parse(gameArray.value.date) / 1000,
         -1,
+        process.env.POINTTOTAL_ADDRESS,
         overrides
       );
       await tx.wait();
@@ -280,7 +282,7 @@ const sendBetHome = async () => {
         gameArray.value.home_team.id,
         gameArray.value.visitor_team.id,
         Date.parse(gameArray.value.date) / 1000,
-        'QmfKUhLdFnaF61DreQNjfWX1uqfSJ1jqwWaaJvh5ge7kSo',
+        process.env.MONEYLINE_ADDRESS,
         overrides
       );
       await tx.wait();
@@ -302,6 +304,7 @@ const sendBetHome = async () => {
         gameArray.value.visitor_team.id,
         Date.parse(gameArray.value.date) / 1000,
         14,
+        process.env.POINTSPREAD_ADDRESS,
         overrides
       );
       await tx.wait();
@@ -323,6 +326,7 @@ const sendBetHome = async () => {
         gameArray.value.visitor_team.id,
         Date.parse(gameArray.value.date) / 1000,
         -1,
+        process.env.POINTTOTAL_ADDRESS,
         overrides
       );
       await tx.wait();

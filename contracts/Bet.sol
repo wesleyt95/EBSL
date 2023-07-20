@@ -18,8 +18,6 @@ contract Bet is AutomateTaskCreator {
 
   struct User {
     uint256 escrow;
-    Transaction[] active;
-    Transaction[] inactive;
     Transaction[] receipts;
   }
   struct Transaction {
@@ -29,6 +27,7 @@ contract Bet is AutomateTaskCreator {
     uint256 gameID;
     string betType;
     uint256 time;
+    bool active;
   }
   struct MoneyLine {
     uint256 startTime;
@@ -41,7 +40,7 @@ contract Bet is AutomateTaskCreator {
     bytes32 taskID;
   }
   struct PointSpread {
-    mapping(uint256 => int) spreadAmount;
+    mapping(address => mapping(uint256 => int)) spreadAmount;
     uint256 startTime;
     uint256 total;
     mapping(uint256 => uint256) teamTotal;
@@ -52,14 +51,13 @@ contract Bet is AutomateTaskCreator {
     bytes32 taskID;
   }
   struct PointTotal {
-    uint256 pointAmount;
+    mapping(address => uint256) pointAmount;
     uint256 startTime;
     uint256 total;
-    mapping(int => uint256) betTotal;
     uint256 homeTeamID;
     uint256 awayTeamID;
-    mapping(int => address payable[]) usersArray;
-    mapping(int => mapping(address => Transaction)) receipt;
+    address payable[] usersArray;
+    mapping(address => Transaction) receipt;
     bytes32 taskID;
   }
 
@@ -121,19 +119,17 @@ contract Bet is AutomateTaskCreator {
         _getWeb3FunctionArgsHex(address(this), gameID, startTime)
       );
 
-      bytes32 id = _createTask(
+      newMoneyLineBet[gameID].taskID = _createTask(
         address(this),
         abi.encode(this.rewardMoneyLineWinners.selector),
         moduleData,
         address(0)
       );
-      newMoneyLineBet[gameID].taskID = id;
     }
     uint256 tax = (msg.value * 5) / 100;
     uint256 msgValue = (msg.value * 95) / 100;
     MoneyLine storage moneyLine = newMoneyLineBet[gameID];
     Transaction[] storage receipt = userReceipts[msg.sender].receipts;
-    Transaction[] storage active = userReceipts[msg.sender].active;
     Transaction storage transaction = moneyLine.receipt[teamID][msg.sender];
     address payable[] storage usersArray = moneyLine.usersArray[teamID];
     admin.transfer(tax);
@@ -145,17 +141,8 @@ contract Bet is AutomateTaskCreator {
         teamID,
         gameID,
         'Money Line',
-        block.timestamp
-      )
-    );
-    active.push(
-      Transaction(
-        msg.sender,
-        msgValue,
-        teamID,
-        gameID,
-        'Money Line',
-        block.timestamp
+        block.timestamp,
+        true
       )
     );
     totalBetOnGame[gameID] += msg.value;
@@ -176,6 +163,7 @@ contract Bet is AutomateTaskCreator {
     transaction.gameID = gameID;
     transaction.betType = 'Money Line';
     transaction.time = block.timestamp;
+    transaction.active = true;
   }
 
   function pointSpreadBet(
@@ -185,8 +173,13 @@ contract Bet is AutomateTaskCreator {
     uint256 homeTeamID,
     uint256 awayTeamID,
     uint256 startTime,
-    int spread
+    int spread,
+    string memory web3ContractAddress
   ) public payable {
+    require(
+      newPointSpreadBet[gameID].receipt[teamID][msg.sender].addr != msg.sender,
+      'You are only allowed to place multiple Money Line bets on the same game'
+    );
     require(homeTeamID != awayTeamID);
     require(msg.sender == user, 'You must bet from your own address');
     require(msg.value > 0, 'You must bet something');
@@ -194,11 +187,32 @@ contract Bet is AutomateTaskCreator {
       teamID == homeTeamID || teamID == awayTeamID,
       'You must bet on a team that is playing in this game'
     );
+    if (newPointSpreadBet[gameID].taskID == bytes32('')) {
+      ModuleData memory moduleData = ModuleData({
+        modules: new Module[](2),
+        args: new bytes[](2)
+      });
+
+      moduleData.modules[0] = Module.PROXY;
+      moduleData.modules[1] = Module.WEB3_FUNCTION;
+
+      moduleData.args[0] = _proxyModuleArg();
+      moduleData.args[1] = _web3FunctionModuleArg(
+        web3ContractAddress,
+        _getWeb3FunctionArgsHex(address(this), gameID, startTime)
+      );
+
+      newPointSpreadBet[gameID].taskID = _createTask(
+        address(this),
+        abi.encode(this.rewardPointSpreadWinners.selector),
+        moduleData,
+        address(0)
+      );
+    }
     uint256 tax = (msg.value * 5) / 100;
     uint256 msgValue = (msg.value * 95) / 100;
     PointSpread storage pointSpread = newPointSpreadBet[gameID];
     Transaction[] storage receipt = userReceipts[msg.sender].receipts;
-    Transaction[] storage active = userReceipts[msg.sender].active;
     Transaction storage transaction = pointSpread.receipt[teamID][msg.sender];
     address payable[] storage usersArray = pointSpread.usersArray[teamID];
     admin.transfer(tax);
@@ -210,17 +224,8 @@ contract Bet is AutomateTaskCreator {
         teamID,
         gameID,
         'Point Spread',
-        block.timestamp
-      )
-    );
-    active.push(
-      Transaction(
-        msg.sender,
-        msgValue,
-        teamID,
-        gameID,
-        'Point Spread',
-        block.timestamp
+        block.timestamp,
+        true
       )
     );
     totalBetOnGame[gameID] += msg.value;
@@ -230,18 +235,17 @@ contract Bet is AutomateTaskCreator {
     pointSpread.homeTeamID = homeTeamID;
     pointSpread.awayTeamID = awayTeamID;
     pointSpread.startTime = startTime;
-    pointSpread.spreadAmount[teamID] = spread;
-    if (
-      newPointSpreadBet[gameID].receipt[teamID][msg.sender].addr != msg.sender
-    ) {
-      usersArray.push(payable(msg.sender));
-    }
+    pointSpread.spreadAmount[msg.sender][teamID] = spread;
+
+    usersArray.push(payable(msg.sender));
+
     transaction.addr = msg.sender;
     transaction.amount += msgValue;
     transaction.teamID = teamID;
     transaction.gameID = gameID;
     transaction.betType = 'Point Spread';
     transaction.time = block.timestamp;
+    transaction.active = true;
   }
 
   function pointTotalBet(
@@ -251,18 +255,43 @@ contract Bet is AutomateTaskCreator {
     uint256 homeTeamID,
     uint256 awayTeamID,
     uint256 startTime,
-    int value
+    string memory web3ContractAddress
   ) public payable {
+    require(
+      newPointTotalBet[gameID].receipt[msg.sender].addr != msg.sender,
+      'You are only allowed to place multiple Money Line bets on the same game'
+    );
     require(homeTeamID != awayTeamID);
     require(msg.sender == user, 'You must bet from your own address');
     require(msg.value > 0, 'You must bet something');
+    if (newPointTotalBet[gameID].taskID == bytes32('')) {
+      ModuleData memory moduleData = ModuleData({
+        modules: new Module[](2),
+        args: new bytes[](2)
+      });
+
+      moduleData.modules[0] = Module.PROXY;
+      moduleData.modules[1] = Module.WEB3_FUNCTION;
+
+      moduleData.args[0] = _proxyModuleArg();
+      moduleData.args[1] = _web3FunctionModuleArg(
+        web3ContractAddress,
+        _getWeb3FunctionArgsHex(address(this), gameID, startTime)
+      );
+
+      newPointTotalBet[gameID].taskID = _createTask(
+        address(this),
+        abi.encode(this.rewardPointTotalWinners.selector),
+        moduleData,
+        address(0)
+      );
+    }
     uint256 tax = (msg.value * 5) / 100;
     uint256 msgValue = (msg.value * 95) / 100;
     PointTotal storage pointTotal = newPointTotalBet[gameID];
     Transaction[] storage receipt = userReceipts[msg.sender].receipts;
-    Transaction[] storage active = userReceipts[msg.sender].active;
-    Transaction storage transaction = pointTotal.receipt[value][msg.sender];
-    address payable[] storage usersArray = pointTotal.usersArray[value];
+    Transaction storage transaction = pointTotal.receipt[msg.sender];
+    address payable[] storage usersArray = pointTotal.usersArray;
     admin.transfer(tax);
     userReceipts[msg.sender].escrow += msgValue;
     receipt.push(
@@ -272,37 +301,29 @@ contract Bet is AutomateTaskCreator {
         0,
         gameID,
         'Point Total',
-        block.timestamp
+        block.timestamp,
+        true
       )
     );
-    active.push(
-      Transaction(
-        msg.sender,
-        msgValue,
-        0,
-        gameID,
-        'Point Total',
-        block.timestamp
-      )
-    );
+
     totalBetOnGame[gameID] += msg.value;
+    totalBetOnTeam[gameID][homeTeamID] += msg.value;
+    totalBetOnTeam[gameID][awayTeamID] += msg.value;
     pointTotal.total += msgValue;
-    pointTotal.betTotal[value] += msgValue;
     pointTotal.homeTeamID = homeTeamID;
     pointTotal.awayTeamID = awayTeamID;
     pointTotal.startTime = startTime;
-    pointTotal.pointAmount = pointAmount;
-    if (
-      newPointTotalBet[gameID].receipt[value][msg.sender].addr != msg.sender
-    ) {
-      usersArray.push(payable(msg.sender));
-    }
+    pointTotal.pointAmount[msg.sender] = pointAmount;
+
+    usersArray.push(payable(msg.sender));
+
     transaction.addr = msg.sender;
     transaction.amount += msgValue;
     transaction.teamID = 0;
     transaction.gameID = gameID;
     transaction.betType = 'Point Total';
     transaction.time = block.timestamp;
+    transaction.active = true;
   }
 
   function returnMoneyLineBetReceipt(
@@ -320,50 +341,29 @@ contract Bet is AutomateTaskCreator {
   }
 
   function returnPointTotalBetReceipt(
-    uint256 gameID,
-    int value
+    uint256 gameID
   ) public view returns (Transaction memory) {
-    return newPointTotalBet[gameID].receipt[value][msg.sender];
+    return newPointTotalBet[gameID].receipt[msg.sender];
   }
 
-  function returnMoneyLineUsersArray(
+  function returnMoneyLineBetTotal(
     uint256 gameID,
     uint256 teamID
-  ) public view returns (address payable[] memory) {
-    return newMoneyLineBet[gameID].usersArray[teamID];
+  ) public view returns (uint256) {
+    return newMoneyLineBet[gameID].teamTotal[teamID];
   }
 
-  function returnMoneyLineStartTime(
+  function returnPointSpreadBetTotal(
+    uint256 gameID,
+    uint256 teamID
+  ) public view returns (uint256) {
+    return newPointSpreadBet[gameID].teamTotal[teamID];
+  }
+
+  function returnPointTotalBetTotal(
     uint256 gameID
   ) public view returns (uint256) {
-    return newMoneyLineBet[gameID].startTime;
-  }
-
-  function returnPointSpreadUsersArray(
-    uint256 gameID,
-    uint256 teamID
-  ) public view returns (address payable[] memory) {
-    return newPointSpreadBet[gameID].usersArray[teamID];
-  }
-
-  function returnPointTotalUsersArray(
-    uint256 gameID,
-    int value
-  ) public view returns (address payable[] memory) {
-    return newPointTotalBet[gameID].usersArray[value];
-  }
-
-  function returnPointSpreadGameAmount(
-    uint256 gameID,
-    uint256 teamID
-  ) public view returns (int) {
-    return newPointSpreadBet[gameID].spreadAmount[teamID];
-  }
-
-  function returnPointTotalGameAmount(
-    uint256 gameID
-  ) public view returns (uint256) {
-    return newPointTotalBet[gameID].pointAmount;
+    return newPointTotalBet[gameID].total;
   }
 
   function returnEscrow() public view returns (uint256) {
@@ -389,8 +389,19 @@ contract Bet is AutomateTaskCreator {
       ][i];
       uint256 msgValue = newMoneyLineBet[gameID]
       .receipt[winnerID][winningUserID].amount;
-      winningUserID.transfer(msgValue / newMoneyLineBet[gameID].total);
+      uint256 stake = msgValue / newMoneyLineBet[gameID].teamTotal[winnerID];
+      winningUserID.transfer(newMoneyLineBet[gameID].total * stake);
       userReceipts[winningUserID].escrow -= msgValue;
+      for (uint x = 0; x < userReceipts[winningUserID].receipts.length; x++) {
+        Transaction memory myArray = userReceipts[winningUserID].receipts[x];
+        if (
+          myArray.gameID == gameID &&
+          keccak256(abi.encodePacked(myArray.betType)) ==
+          keccak256(abi.encodePacked('Money Line'))
+        ) {
+          myArray.active = false;
+        }
+      }
     }
     for (
       uint i = 0;
@@ -403,11 +414,113 @@ contract Bet is AutomateTaskCreator {
       uint256 msgValue = newMoneyLineBet[gameID]
       .receipt[loserID][losingUserID].amount;
       userReceipts[losingUserID].escrow -= msgValue;
+      for (uint x = 0; x < userReceipts[losingUserID].receipts.length; x++) {
+        Transaction memory myArray = userReceipts[losingUserID].receipts[x];
+        if (
+          myArray.gameID == gameID &&
+          keccak256(abi.encodePacked(myArray.betType)) ==
+          keccak256(abi.encodePacked('Money Line'))
+        ) {
+          myArray.active = false;
+        }
+      }
     }
   }
 
-  function deposit() external payable {
-    require(msg.sender == admin, 'You are not the admin');
-    _depositFunds1Balance(msg.value, ETH, admin);
+  function rewardPointSpreadWinners(
+    uint256 gameID,
+    uint256 winnerID,
+    uint256 loserID,
+    int winnerScore,
+    int loserScore
+  ) public onlyDedicatedMsgSender {
+    for (
+      uint i = 0;
+      i < newPointSpreadBet[gameID].usersArray[winnerID].length;
+      i++
+    ) {
+      address payable winningUserID = newPointSpreadBet[gameID].usersArray[
+        winnerID
+      ][i];
+      uint256 msgValue = newPointSpreadBet[gameID]
+      .receipt[winnerID][winningUserID].amount;
+      int spread = newPointSpreadBet[gameID].spreadAmount[msg.sender][winnerID];
+      if (winnerScore + spread > loserScore) {
+        winningUserID.transfer(
+          (msgValue / newPointSpreadBet[gameID].total) * msgValue
+        );
+      }
+
+      userReceipts[winningUserID].escrow -= msgValue;
+      for (uint x = 0; x < userReceipts[winningUserID].receipts.length; x++) {
+        Transaction memory myArray = userReceipts[winningUserID].receipts[x];
+        if (
+          keccak256(abi.encodePacked(myArray.gameID)) ==
+          keccak256(abi.encodePacked(gameID)) &&
+          keccak256(abi.encodePacked(myArray.betType)) ==
+          keccak256(abi.encodePacked('Point Spread'))
+        ) {
+          myArray.active = false;
+        }
+      }
+    }
+    for (
+      uint i = 0;
+      i < newPointSpreadBet[gameID].usersArray[loserID].length;
+      i++
+    ) {
+      address payable losingUserID = newPointSpreadBet[gameID].usersArray[
+        loserID
+      ][i];
+      uint256 msgValue = newPointSpreadBet[gameID]
+      .receipt[loserID][losingUserID].amount;
+      userReceipts[losingUserID].escrow -= msgValue;
+      int spread = newPointSpreadBet[gameID].spreadAmount[msg.sender][loserID];
+      if (loserScore + spread > winnerScore) {
+        losingUserID.transfer(
+          (msgValue / newPointSpreadBet[gameID].total) * msgValue
+        );
+      }
+      for (uint x = 0; x < userReceipts[losingUserID].receipts.length; x++) {
+        Transaction memory myArray = userReceipts[losingUserID].receipts[x];
+        if (
+          keccak256(abi.encodePacked(myArray.gameID)) ==
+          keccak256(abi.encodePacked(gameID)) &&
+          keccak256(abi.encodePacked(myArray.betType)) ==
+          keccak256(abi.encodePacked('Point Spread'))
+        ) {
+          myArray.active = false;
+        }
+      }
+    }
+  }
+
+  function rewardPointTotalWinners(
+    uint256 gameID,
+    uint256 total
+  ) public onlyDedicatedMsgSender {
+    for (uint i = 0; i < newPointTotalBet[gameID].usersArray.length; i++) {
+      address payable winningUserID = newPointTotalBet[gameID].usersArray[i];
+      uint256 msgValue = newPointTotalBet[gameID].receipt[winningUserID].amount;
+      if (total > newPointTotalBet[gameID].pointAmount[winningUserID]) {
+        winningUserID.transfer(
+          (msgValue / newPointTotalBet[gameID].total) * msgValue
+        );
+      } else if (total == newPointTotalBet[gameID].pointAmount[winningUserID]) {
+        winningUserID.transfer(msgValue);
+      }
+
+      userReceipts[winningUserID].escrow -= msgValue;
+      for (uint x = 0; x < userReceipts[winningUserID].receipts.length; x++) {
+        Transaction memory myArray = userReceipts[winningUserID].receipts[x];
+        if (
+          myArray.gameID == gameID &&
+          (keccak256(abi.encodePacked(myArray.betType))) ==
+          (keccak256(abi.encodePacked('Point Total')))
+        ) {
+          myArray.active = false;
+        }
+      }
+    }
   }
 }
