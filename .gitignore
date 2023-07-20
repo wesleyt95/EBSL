@@ -6,6 +6,9 @@ node_modules
 .quasar
 /dist
 
+artifacts
+web3-functions-hardhat-template
+
 # Cordova related directories and files
 /src-cordova/node_modules
 /src-cordova/platforms
