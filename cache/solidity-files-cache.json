@@ -2,11 +2,11 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\AutomateReady.sol": {
-      "lastModificationDate": 1689540406196,
-      "contentHash": "58b466908c7f44bde72485cbcefc9628",
+      "lastModificationDate": 1690003186232,
+      "contentHash": "8cde9db2f80c680514284f17aa1238bd",
       "sourceName": "contracts/AutomateReady.sol",
       "solcConfig": {
-        "version": "0.8.14",
+        "version": "0.8.21",
         "settings": {
           "optimizer": {
             "enabled": false,
@@ -33,18 +33,18 @@
         "./Types.sol"
       ],
       "versionPragmas": [
-        "^0.8.14"
+        "^0.8.21"
       ],
       "artifacts": [
         "AutomateReady"
       ]
     },
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\Types.sol": {
-      "lastModificationDate": 1689206033834,
-      "contentHash": "cb309ed587eef5ef154cc77dd4cbce9d",
+      "lastModificationDate": 1690003171273,
+      "contentHash": "3afa3ef4512acf789a58d4f007b93c65",
       "sourceName": "contracts/Types.sol",
       "solcConfig": {
-        "version": "0.8.14",
+        "version": "0.8.21",
         "settings": {
           "optimizer": {
             "enabled": false,
@@ -68,7 +68,7 @@
       },
       "imports": [],
       "versionPragmas": [
-        "^0.8.12"
+        "^0.8.21"
       ],
       "artifacts": [
         "IAutomate",
@@ -78,11 +78,11 @@
       ]
     },
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\AutomateTaskCreator.sol": {
-      "lastModificationDate": 1689539321020,
-      "contentHash": "e64f6ff6f0ff308a0cdcb39ead6aabbe",
+      "lastModificationDate": 1690003179419,
+      "contentHash": "58ec4dd6023b8c6630f85fca7790c084",
       "sourceName": "contracts/AutomateTaskCreator.sol",
       "solcConfig": {
-        "version": "0.8.14",
+        "version": "0.8.21",
         "settings": {
           "optimizer": {
             "enabled": false,
@@ -109,18 +109,18 @@
         "@openzeppelin/contracts/token/ERC20/IERC20.sol"
       ],
       "versionPragmas": [
-        "^0.8.14"
+        "^0.8.21"
       ],
       "artifacts": [
         "AutomateTaskCreator"
       ]
     },
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\Bet.sol": {
-      "lastModificationDate": 1689815938173,
-      "contentHash": "e03f116de70d6c8f514585b464ac30ec",
+      "lastModificationDate": 1691295231503,
+      "contentHash": "3c3d783cd3b231bb1bf32ab30adff5db",
       "sourceName": "contracts/Bet.sol",
       "solcConfig": {
-        "version": "0.8.14",
+        "version": "0.8.21",
         "settings": {
           "optimizer": {
             "enabled": false,
@@ -147,7 +147,7 @@
         "./Types.sol"
       ],
       "versionPragmas": [
-        "^0.8.12"
+        "^0.8.21"
       ],
       "artifacts": [
         "Bet"
@@ -158,7 +158,7 @@
       "contentHash": "a159c68235d1d18f16dd0a57a000daea",
       "sourceName": "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
       "solcConfig": {
-        "version": "0.8.14",
+        "version": "0.8.21",
         "settings": {
           "optimizer": {
             "enabled": false,
@@ -197,7 +197,7 @@
       "contentHash": "df36f7051335cd1e748b1b6463b7fdd3",
       "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
       "solcConfig": {
-        "version": "0.8.14",
+        "version": "0.8.21",
         "settings": {
           "optimizer": {
             "enabled": false,
@@ -232,7 +232,7 @@
       "contentHash": "211ffd288c1588ba8c10eae668ca3c66",
       "sourceName": "@openzeppelin/contracts/utils/Address.sol",
       "solcConfig": {
-        "version": "0.8.14",
+        "version": "0.8.21",
         "settings": {
           "optimizer": {
             "enabled": false,
@@ -267,7 +267,7 @@
       "contentHash": "aa849939a4ae83a4dcb2dca9b3e9e707",
       "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol",
       "solcConfig": {
-        "version": "0.8.14",
+        "version": "0.8.21",
         "settings": {
           "optimizer": {
             "enabled": false,

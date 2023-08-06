@@ -4,7 +4,12 @@ const { ethers } = hre;
 async function main() {
   const [deployer] = await ethers.getSigners();
   console.log('Deploying contracts with the account:', deployer.address);
-  const contract = await ethers.deployContract('Bet');
+
+  const contract = await ethers.deployContract('Bet', [
+    process.env.MONEYLINE_ADDRESS,
+    process.env.POINTSPREAD_ADDRESS,
+    process.env.POINTTOTAL_ADDRESS,
+  ]);
   console.log('Contract address:', await contract.getAddress());
 }
 

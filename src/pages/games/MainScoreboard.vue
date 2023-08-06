@@ -11,9 +11,11 @@ const gamesArray = ref([]);
 watchEffect(async () => {
   selectedDate.value = date.value.replace(/\//g, '-');
   await fetch(
-    `https://www.balldontlie.io/api/v1/games?start_date=${selectedDate.value}&end_date=${selectedDate.value}`
+    `https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/${selectedDate.value}?key=791f4f4fb36a49b69188829ef354d39b`
   ).then((responseData) =>
-    responseData.json().then((data) => (gamesArray.value = data.data))
+    responseData
+      .json()
+      .then((data) => ((gamesArray.value = data), console.log(data)))
   );
 });
 </script>
@@ -30,34 +32,38 @@ watchEffect(async () => {
     <q-card v-if="gamesArray.length > 0">
       <q-card-section>
         <div class="row">
-          <div class="text-center" v-for="games in gamesArray" :key="games.id">
+          <div
+            class="text-center"
+            v-for="games in gamesArray"
+            :key="games.GameID"
+          >
             <RouterLink
               style="text-decoration: none"
-              :to="`/games/${games.id}`"
+              :to="`/games/${games.GameID}`"
             >
               <div class="gameCard">
                 <div>
                   {{
-                    games.period === 0
-                      ? new Date(games.date).toLocaleTimeString([], {
+                    games.Quarter === 0
+                      ? new Date(games.DateTimeUTC).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',
                         })
-                      : games.status
+                      : games.Status
                   }}
                 </div>
                 <div>
-                  {{ games.visitor_team.abbreviation }}
-                  <span v-if="games.period > 0"
-                    >: {{ games.visitor_team_score }}</span
+                  {{ games.AwayTeam }}
+                  <span v-if="games.AwayTeamScore > 0"
+                    >: {{ games.AwayTeamScore }}</span
                   >
                 </div>
                 <q-separator color="white" />
                 <div>
                   <span class="text-yellow-14">@</span>
-                  {{ games.home_team.abbreviation }}
-                  <span v-if="games.period > 0"
-                    >: {{ games.home_team_score }}</span
+                  {{ games.HomeTeam }}
+                  <span v-if="games.HomeTeamScore > 0"
+                    >: {{ games.HomeTeamScore }}</span
                   >
                 </div>
               </div>

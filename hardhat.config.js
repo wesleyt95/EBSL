@@ -8,15 +8,13 @@ module.exports = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200,
+        runs: 0,
       },
+      viaIR: true,
     },
     compilers: [
       {
-        version: '0.8.12',
-      },
-      {
-        version: '0.8.14',
+        version: '0.8.21',
       },
     ],
   },

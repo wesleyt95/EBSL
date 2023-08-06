@@ -6,115 +6,129 @@ import { TEAMS } from '../teams/nba-teams.js';
 const router = useRoute();
 const playerArray = ref([]);
 const regularSeason = ref([]);
-const postSeason = ref([]);
 const averages = ref([]);
+const gamesPlayed = ref();
 
 const fullName = computed(() => {
-  return playerArray.value.first_name + ' ' + playerArray.value.last_name;
-});
-
-const position = computed(() => {
-  return playerArray.value.position;
-});
-
-const height = computed(() => {
-  return playerArray.value.height_feet + '\`' + playerArray.value.height_inches;
-});
-
-const weight = computed(() => {
-  return playerArray.value.weight_pounds + ' lbs';
+  return playerArray.value.FirstName + ' ' + playerArray.value.LastName;
 });
 
 const team = computed(() => {
-  return playerArray.value.team?.full_name;
+  if (playerArray.value.Team) {
+    return (
+      TEAMS.find((row) => row.Key === playerArray.value.Team).City +
+      ' ' +
+      TEAMS.find((row) => row.Key === playerArray.value.Team).Name
+    );
+  } else return null;
 });
 
-const teamID = computed(() => {
-  return playerArray.value.team?.id;
+const height = computed(() => {
+  if (playerArray.value.Height) {
+    return (
+      Math.floor(playerArray.value.Height / 12) +
+      "'" +
+      (playerArray.value.Height % 12)
+    );
+  } else return null;
 });
 
 const statColumns = [
   {
-    name: 'game',
-    label: 'Game',
-    field: 'game',
-    format: (val) =>
-      `${TEAMS.find((row) => row.id === val.visitor_team_id).name} @ ${
-        TEAMS.find((row) => row.id === val.home_team_id).name
-      }` + ` (${new Date(val.date).toLocaleDateString()})`,
+    name: 'HomeOrAway',
+    label: '',
+    field: 'HomeOrAway',
+    align: 'right',
+    format: (val) => (val === 'AWAY' ? '@' : 'vs'),
+  },
+  {
+    name: 'Opponent',
+    label: '',
+    field: 'Opponent',
     align: 'left',
+    format: (val) => {
+      const team = TEAMS.find((row) => row.Key === val);
+      return team.City + ' ' + team.Name;
+    },
   },
   {
-    name: 'min',
+    name: 'Minutes',
     label: 'Minutes',
-    field: 'min',
+    field: 'Minutes',
   },
   {
-    name: 'pts',
+    name: 'Points',
     label: 'Points',
-    field: 'pts',
+    field: 'Points',
   },
-  { name: 'reb', label: 'Rebounds', field: 'reb' },
-  { name: 'ast', label: 'Assists', field: 'ast' },
-  { name: 'stl', label: 'Steals', field: 'stl' },
-  { name: 'blk', label: 'Blocks', field: 'blk' },
+  { name: 'Rebounds', label: 'Rebounds', field: 'Rebounds' },
+  { name: 'Assists', label: 'Assists', field: 'Assists' },
+  { name: 'Steals', label: 'Steals', field: 'Steals' },
+  { name: 'BlockedShots', label: 'Blocks', field: 'BlockedShots' },
 ];
 
 const averageColumns = [
   {
-    name: 'pts',
+    name: 'Points',
     label: 'Points',
-    field: 'pts',
+    field: 'Points',
+    format: (val) => (val / gamesPlayed.value).toFixed(1),
   },
-  { name: 'reb', label: 'Rebounds', field: 'reb' },
-  { name: 'ast', label: 'Assists', field: 'ast' },
-  { name: 'stl', label: 'Steals', field: 'stl' },
-  { name: 'blk', label: 'Blocks', field: 'blk' },
+  {
+    name: 'Rebounds',
+    label: 'Rebounds',
+    field: 'Rebounds',
+    format: (val) => (val / gamesPlayed.value).toFixed(1),
+  },
+  {
+    name: 'Assists',
+    label: 'Assists',
+    field: 'Assists',
+    format: (val) => (val / gamesPlayed.value).toFixed(1),
+  },
+  {
+    name: 'Steals',
+    label: 'Steals',
+    field: 'Steals',
+    format: (val) => (val / gamesPlayed.value).toFixed(1),
+  },
+  {
+    name: 'BlockedShots',
+    label: 'Blocks',
+    field: 'BlockedShots',
+    format: (val) => (val / gamesPlayed.value).toFixed(1),
+  },
 ];
 
 watchEffect(async () => {
   await fetch(
-    `https://www.balldontlie.io/api/v1/players/${Number(router.params.id)}`
+    // `https://www.balldontlie.io/api/v1/players/${Number(router.params.id)}`
+    `https://api.sportsdata.io/v3/nba/scores/json/Player/${router.params.id}?key=791f4f4fb36a49b69188829ef354d39b`
   ).then((responseData) =>
     responseData.json().then((data) => (playerArray.value = data))
   );
 
   await fetch(
-    `https://www.balldontlie.io/api/v1/stats?seasons[]=2022&player_ids[]=${Number(
-      router.params.id
-    )}&per_page=100&postseason=false`
+    `https://api.sportsdata.io/v3/nba/stats/json/PlayerGameStatsBySeason/2023/${router.params.id}/all?key=791f4f4fb36a49b69188829ef354d39b`
+  ).then((responseData) =>
+    responseData.json().then((data) => {
+      regularSeason.value = data;
+    })
+  );
+
+  await fetch(
+    'https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStats/2023?key=791f4f4fb36a49b69188829ef354d39b'
   ).then((responseData) =>
     responseData
       .json()
       .then(
-        (data) =>
-          (regularSeason.value = data.data.sort(
-            (a, b) => new Date(b.game.date) - new Date(a.game.date)
-          ))
+        (data) => (
+          (averages.value = data.find(
+            (row) => row.PlayerID === Number(router.params.id)
+          )),
+          (gamesPlayed.value = averages.value.Games)
+        )
       )
-  );
-
-  await fetch(
-    `https://www.balldontlie.io/api/v1/stats?seasons[]=2022&player_ids[]=${Number(
-      router.params.id
-    )}&per_page=100&postseason=true`
-  ).then((responseData) =>
-    responseData
-      .json()
-      .then(
-        (data) =>
-          (postSeason.value = data.data.sort(
-            (a, b) => new Date(b.game.date) - new Date(a.game.date)
-          ))
-      )
-  );
-
-  await fetch(
-    `https://www.balldontlie.io/api/v1/season_averages?player_ids[]=${Number(
-      router.params.id
-    )}`
-  ).then((responseData) =>
-    responseData.json().then((data) => (averages.value = data.data))
   );
 });
 </script>
@@ -124,25 +138,26 @@ watchEffect(async () => {
       <div class="row items-center justify-evenly q-ma-auto q-pa-auto fit">
         <q-card class="text-center">
           <q-card-section>
-            <div>
+            <q-img :key="playerArray.PhotoUrl" :src="playerArray.PhotoUrl" />
+            <div :key="playerArray.FirstName">
               Name:
               {{ fullName }}
             </div>
-            <div
-              v-if="playerArray.position != null && playerArray.position !== ''"
-            >
-              Position: {{ position }}
+            <div :key="playerArray.Position">
+              Position: {{ playerArray.Position }}
             </div>
-            <div v-if="playerArray.height_feet != null">
+            <div :key="playerArray.Height">
               Height:
               {{ height }}
             </div>
-            <div v-if="playerArray.weight_pounds != null">
-              Weight: {{ weight }}
+            <div :key="playerArray.Weight">
+              Weight: {{ playerArray.Weight }}
             </div>
-            <div>
+            <div :key="playerArray.Team">
               Team:
-              <RouterLink :to="`/teams/${teamID}`">{{ team }}</RouterLink>
+              <RouterLink :key="team" :to="`/teams/${playerArray.TeamID}`">{{
+                (playerArray.Team, team)
+              }}</RouterLink>
             </div>
           </q-card-section>
         </q-card>
@@ -150,9 +165,9 @@ watchEffect(async () => {
         <div>
           <q-table
             title="Regular Season Averages"
-            :rows="averages"
+            :rows="[averages]"
             :columns="averageColumns"
-            row-key="id"
+            row-key="PlayerID"
             :rows-per-page-options="[0]"
             :auto-width="true"
             virtual-scroll
@@ -166,7 +181,7 @@ watchEffect(async () => {
     <q-card-section>
       <div class="q-pa-md">
         <q-table
-          title="Regular Season"
+          title="Box Score"
           :rows="regularSeason"
           :columns="statColumns"
           row-key="id"
@@ -177,24 +192,7 @@ watchEffect(async () => {
           no-data-label="No data available"
           @row-click="
             (evt, row, index) =>
-              this.$router.replace({ path: `/games/${row.game.id}` })
-          "
-        />
-      </div>
-      <div class="q-pa-md">
-        <q-table
-          title="Playoffs"
-          :rows="postSeason"
-          :columns="statColumns"
-          row-key="id"
-          :rows-per-page-options="[0]"
-          :auto-width="true"
-          virtual-scroll
-          style="height: 30em"
-          no-data-label="No data available"
-          @row-click="
-            (evt, row, index) =>
-              this.$router.replace({ path: `/games/${row.game.id}` })
+              this.$router.replace({ path: `/games/${row.GameID}` })
           "
         />
       </div>

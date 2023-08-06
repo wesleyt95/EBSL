@@ -56,6 +56,12 @@ const returnEscrow = computed(() => {
 const returnSelectedDate = computed(() => {
   return selectedDate.value;
 });
+
+const height = (height) => {
+  if (height > 0) {
+    return Math.floor(height / 12) + "'" + (height % 12);
+  } else return null;
+};
 const getSigner = async () => {
   if (window.ethereum == null) {
     console.log('MetaMask not installed; using read-only defaults');
@@ -67,27 +73,32 @@ const getSigner = async () => {
 
 const getSearchResults = async () => {
   if (searchValue.value.length > 0) {
-    if (searchDialog.value === false) {
-      searchDialog.value = true;
-    }
+    searchDialog.value = true;
 
     await fetch(
-      `https://www.balldontlie.io/api/v1/players?search=${searchValue.value}`
+      'https://api.sportsdata.io/v3/nba/scores/json/PlayersActiveBasic?key=791f4f4fb36a49b69188829ef354d39b'
     ).then((responseData) =>
-      responseData.json().then((data) => (searchArray.value = data.data))
+      responseData.json().then(
+        (data) =>
+          (searchArray.value = data.filter((obj) => {
+            const combinedValues =
+              obj.FirstName.toLowerCase().replace(/[-. ]/g, '') +
+              obj.LastName.toLowerCase().replace(/[-. ]/g, '');
+            return combinedValues.includes(
+              searchValue.value.toLowerCase().replace(/[-. ]/g, '')
+            );
+          }))
+      )
     );
   }
 };
+
 watchEffect(async () => {
   if (
     window.ethereum._state.accounts &&
     window.ethereum._state.accounts.length > 0
   ) {
-    try {
-      user.value = window.ethereum._state.accounts[0];
-    } catch (error) {
-      console.log(error);
-    }
+    user.value = window.ethereum._state.accounts[0];
   }
   if (chainId.value === undefined && window.ethereum.chainId) {
     try {
@@ -100,35 +111,27 @@ watchEffect(async () => {
     getDatesArray();
   }
   await fetch(
-    `https://www.balldontlie.io/api/v1/games?start_date=${selectedDate.value}&end_date=${selectedDate.value}`
+    `https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/${selectedDate.value}?key=791f4f4fb36a49b69188829ef354d39b`
   ).then((responseData) =>
-    responseData.json().then((data) => (gamesArray.value = data.data))
+    responseData.json().then((data) => (gamesArray.value = data))
   );
 
   if (window.ethereum) {
     isConnected.value = true;
     if (user.value.length > 0 && balance.value === undefined) {
-      try {
-        const weiBalance = await provider.getBalance(user.value);
-        balance.value = ethers.formatEther(weiBalance).substring(0, 6);
-      } catch (error) {
-        console.log(error);
-      }
+      const weiBalance = await provider.getBalance(user.value);
+      balance.value = ethers.formatEther(weiBalance).substring(0, 6);
     }
   }
 
   if (escrow.value === undefined && user.value.length > 0) {
-    try {
-      const betContract = new ethers.Contract(
-        process.env.CONTRACT_ADDRESS,
-        contract.abi,
-        await provider.getSigner()
-      );
-      const value = await betContract.returnEscrow();
-      escrow.value = ethers.formatEther(value).substring(0, 6);
-    } catch (error) {
-      console.log(error);
-    }
+    const betContract = new ethers.Contract(
+      process.env.CONTRACT_ADDRESS,
+      contract.abi,
+      await provider.getSigner()
+    );
+    const value = await betContract.returnEscrow();
+    escrow.value = ethers.formatEther(value).substring(0, 6);
   }
 });
 
@@ -197,7 +200,7 @@ function toggleLeftDrawer() {
         <template
           v-if="isConnected === true && user.length > 0 && chainId === '0x5'"
         >
-          <div>
+          <div :key="user">
             <span class="menuWallet">
               Escrow:
               <span class="text-grey-1">{{ returnEscrow + ' ETH' }}</span>
@@ -212,7 +215,7 @@ function toggleLeftDrawer() {
             isConnected === true && chainId === '0x5' && user.length === 0
           "
         >
-          <div>
+          <div :key="user">
             <q-btn
               @click="getSigner"
               text-color="grey-1"
@@ -226,7 +229,7 @@ function toggleLeftDrawer() {
             isConnected === true && chainId !== '0x5' && user.length > 0
           "
         >
-          <div>
+          <div :key="chainId">
             <q-btn
               disabled
               color="white"
@@ -237,7 +240,7 @@ function toggleLeftDrawer() {
         </template>
 
         <template v-else-if="isConnected === false && user.length === 0">
-          <div>
+          <div :key="isConnected">
             <q-btn
               disabled
               color="white"
@@ -283,34 +286,37 @@ function toggleLeftDrawer() {
             <q-scroll-area class="fit" style="height: 100px; max-width: auto">
               <div class="row no-wrap bg-grey-1 gameRow">
                 <template v-if="gamesArray.length > 0">
-                  <div v-for="game in gamesArray" :key="game.id">
+                  <div v-for="game in gamesArray" :key="game.GameID">
                     <RouterLink
                       style="text-decoration: none"
-                      :to="`/games/${game.id}`"
+                      :to="`/games/${game.GameID}`"
                     >
                       <div class="gameCard">
                         <div>
                           {{
-                            game.period === 0
-                              ? new Date(game.date).toLocaleTimeString([], {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })
-                              : game.status
+                            game.Quarter === 0
+                              ? new Date(game.DateTimeUTC).toLocaleTimeString(
+                                  [],
+                                  {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  }
+                                )
+                              : game.Status
                           }}
                         </div>
                         <div>
-                          {{ game.visitor_team.abbreviation }}
-                          <span v-if="game.period > 0"
-                            >: {{ game.visitor_team_score }}</span
+                          {{ game.AwayTeam }}
+                          <span v-if="game.AwayTeamScore > 0"
+                            >: {{ game.AwayTeamScore }}</span
                           >
                         </div>
                         <q-separator color="white" />
                         <div>
                           <span class="text-yellow-14">@</span>
-                          {{ game.home_team.abbreviation }}
-                          <span v-if="game.period > 0"
-                            >: {{ game.home_team_score }}</span
+                          {{ game.HomeTeam }}
+                          <span v-if="game.HomeTeamScore > 0"
+                            >: {{ game.HomeTeamScore }}</span
                           >
                         </div>
                       </div>
@@ -331,7 +337,7 @@ function toggleLeftDrawer() {
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
-        <q-item-label class="text-center menuAddress" header>
+        <q-item-label :key="user" class="text-center menuAddress" header>
           <span class="text-red">@</span>{{ currentAccount }}
         </q-item-label>
         <q-input
@@ -363,30 +369,28 @@ function toggleLeftDrawer() {
 
                   <q-card-section
                     class="scroll"
-                    v-for="player in searchArray"
-                    :key="player.id"
+                    v-for="(player, index) in searchArray"
+                    :key="index"
                   >
                     <RouterLink
                       style="text-decoration: none"
-                      :to="`/players/${player.id}`"
+                      :to="`/players/${player.PlayerID}`"
                       replace
                     >
                       <q-card class="text-white text-center bg-blue-grey-10">
                         <q-card-section>
                           <q-item-label
-                            >{{ player.first_name
-                            }}{{ ' ' + player.last_name + ' ' }}
+                            >{{ player.FirstName
+                            }}{{ ' ' + player.LastName + ' ' }}
                             <span class="text-yellow-14">{{
-                              player.position
+                              player.Position
                             }}</span>
                           </q-item-label>
                           <div>
-                            {{ player.team.full_name }}
+                            {{ player.Team }}
                           </div>
-                          <div v-if="player.height_feet != null">
-                            {{
-                              player.height_feet + "'" + player.height_inches
-                            }}
+                          <div :key="player.Height">
+                            {{ height(player.Height) }}
                           </div>
                         </q-card-section>
                       </q-card>

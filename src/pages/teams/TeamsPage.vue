@@ -4,13 +4,13 @@ import { TEAMS } from './nba-teams.js';
 <template>
   <div class="q-pa-sm row justify-evenly">
     <div v-for="team in TEAMS" :key="team.id">
-      <RouterLink style="text-decoration: none" :to="`/teams/${team.id}`">
+      <RouterLink style="text-decoration: none" :to="`/teams/${team.TeamID}`">
         <q-card class="tile">
           <q-card-section>
-            <q-img style="max-width: 12em" :src="team.logo" />
+            <q-img style="max-width: 12em" :src="team.WikipediaLogoUrl" />
           </q-card-section>
           <q-card-section>
-            <div class="text-h6">{{ team.full_name }}</div>
+            <div class="text-h6">{{ team.City + ' ' + team.Name }}</div>
           </q-card-section>
         </q-card>
       </RouterLink>

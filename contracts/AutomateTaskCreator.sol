@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.21;
 
 import './AutomateReady.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
@@ -87,7 +87,7 @@ abstract contract AutomateTaskCreator is AutomateReady {
 
   function _web3FunctionModuleArg(
     string memory _web3FunctionHash,
-    bytes memory _web3FunctionArgsHex
+    bytes calldata _web3FunctionArgsHex
   ) internal pure returns (bytes memory) {
     return abi.encode(_web3FunctionHash, _web3FunctionArgsHex);
   }

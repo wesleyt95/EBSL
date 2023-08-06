@@ -8,7 +8,7 @@ const router = useRoute();
 const user = ref();
 const provider = new ethers.BrowserProvider(window.ethereum);
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
-const betContract = new ethers.Contract(
+const betContractNoSigner = new ethers.Contract(
   process.env.CONTRACT_ADDRESS,
   contract.abi,
   provider
@@ -200,26 +200,25 @@ const returnHomePointTotal = computed(() => {
 
 const statColumns = [
   {
-    name: 'player',
+    name: 'Name',
     label: 'Name',
-    field: 'player',
-    format: (val) => `${val.first_name} ${val.last_name}`,
+    field: 'Name',
     align: 'left',
   },
   {
-    name: 'min',
+    name: 'Minutes',
     label: 'Minutes',
-    field: 'min',
+    field: 'Minutes',
   },
   {
-    name: 'pts',
+    name: 'Points',
     label: 'Points',
-    field: 'pts',
+    field: 'Points',
   },
-  { name: 'reb', label: 'Rebounds', field: 'reb' },
-  { name: 'ast', label: 'Assists', field: 'ast' },
-  { name: 'stl', label: 'Steals', field: 'stl' },
-  { name: 'blk', label: 'Blocks', field: 'blk' },
+  { name: 'Rebounds', label: 'Rebounds', field: 'Rebounds' },
+  { name: 'Assists', label: 'Assists', field: 'Assists' },
+  { name: 'Steals', label: 'Steals', field: 'Steals' },
+  { name: 'BlockedShots', label: 'Blocks', field: 'BlockedShots' },
 ];
 
 watchEffect(async () => {
@@ -230,65 +229,58 @@ watchEffect(async () => {
     user.value = window.ethereum._state.accounts[0];
   }
   await fetch(
-    `https://www.balldontlie.io/api/v1/games/${Number(router.params.id)}`
-  ).then((responseData) =>
-    responseData.json().then((data) => (gameArray.value = data))
-  );
-
-  await fetch(
-    `https://www.balldontlie.io/api/v1/stats?game_ids[]=${Number(
-      router.params.id
-    )}`
+    `https://api.sportsdata.io/v3/nba/stats/json/BoxScore/${router.params.id}?key=791f4f4fb36a49b69188829ef354d39b`
   ).then((responseData) =>
     responseData.json().then(async (data) => {
-      statsArrayAway.value = await data.data.filter(
-        (row) => row.team.id === gameArray.value.visitor_team.id
+      console.log(data);
+      gameArray.value = data.Game;
+      statsArrayAway.value = await data.PlayerGames?.filter(
+        (row) => row.TeamID === gameArray.value.AwayTeamID
       );
-      statsArrayHome.value = await data.data.filter(
-        (row) => row.team.id === gameArray.value.home_team.id
+      statsArrayHome.value = await data.PlayerGames?.filter(
+        (row) => row.TeamID === gameArray.value.HomeTeamID
       );
     })
   );
 
   if (gameTotal.value == undefined) {
-    gameTotal.value = await betContract.totalBetOnGame(
+    gameTotal.value = await betContractNoSigner.totalBetOnGame(
       Number(router.params.id)
     );
   }
   if (homeTotalBet.value == undefined) {
-    homeTotalBet.value = await betContract.totalBetOnTeam(
+    homeTotalBet.value = await betContractNoSigner.totalBetOnTeam(
       Number(router.params.id),
-      gameArray.value.home_team.id
+      gameArray.value.HomeTeamID
     );
   }
   if (awayTotalBet.value == undefined) {
-    awayTotalBet.value = await betContract.totalBetOnTeam(
+    awayTotalBet.value = await betContractNoSigner.totalBetOnTeam(
       Number(router.params.id),
-      gameArray.value.visitor_team.id
+      gameArray.value.AwayTeamID
     );
   }
   if (homeOdds.value == undefined) {
-    homeOdds.value = await betContract.returnOdds(
+    homeOdds.value = await betContractNoSigner.returnOdds(
       Number(router.params.id),
-      gameArray.value.home_team.id
+      gameArray.value.HomeTeamID
     );
   }
   if (awayOdds.value == undefined) {
-    awayOdds.value = await betContract.returnOdds(
+    awayOdds.value = await betContractNoSigner.returnOdds(
       Number(router.params.id),
-      gameArray.value.visitor_team.id
+      gameArray.value.AwayTeamID
     );
   }
-
+  const betContract = new ethers.Contract(
+    process.env.CONTRACT_ADDRESS,
+    contract.abi,
+    await provider.getSigner()
+  );
   if (homeCurrentMoneylineUser.value == undefined) {
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
     const receipt = await betContract.returnMoneyLineBetReceipt(
       Number(router.params.id),
-      gameArray.value.home_team.id
+      gameArray.value.HomeTeamID
     );
     homeCurrentMoneylineUser.value = JSON.stringify(receipt, (_, v) =>
       typeof v === 'bigint' ? v.toString() : v
@@ -296,14 +288,9 @@ watchEffect(async () => {
   }
 
   if (awayCurrentMoneylineUser.value == undefined) {
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
     const receipt = await betContract.returnMoneyLineBetReceipt(
       Number(router.params.id),
-      gameArray.value.visitor_team.id
+      gameArray.value.AwayTeamID
     );
     awayCurrentMoneylineUser.value = JSON.stringify(receipt, (_, v) =>
       typeof v === 'bigint' ? v.toString() : v
@@ -311,14 +298,9 @@ watchEffect(async () => {
   }
 
   if (homeCurrentMoneyline.value == undefined) {
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
     const receipt = await betContract.returnMoneyLineBetTotal(
       Number(router.params.id),
-      gameArray.value.home_team.id
+      gameArray.value.HomeTeamID
     );
     homeCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
       typeof v === 'bigint' ? v.toString() : v
@@ -326,28 +308,17 @@ watchEffect(async () => {
   }
 
   if (awayCurrentMoneyline.value == undefined) {
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
     const receipt = await betContract.returnMoneyLineBetTotal(
       Number(router.params.id),
-      gameArray.value.visitor_team.id
+      gameArray.value.AwayTeamID
     );
     awayCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
       typeof v === 'bigint' ? v.toString() : v
     );
   }
   if (homeCurrentPointSpreadUser.value == undefined) {
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
     const receipt = await betContract.returnPointSpreadBetReceipt(
-      Number(router.params.id),
-      gameArray.value.home_team.id
+      Number(router.params.id)
     );
     homeCurrentPointSpreadUser.value = JSON.stringify(receipt, (_, v) =>
       typeof v === 'bigint' ? v.toString() : v
@@ -355,14 +326,8 @@ watchEffect(async () => {
   }
 
   if (awayCurrentPointSpreadUser.value == undefined) {
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
     const receipt = await betContract.returnPointSpreadBetReceipt(
-      Number(router.params.id),
-      gameArray.value.visitor_team.id
+      Number(router.params.id)
     );
     awayCurrentPointSpreadUser.value = JSON.stringify(receipt, (_, v) =>
       typeof v === 'bigint' ? v.toString() : v
@@ -370,14 +335,9 @@ watchEffect(async () => {
   }
 
   if (homeCurrentPointSpread.value == undefined) {
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
     const receipt = await betContract.returnPointSpreadBetTotal(
       Number(router.params.id),
-      gameArray.value.home_team.id
+      gameArray.value.HomeTeamID
     );
     homeCurrentPointSpread.value = JSON.stringify(receipt, (_, v) =>
       typeof v === 'bigint' ? v.toString() : v
@@ -385,25 +345,15 @@ watchEffect(async () => {
   }
 
   if (awayCurrentPointSpread.value == undefined) {
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
     const receipt = await betContract.returnPointSpreadBetTotal(
       Number(router.params.id),
-      gameArray.value.visitor_team.id
+      gameArray.value.AwayTeamID
     );
     awayCurrentPointSpread.value = JSON.stringify(receipt, (_, v) =>
       typeof v === 'bigint' ? v.toString() : v
     );
   }
   if (homeCurrentPointTotalUser.value == undefined) {
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
     const receipt = await betContract.returnPointTotalBetReceipt(
       Number(router.params.id)
     );
@@ -413,11 +363,6 @@ watchEffect(async () => {
   }
 
   if (awayCurrentPointTotalUser.value == undefined) {
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
     const receipt = await betContract.returnPointTotalBetReceipt(
       Number(router.params.id)
     );
@@ -427,11 +372,6 @@ watchEffect(async () => {
   }
 
   if (homeCurrentPointTotal.value == undefined) {
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
     const receipt = await betContract.returnPointTotalBetTotal(
       Number(router.params.id)
     );
@@ -441,11 +381,6 @@ watchEffect(async () => {
   }
 
   if (awayCurrentPointTotal.value == undefined) {
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
     const receipt = await betContract.returnPointTotalBetTotal(
       Number(router.params.id)
     );
@@ -468,15 +403,14 @@ const sendBetAway = async () => {
     };
     try {
       const tx = await betContract.moneyLineBet(
-        user.value,
         Number(router.params.id),
-        gameArray.value.visitor_team.id,
-        gameArray.value.home_team.id,
-        gameArray.value.visitor_team.id,
-        Date.parse(gameArray.value.date) / 1000,
-        process.env.MONEYLINE_ADDRESS,
+        gameArray.value.AwayTeamID,
+        gameArray.value.HomeTeamID,
+        gameArray.value.AwayTeamID,
+        Date.parse(gameArray.value.DateTimeUTC) / 1000,
         overrides
       );
+
       await tx.wait();
       window.location.reload();
       console.log(tx);
@@ -489,14 +423,12 @@ const sendBetAway = async () => {
     };
     try {
       const tx = await betContract.pointSpreadBet(
-        user.value,
         Number(router.params.id),
-        gameArray.value.visitor_team.id,
-        gameArray.value.home_team.id,
-        gameArray.value.visitor_team.id,
-        Date.parse(gameArray.value.date) / 1000,
-        14,
-        process.env.POINTSPREAD_ADDRESS,
+        gameArray.value.AwayTeamID,
+        gameArray.value.HomeTeamID,
+        gameArray.value.AwayTeamID,
+        gameArray.value.PointSpread,
+        Date.parse(gameArray.value.DateTimeUTC) / 1000,
         overrides
       );
       await tx.wait();
@@ -511,14 +443,12 @@ const sendBetAway = async () => {
     };
     try {
       const tx = await betContract.pointTotalBet(
-        user.value,
         Number(router.params.id),
-        200,
-        gameArray.value.home_team.id,
-        gameArray.value.visitor_team.id,
-        Date.parse(gameArray.value.date) / 1000,
-        -1,
-        process.env.POINTTOTAL_ADDRESS,
+        gameArray.value.AwayTeamID,
+        gameArray.value.HomeTeamID,
+        gameArray.value.AwayTeamID,
+        gameArray.value.OverUnder,
+        Date.parse(gameArray.value.DateTimeUTC) / 1000,
         overrides
       );
       await tx.wait();
@@ -543,13 +473,11 @@ const sendBetHome = async () => {
     };
     try {
       const tx = await betContract.moneyLineBet(
-        user.value,
         Number(router.params.id),
-        gameArray.value.home_team.id,
-        gameArray.value.home_team.id,
-        gameArray.value.visitor_team.id,
-        Date.parse(gameArray.value.date) / 1000,
-        process.env.MONEYLINE_ADDRESS,
+        gameArray.value.HomeTeamID,
+        gameArray.value.HomeTeamID,
+        gameArray.value.AwayTeamID,
+        Date.parse(gameArray.value.DateTimeUTC) / 1000,
         overrides
       );
       await tx.wait();
@@ -564,14 +492,12 @@ const sendBetHome = async () => {
     };
     try {
       const tx = await betContract.pointSpreadBet(
-        user.value,
         Number(router.params.id),
-        gameArray.value.home_team.id,
-        gameArray.value.home_team.id,
-        gameArray.value.visitor_team.id,
-        Date.parse(gameArray.value.date) / 1000,
-        14,
-        process.env.POINTSPREAD_ADDRESS,
+        gameArray.value.HomeTeamID,
+        gameArray.value.HomeTeamID,
+        gameArray.value.AwayTeamID,
+        gameArray.value.PointSpread,
+        Date.parse(gameArray.value.DateTimeUTC) / 1000,
         overrides
       );
       await tx.wait();
@@ -586,14 +512,12 @@ const sendBetHome = async () => {
     };
     try {
       const tx = await betContract.pointTotalBet(
-        user.value,
         Number(router.params.id),
-        200,
-        gameArray.value.home_team.id,
-        gameArray.value.visitor_team.id,
-        Date.parse(gameArray.value.date) / 1000,
-        -1,
-        process.env.POINTTOTAL_ADDRESS,
+        gameArray.value.HomeTeamID,
+        gameArray.value.HomeTeamID,
+        gameArray.value.AwayTeamID,
+        gameArray.value.OverUnder,
+        Date.parse(gameArray.value.DateTimeUTC) / 1000,
         overrides
       );
       await tx.wait();
@@ -604,76 +528,76 @@ const sendBetHome = async () => {
     }
   }
 };
-const logResult = async () => {
-  const betContract = new ethers.Contract(
-    process.env.CONTRACT_ADDRESS,
-    contract.abi,
-    await provider.getSigner()
-  );
-  try {
-    const tx = await betContract._depositFunds1Balance(
-      9000000000000000,
-      '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-      user.value
-    );
-    await tx.wait();
-    window.location.reload();
-    console.log(tx);
-  } catch (err) {
-    console.log(err);
-  }
-};
 </script>
 <template>
   <q-page>
     <div>
-      <q-card v-if="gameArray.date" class="mainCard">
+      <q-card v-if="gameArray.DateTimeUTC" class="mainCard">
         <div class="text-center">
-          {{ new Date(gameArray.date).toLocaleDateString() }}
+          {{ new Date(gameArray.DateTimeUTC).toLocaleDateString() }}
         </div>
         <q-card-section>
           <div class="row items-center justify-evenly text-h3 text-center">
             <div style="width: 40%">
-              <q-img
-                height="1.7em"
-                width="1.7em"
-                :src="
-                  TEAMS.find((row) => row.id === gameArray.visitor_team.id).logo
-                "
-                :key="gameArray.visitor_team.id"
-              />
-              {{ gameArray.visitor_team?.full_name + ` (${returnAwayOdds}%)` }}
+              <div>
+                <q-img
+                  height="2.5em"
+                  width="2.5em"
+                  :src="
+                    TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID)
+                      .WikipediaLogoUrl
+                  "
+                  :key="gameArray.AwayTeamID"
+                />
+              </div>
+
+              <div>{{ `(${returnAwayOdds}%)` }}</div>
             </div>
             <div style="width: 10%">@</div>
             <div style="width: 40%">
-              <q-img
-                height="1.7em"
-                width="1.7em"
-                :src="
-                  TEAMS.find((row) => row.id === gameArray.home_team.id).logo
-                "
-                :key="gameArray.home_team.id"
-              />
-              {{ gameArray.home_team?.full_name + ` (${returnHomeOdds}%)` }}
+              <div>
+                <q-img
+                  height="2.5em"
+                  width="2.5em"
+                  :src="
+                    TEAMS.find((row) => row.TeamID === gameArray.HomeTeamID)
+                      .WikipediaLogoUrl
+                  "
+                  :key="gameArray.HomeTeamID"
+                />
+              </div>
+              <div>{{ `(${returnHomeOdds}%)` }}</div>
             </div>
           </div>
         </q-card-section>
-        <q-card-section v-if="gameArray.period === 0">
+        <q-card-section v-if="gameArray.Quarter === 0">
           <div class="row items-center justify-evenly text-center">
             <div>
-              {{ gameArray.visitor_team?.division }} Division|{{
-                gameArray.visitor_team?.conference
-              }}ern Conference
+              {{
+                TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID)
+                  .Division
+              }}
+              Division|{{
+                TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID)
+                  .Conference
+              }}
+              Conference
             </div>
             <div class="text-md align-center">
-              <div v-if="gameArray.postseason === true">Playoffs</div>
-              <div>{{ new Date(gameArray.date).toLocaleTimeString() }}</div>
-              <div>{{ new Date(gameArray.date).toLocaleDateString() }}</div>
+              <div v-if="gameArray.SeriesInfo === true">Playoffs</div>
+              <div>{{ new Date(gameArray.DateTime).toLocaleTimeString() }}</div>
+              <div>{{ new Date(gameArray.DateTime).toLocaleDateString() }}</div>
             </div>
             <div>
-              {{ gameArray.home_team?.division }} Division|{{
-                gameArray.home_team?.conference
-              }}ern Conference
+              {{
+                TEAMS.find((row) => row.TeamID === gameArray.HomeTeamID)
+                  .Division
+              }}
+              Division|{{
+                TEAMS.find((row) => row.TeamID === gameArray.HomeTeamID)
+                  .Conference
+              }}
+              Conference
             </div>
           </div>
         </q-card-section>
@@ -685,8 +609,13 @@ const logResult = async () => {
             <div>
               <q-card @click="awayDialog = true"
                 ><q-card-section>{{
-                  returnAwayTotal + ' ETH'
-                }}</q-card-section></q-card
+                  'Total Bet: ' + returnAwayTotal + ' ETH'
+                }}</q-card-section>
+                <q-card-section
+                  >Money Line: {{ gameArray.AwayTeamMoneyLine }}</q-card-section
+                ><q-card-section
+                  >Point Total: {{ gameArray.OverUnder }}</q-card-section
+                ></q-card
               >
               <q-dialog
                 v-model="awayDialog"
@@ -710,16 +639,16 @@ const logResult = async () => {
                   </q-toolbar>
                   <q-card-section>
                     <div class="text-h3 text-center">
-                      {{ gameArray.visitor_team?.full_name
+                      {{ gameArray.AwayTeam
                       }}<q-img
                         height="1.7em"
                         width="1.7em"
                         :src="
                           TEAMS.find(
-                            (row) => row.id === gameArray.visitor_team.id
-                          ).logo
+                            (row) => row.TeamID === gameArray.AwayTeamID
+                          ).WikipediaLogoUrl
                         "
-                        :key="gameArray.visitor_team.id"
+                        :key="gameArray.AwayTeamID"
                       />
                     </div>
                   </q-card-section>
@@ -746,8 +675,7 @@ const logResult = async () => {
 
                       <q-card-section class="q-pt-none">
                         Place your wager on
-                        {{ gameArray.visitor_team?.full_name }} winning the
-                        game.
+                        {{ gameArray.AwayTeam }} winning the game.
                       </q-card-section>
                     </q-radio>
                     <div v-if="awayBetType === 'moneyline'">
@@ -850,29 +778,36 @@ const logResult = async () => {
               <div>
                 <span>Away</span>
                 <div style="font-weight: 800" class="text-h3">
-                  {{ gameArray.visitor_team_score }}
+                  {{ gameArray.AwayTeamScore }}
                 </div>
               </div>
               <div class="text-md align-center">
-                <div v-if="gameArray.postseason === true">Playoffs</div>
-                <div v-if="gameArray.status !== 'Final'">
-                  {{ gameArray.time }}
+                <div v-if="gameArray.SeriesInfo === true">Playoffs</div>
+                <div v-if="gameArray.Status !== 'Final'">
+                  {{ gameArray.TimeRemainingMinutes }}:{{
+                    gameArray.TimeRemainingSeconds
+                  }}
                 </div>
-                <div>{{ gameArray.status }}</div>
+                <div>{{ gameArray.Status }}</div>
                 <div>{{ `${returnGameTotal} ETH` }}</div>
               </div>
               <div>
                 <span>Home</span>
                 <div style="font-weight: 800" class="text-h3">
-                  {{ gameArray.home_team_score }}
+                  {{ gameArray.HomeTeamScore }}
                 </div>
               </div>
             </div>
             <div>
               <q-card @click="homeDialog = true"
                 ><q-card-section>{{
-                  returnHomeTotal + ' ETH'
-                }}</q-card-section></q-card
+                  'Total Bet: ' + returnHomeTotal + ' ETH'
+                }}</q-card-section>
+                <q-card-section
+                  >Money Line: {{ gameArray.HomeTeamMoneyLine }}</q-card-section
+                ><q-card-section
+                  >Point Total: {{ gameArray.OverUnder }}</q-card-section
+                ></q-card
               >
               <q-dialog
                 v-model="homeDialog"
@@ -897,15 +832,16 @@ const logResult = async () => {
                   </q-toolbar>
                   <q-card-section>
                     <div class="text-h3 text-center">
-                      {{ gameArray.home_team?.full_name
+                      {{ gameArray.HomeTeam
                       }}<q-img
                         height="1.7em"
                         width="1.7em"
                         :src="
-                          TEAMS.find((row) => row.id === gameArray.home_team.id)
-                            .logo
+                          TEAMS.find(
+                            (row) => row.TeamID === gameArray.HomeTeamID
+                          ).WikipediaLogoUrl
                         "
-                        :key="gameArray.home_team.id"
+                        :key="gameArray.HomeTeamID"
                       />
                     </div>
                   </q-card-section>
@@ -932,7 +868,7 @@ const logResult = async () => {
 
                       <q-card-section class="q-pt-none">
                         Place your wager on
-                        {{ gameArray.home_team?.full_name }} winning the game
+                        {{ gameArray.HomeTeam }} winning the game
                       </q-card-section>
                     </q-radio>
                     <div v-if="homeBetType === 'moneyline'">
@@ -1033,37 +969,37 @@ const logResult = async () => {
             </div>
           </div>
         </q-card-section>
-        <q-card-section v-if="gameArray.period > 0">
+        <q-card-section>
           <div class="row items-center justify-evenly">
             <div>
               <q-table
-                :title="gameArray.visitor_team.full_name"
+                :title="gameArray.AwayTeam"
                 :rows="statsArrayAway"
                 :columns="statColumns"
-                :row-key="(row) => row.id"
+                :row-key="(row) => row.StatID"
                 :rows-per-page-options="[0]"
                 :auto-width="true"
                 virtual-scroll
                 style="height: 30em"
                 @row-click="
                   (evt, row, index) =>
-                    this.$router.replace({ path: `/players/${row.player.id}` })
+                    this.$router.replace({ path: `/players/${row.PlayerID}` })
                 "
               />
             </div>
             <div @click="logResult">
               <q-table
-                :title="gameArray.home_team.full_name"
+                :title="gameArray.HomeTeam"
                 :rows="statsArrayHome"
                 :columns="statColumns"
-                :row-key="(row) => row.id"
+                :row-key="(row) => row.StatID"
                 :rows-per-page-options="[0]"
                 :auto-width="true"
                 virtual-scroll
                 style="height: 30em"
                 @row-click="
                   (evt, row, index) =>
-                    this.$router.replace({ path: `/players/${row.player.id}` })
+                    this.$router.replace({ path: `/players/${row.PlayerID}` })
                 "
               />
             </div>
