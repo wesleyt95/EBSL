@@ -1,13 +1,30 @@
 <script setup>
 import { watchEffect, ref } from 'vue';
 import { TEAMS } from './nba-teams.js';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const router = useRoute();
+const pushRoute = useRouter();
 const team = TEAMS.find((row) => row.TeamID === Number(router.params.id));
 const playersArray = ref([]);
 const gamesArray = ref([]);
 const gamesArrayPlayoffs = ref([]);
+
+const getGameID = async (date) => {
+  await fetch(
+    `https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/${date}?key=791f4f4fb36a49b69188829ef354d39b`
+  ).then((responseData) =>
+    responseData.json().then((data) => {
+      const filteredData = data.filter((game) => {
+        return game.HomeTeam === team.Key || game.AwayTeam === team.Key;
+      })[0].GameID;
+
+      pushRoute.push({
+        path: `/games/${filteredData}`,
+      });
+    })
+  );
+};
 
 watchEffect(async () => {
   await fetch(
@@ -16,10 +33,12 @@ watchEffect(async () => {
     responseData
       .json()
       .then(
-        (data) =>
+        (data) => (
           (gamesArray.value = data.data.sort(
             (a, b) => new Date(b.date) - new Date(a.date)
-          ))
+          )),
+          console.log(gamesArray.value)
+        )
       )
   );
   await fetch(
@@ -102,32 +121,31 @@ const playerColumns = [
     <div class="text-h4 q-pt-md">Playoffs</div>
     <q-card-section class="row">
       <div v-for="game in gamesArrayPlayoffs" :key="game.id">
-        <RouterLink style="text-decoration: none" :to="`/games/${game.id}`">
-          <div class="gameCard">
-            <div>
-              {{
-                game.period === 0
-                  ? new Date(game.date).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })
-                  : game.status
-              }}
-            </div>
-            <div>
-              {{ game.visitor_team.abbreviation }}
-              <span v-if="game.period > 0"
-                >: {{ game.visitor_team_score }}</span
-              >
-            </div>
-            <q-separator color="white" />
-            <div>
-              <span class="text-yellow-14">@</span>
-              {{ game.home_team.abbreviation }}
-              <span v-if="game.period > 0">: {{ game.home_team_score }}</span>
-            </div>
+        <div
+          class="gameCard"
+          @click="getGameID(new Date(game.date).toISOString().split('T')[0])"
+        >
+          <div>
+            {{
+              game.period === 0
+                ? new Date(game.date).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : game.status
+            }}
           </div>
-        </RouterLink>
+          <div>
+            {{ game.visitor_team.abbreviation }}
+            <span v-if="game.period > 0">: {{ game.visitor_team_score }}</span>
+          </div>
+          <q-separator color="white" />
+          <div>
+            <span class="text-yellow-14">@</span>
+            {{ game.home_team.abbreviation }}
+            <span v-if="game.period > 0">: {{ game.home_team_score }}</span>
+          </div>
+        </div>
       </div>
     </q-card-section>
   </q-card>
@@ -135,32 +153,31 @@ const playerColumns = [
     <div class="text-h4 q-pt-md">Regular Season</div>
     <q-card-section class="row">
       <div v-for="game in gamesArray" :key="game.id">
-        <RouterLink style="text-decoration: none" :to="`/games/${game.id}`">
-          <div class="gameCard">
-            <div>
-              {{
-                game.period === 0
-                  ? new Date(game.date).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })
-                  : game.status
-              }}
-            </div>
-            <div>
-              {{ game.visitor_team.abbreviation }}
-              <span v-if="game.period > 0"
-                >: {{ game.visitor_team_score }}</span
-              >
-            </div>
-            <q-separator color="white" />
-            <div>
-              <span class="text-yellow-14">@</span>
-              {{ game.home_team.abbreviation }}
-              <span v-if="game.period > 0">: {{ game.home_team_score }}</span>
-            </div>
+        <div
+          class="gameCard"
+          @click="getGameID(new Date(game.date).toISOString().split('T')[0])"
+        >
+          <div>
+            {{
+              game.period === 0
+                ? new Date(game.date).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : game.status
+            }}
           </div>
-        </RouterLink>
+          <div>
+            {{ game.visitor_team.abbreviation }}
+            <span v-if="game.period > 0">: {{ game.visitor_team_score }}</span>
+          </div>
+          <q-separator color="white" />
+          <div>
+            <span class="text-yellow-14">@</span>
+            {{ game.home_team.abbreviation }}
+            <span v-if="game.period > 0">: {{ game.home_team_score }}</span>
+          </div>
+        </div>
       </div>
     </q-card-section>
   </q-card>
@@ -174,5 +191,6 @@ const playerColumns = [
   border-radius: 5px;
   padding: 5px;
   width: 8em;
+  cursor: pointer;
 }
 </style>

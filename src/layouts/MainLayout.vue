@@ -1,11 +1,13 @@
 <script setup>
 import { ref, watchEffect, computed } from 'vue';
+import { useWalletStore } from 'stores/web3wallet';
 import { ethers } from 'ethers';
 import EssentialLink from 'components/EssentialLink.vue';
-
+const store = useWalletStore();
+console.log(store.user, store.chainID);
 const provider = new ethers.BrowserProvider(window.ethereum);
-const user = ref('');
-const chainId = ref();
+const user = store.user;
+const chainId = store.chainID;
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 
 const isConnected = ref(false);
@@ -39,8 +41,8 @@ function getDatesArray() {
   datesArray.value = dates;
 }
 const currentAccount = computed(() => {
-  if (user.value.length > 0) {
-    return user.value;
+  if (store.user != undefined) {
+    return store.user;
   } else {
     return 'Menu';
   }
@@ -94,19 +96,7 @@ const getSearchResults = async () => {
 };
 
 watchEffect(async () => {
-  if (
-    window.ethereum._state.accounts &&
-    window.ethereum._state.accounts.length > 0
-  ) {
-    user.value = window.ethereum._state.accounts[0];
-  }
-  if (chainId.value === undefined && window.ethereum.chainId) {
-    try {
-      chainId.value = window.ethereum.chainId;
-    } catch (error) {
-      console.log(error);
-    }
-  }
+
   if (datesArray.value.length === 0) {
     getDatesArray();
   }
@@ -118,13 +108,13 @@ watchEffect(async () => {
 
   if (window.ethereum) {
     isConnected.value = true;
-    if (user.value.length > 0 && balance.value === undefined) {
-      const weiBalance = await provider.getBalance(user.value);
+    if (user != undefined && balance.value === undefined) {
+      const weiBalance = await provider.getBalance(user);
       balance.value = ethers.formatEther(weiBalance).substring(0, 6);
     }
   }
 
-  if (escrow.value === undefined && user.value.length > 0) {
+  if (escrow.value === undefined && user != undefined) {
     const betContract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
       contract.abi,
@@ -198,7 +188,7 @@ function toggleLeftDrawer() {
           >
         </q-toolbar-title>
         <template
-          v-if="isConnected === true && user.length > 0 && chainId === '0x5'"
+          v-if="isConnected === true && user !== undefined && chainId === '0x5'"
         >
           <div :key="user">
             <span class="menuWallet">
@@ -212,7 +202,7 @@ function toggleLeftDrawer() {
 
         <template
           v-else-if="
-            isConnected === true && chainId === '0x5' && user.length === 0
+            isConnected === true && chainId === '0x5' && user === undefined
           "
         >
           <div :key="user">
@@ -226,7 +216,7 @@ function toggleLeftDrawer() {
 
         <template
           v-else-if="
-            isConnected === true && chainId !== '0x5' && user.length > 0
+            isConnected === true && chainId !== '0x5' && user !== undefined
           "
         >
           <div :key="chainId">
@@ -239,7 +229,7 @@ function toggleLeftDrawer() {
           </div>
         </template>
 
-        <template v-else-if="isConnected === false && user.length === 0">
+        <template v-else-if="isConnected === false && user === undefined">
           <div :key="isConnected">
             <q-btn
               disabled

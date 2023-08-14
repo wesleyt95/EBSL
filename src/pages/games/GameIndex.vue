@@ -5,7 +5,6 @@ import { ethers } from 'ethers';
 import { TEAMS } from '../teams/nba-teams.js';
 
 const router = useRoute();
-const user = ref();
 const provider = new ethers.BrowserProvider(window.ethereum);
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 const betContractNoSigner = new ethers.Contract(
@@ -222,12 +221,6 @@ const statColumns = [
 ];
 
 watchEffect(async () => {
-  if (
-    window.ethereum._state.accounts &&
-    window.ethereum._state.accounts.length > 0
-  ) {
-    user.value = window.ethereum._state.accounts[0];
-  }
   await fetch(
     `https://api.sportsdata.io/v3/nba/stats/json/BoxScore/${router.params.id}?key=791f4f4fb36a49b69188829ef354d39b`
   ).then((responseData) =>
@@ -604,7 +597,7 @@ const sendBetHome = async () => {
         <q-card-section v-else>
           <div
             style="width: 80%"
-            class="row items-center justify-evenly text-center q-mx-auto"
+            class="flex full-width row items-center justify-evenly text-center q-mx-auto"
           >
             <div>
               <q-card @click="awayDialog = true"
@@ -1025,7 +1018,7 @@ const sendBetHome = async () => {
   border-radius: 10px;
   padding: 2em;
   margin: auto;
-  width: 50%;
+  width: 10vw;
 }
 .betTypes {
   border: 3px $blue-grey-10 solid;

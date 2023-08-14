@@ -7,7 +7,7 @@ import { TEAMS } from './nba-teams.js';
       <RouterLink style="text-decoration: none" :to="`/teams/${team.TeamID}`">
         <q-card class="tile">
           <q-card-section>
-            <q-img style="max-width: 12em" :src="team.WikipediaLogoUrl" />
+            <q-img style="width: 12em" :src="team.WikipediaLogoUrl" />
           </q-card-section>
           <q-card-section>
             <div class="text-h6">{{ team.City + ' ' + team.Name }}</div>

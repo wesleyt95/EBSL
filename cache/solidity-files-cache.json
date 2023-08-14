@@ -78,8 +78,8 @@
       ]
     },
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\AutomateTaskCreator.sol": {
-      "lastModificationDate": 1690003179419,
-      "contentHash": "58ec4dd6023b8c6630f85fca7790c084",
+      "lastModificationDate": 1691467072973,
+      "contentHash": "195133ad8285e543fecc058232b92a4a",
       "sourceName": "contracts/AutomateTaskCreator.sol",
       "solcConfig": {
         "version": "0.8.21",
@@ -116,8 +116,8 @@
       ]
     },
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\Bet.sol": {
-      "lastModificationDate": 1691295231503,
-      "contentHash": "3c3d783cd3b231bb1bf32ab30adff5db",
+      "lastModificationDate": 1691467729911,
+      "contentHash": "1e870999edb9e855939791b4aaaf4123",
       "sourceName": "contracts/Bet.sol",
       "solcConfig": {
         "version": "0.8.21",
