@@ -9,6 +9,7 @@ const provider = new ethers.BrowserProvider(window.ethereum);
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 const transactionHistory = ref([]);
 const transactionHistoryInactive = ref([]);
+const transactionHistoryEBSL = ref([]);
 const nbaNews = ref([]);
 
 watchEffect(async () => {
@@ -26,6 +27,11 @@ watchEffect(async () => {
   transactionHistoryInactive.value = receipt.filter(
     (tx) => JSON.parse(tx)[6] === false
   );
+  await fetch(
+    'https://api-goerli.etherscan.io/api?module=account&action=txlist&address=0xFC691638a649BceA784Dae35b4dAac11a80bFE99&startblock=0&endblock=99999999&page=1&offset=10&sort=asc&apikey=P9ZXDRE5HXDTQXCEVMFAP5BYIZGE3CQ942'
+  )
+    .then((response) => response.json())
+    .then((data) => ((transactionHistoryEBSL.value = data), console.log(data)));
   await fetch(
     'https://api.sportsdata.io/v3/nba/scores/json/News?key=186578d61751474db1ac789b9613a9b1'
   ).then((responseData) =>

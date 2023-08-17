@@ -546,13 +546,13 @@ const sendBetHome = async () => {
                   "
                   :key="gameArray.AwayTeamID"
                 />
+                {{ `${returnAwayOdds}%` }}
               </div>
-
-              <div>{{ `(${returnAwayOdds}%)` }}</div>
             </div>
             <div style="width: 10%">@</div>
             <div style="width: 40%">
               <div>
+                {{ `${returnHomeOdds}%` }}
                 <q-img
                   fit="contain"
                   style="max-height: 2.5em; max-width: 2.5em"
@@ -563,7 +563,6 @@ const sendBetHome = async () => {
                   :key="gameArray.HomeTeamID"
                 />
               </div>
-              <div>{{ `(${returnHomeOdds}%)` }}</div>
             </div>
           </div>
         </q-card-section>

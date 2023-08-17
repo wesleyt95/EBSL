@@ -7,10 +7,13 @@ import EssentialLink from 'components/EssentialLink.vue';
 const store = useWalletStore();
 const provider = new ethers.BrowserProvider(window.ethereum);
 const user = store.user;
+const userRef = ref(user);
 const chainId = store.chainID;
+const chainIdRef = ref(chainId);
+const isConnected = store.isConnected;
+const isConnectedRef = ref(store.isConnected);
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 
-const isConnected = ref(false);
 const balance = ref();
 const escrow = ref();
 
@@ -95,6 +98,41 @@ const getSearchResults = async () => {
 };
 
 watchEffect(async () => {
+  if (user == undefined && window.ethereum._state.accounts) {
+    userRef.value = window.ethereum._state.accounts[0];
+    store.user = userRef.value;
+  }
+  if (chainId == undefined && window.ethereum.chainId) {
+    chainIdRef.value = window.ethereum.chainId;
+    store.chainID = chainIdRef.value;
+  }
+  if (isConnected !== true && window.ethereum.isConnected()) {
+    isConnectedRef.value = true;
+    store.isConnected = isConnectedRef.value;
+  }
+  window.ethereum.on('accountsChanged', (accounts) => {
+    userRef.value = accounts[0];
+    store.user = userRef.value;
+  });
+  window.ethereum.on('chainChanged', (chainId) => {
+    chainIdRef.value = chainId;
+    store.chainID = chainIdRef.value;
+    window.location.reload();
+  });
+
+  window.ethereum.on(
+    'connect',
+    () => (
+      (isConnectedRef.value = true),
+      (store.isConnected = isConnectedRef.value = true)
+    )
+  );
+  window.ethereum.on(
+    'disconnect',
+    () => (
+      (isConnectedRef.value = false), (store.isConnected = isConnectedRef.value)
+    )
+  );
   if (datesArray.value.length === 0) {
     getDatesArray();
   }
@@ -104,15 +142,14 @@ watchEffect(async () => {
     responseData.json().then((data) => (gamesArray.value = data))
   );
 
-  if (window.ethereum) {
-    isConnected.value = true;
+  if (isConnected === true) {
     if (user != undefined && balance.value === undefined) {
       const weiBalance = await provider.getBalance(user);
       balance.value = ethers.formatEther(weiBalance).substring(0, 6);
     }
   }
 
-  if (escrow.value === undefined && user != undefined) {
+  if (escrow.value == undefined && user != undefined) {
     const betContract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
       contract.abi,
@@ -227,8 +264,7 @@ function toggleLeftDrawer() {
             />
           </div>
         </template>
-
-        <template v-else-if="isConnected === false && user === undefined">
+        <template v-else-if="isConnected === false">
           <div :key="isConnected">
             <q-btn
               disabled
