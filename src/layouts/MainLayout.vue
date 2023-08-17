@@ -2,9 +2,9 @@
 import { ref, watchEffect, computed } from 'vue';
 import { useWalletStore } from 'stores/web3wallet';
 import { ethers } from 'ethers';
+import { TEAMS } from '../pages/teams/nba-teams.js';
 import EssentialLink from 'components/EssentialLink.vue';
 const store = useWalletStore();
-console.log(store.user, store.chainID);
 const provider = new ethers.BrowserProvider(window.ethereum);
 const user = store.user;
 const chainId = store.chainID;
@@ -72,13 +72,12 @@ const getSigner = async () => {
     await provider.getSigner();
   }
 };
-
 const getSearchResults = async () => {
   if (searchValue.value.length > 0) {
     searchDialog.value = true;
 
     await fetch(
-      'https://api.sportsdata.io/v3/nba/scores/json/PlayersActiveBasic?key=791f4f4fb36a49b69188829ef354d39b'
+      'https://api.sportsdata.io/v3/nba/scores/json/PlayersActiveBasic?key=186578d61751474db1ac789b9613a9b1'
     ).then((responseData) =>
       responseData.json().then(
         (data) =>
@@ -96,12 +95,11 @@ const getSearchResults = async () => {
 };
 
 watchEffect(async () => {
-
   if (datesArray.value.length === 0) {
     getDatesArray();
   }
   await fetch(
-    `https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/${selectedDate.value}?key=791f4f4fb36a49b69188829ef354d39b`
+    `https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/${selectedDate.value}?key=186578d61751474db1ac789b9613a9b1`
   ).then((responseData) =>
     responseData.json().then((data) => (gamesArray.value = data))
   );
@@ -146,9 +144,9 @@ const essentialLinks = [
   },
   {
     title: 'Discord',
-    caption: 'forum.quasar.dev',
+    caption: 'Community',
     icon: 'rss_feed',
-    link: 'https://forum.quasar.dev',
+    link: 'https://discord.gg/jEw3eFYUpC',
   },
   {
     title: 'Twitter',
@@ -183,6 +181,7 @@ function toggleLeftDrawer() {
             <q-avatar>
               <q-img
                 src="https://content.sportslogos.net/logos/6/982/full/8147__national_basketball_association-primary-2018.png"
+                fit="contain"
               /> </q-avatar
             >EBSL</RouterLink
           >
@@ -347,6 +346,12 @@ function toggleLeftDrawer() {
               <q-dialog v-model="searchDialog">
                 <q-card style="width: 700px; max-width: 80vw; height: 50vh">
                   <q-card-section
+                    style="
+                      position: sticky;
+                      top: 0px;
+                      z-index: 1;
+                      background-color: white;
+                    "
                     ><q-input
                       square
                       outlined
@@ -367,20 +372,38 @@ function toggleLeftDrawer() {
                       :to="`/players/${player.PlayerID}`"
                       replace
                     >
-                      <q-card class="text-white text-center bg-blue-grey-10">
+                      <q-card
+                        class="text-blue-grey-10 text-center bg-grey-1 searchCard"
+                      >
+                        <q-img
+                          :src="
+                            TEAMS.find((t) => t.TeamID === player.TeamID)
+                              .WikipediaLogoUrl
+                          "
+                          style="
+                            max-height: 70px;
+                            max-width: 90px;
+                            float: left;
+                            margin-top: auto;
+                          "
+                          fit="contain"
+                        />
                         <q-card-section>
                           <q-item-label
                             >{{ player.FirstName
                             }}{{ ' ' + player.LastName + ' ' }}
-                            <span class="text-yellow-14">{{
-                              player.Position
-                            }}</span>
+                            <span
+                              class="text-yellow-14 bg-blue-grey-10 text-bold q-ma-sm q-pa-xs"
+                            >
+                              {{ player.Position }}
+                            </span>
                           </q-item-label>
-                          <div>
-                            {{ player.Team }}
-                          </div>
                           <div :key="player.Height">
+                            {{ player.Weight }} lbs |
                             {{ height(player.Height) }}
+                          </div>
+                          <div>
+                            {{ player.BirthCity }}, {{ player.BirthCountry }}
                           </div>
                         </q-card-section>
                       </q-card>
@@ -448,5 +471,8 @@ function toggleLeftDrawer() {
 }
 .dialogSearchInput {
   border: 2px $blue-grey-10 solid;
+}
+.searchCard {
+  border: 3px $grey-4 solid;
 }
 </style>

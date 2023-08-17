@@ -12,7 +12,7 @@ const gamesArrayPlayoffs = ref([]);
 
 const getGameID = async (date) => {
   await fetch(
-    `https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/${date}?key=791f4f4fb36a49b69188829ef354d39b`
+    `https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/${date}?key=186578d61751474db1ac789b9613a9b1`
   ).then((responseData) =>
     responseData.json().then((data) => {
       const filteredData = data.filter((game) => {
@@ -33,12 +33,10 @@ watchEffect(async () => {
     responseData
       .json()
       .then(
-        (data) => (
+        (data) =>
           (gamesArray.value = data.data.sort(
             (a, b) => new Date(b.date) - new Date(a.date)
-          )),
-          console.log(gamesArray.value)
-        )
+          ))
       )
   );
   await fetch(
@@ -54,7 +52,7 @@ watchEffect(async () => {
       )
   );
   await fetch(
-    `https://api.sportsdata.io/v3/nba/scores/json/PlayersBasic/${team.Key}?key=791f4f4fb36a49b69188829ef354d39b`
+    `https://api.sportsdata.io/v3/nba/scores/json/PlayersBasic/${team.Key}?key=186578d61751474db1ac789b9613a9b1`
   ).then((responseData) =>
     responseData.json().then((data) => (playersArray.value = data))
   );
@@ -96,8 +94,12 @@ const playerColumns = [
 </script>
 <template>
   <h3 class="text-center">
-    {{ team.Name
-    }}<q-img height="1.7em" width="1.7em" :src="team.WikipediaLogoUrl"></q-img>
+    {{ team.City }} {{ team.Name
+    }}<q-img
+      fit="contain"
+      style="max-height: 2em; max-width: 2em"
+      :src="team.WikipediaLogoUrl"
+    />
   </h3>
   <q-card
     ><q-card-section>

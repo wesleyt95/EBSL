@@ -11,11 +11,9 @@ const gamesArray = ref([]);
 watchEffect(async () => {
   selectedDate.value = date.value.replace(/\//g, '-');
   await fetch(
-    `https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/${selectedDate.value}?key=791f4f4fb36a49b69188829ef354d39b`
+    `https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/${selectedDate.value}?key=186578d61751474db1ac789b9613a9b1`
   ).then((responseData) =>
-    responseData
-      .json()
-      .then((data) => ((gamesArray.value = data), console.log(data)))
+    responseData.json().then((data) => (gamesArray.value = data))
   );
 });
 </script>

@@ -27,7 +27,7 @@ watchEffect(async () => {
     (tx) => JSON.parse(tx)[6] === false
   );
   await fetch(
-    'https://api.sportsdata.io/v3/nba/scores/json/News?key=791f4f4fb36a49b69188829ef354d39b'
+    'https://api.sportsdata.io/v3/nba/scores/json/News?key=186578d61751474db1ac789b9613a9b1'
   ).then((responseData) =>
     responseData.json().then((data) => (nbaNews.value = data))
   );

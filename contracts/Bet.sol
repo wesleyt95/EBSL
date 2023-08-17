@@ -95,12 +95,18 @@ contract Bet is AutomateTaskCreator {
     odds = (bettingTeam * 100) / gameTotal;
   }
 
-  function _returnWeb3FunctionArgsHex(
+  function _getWeb3FunctionArgsHex(
     address web3fAddress,
-    uint256 gameID,
-    uint256 startTime
+    uint256 gameID
   ) internal pure returns (bytes memory web3FunctionArgsHex) {
-    web3FunctionArgsHex = abi.encode(web3fAddress, gameID, startTime);
+    web3FunctionArgsHex = abi.encode(web3fAddress, gameID);
+  }
+
+  function getWeb3FunctionArgsHex(
+    address web3fAddress,
+    uint256 gameID
+  ) public pure {
+    _getWeb3FunctionArgsHex(web3fAddress, gameID);
   }
 
   function moneyLineBet(
@@ -108,7 +114,8 @@ contract Bet is AutomateTaskCreator {
     uint256 teamID,
     uint256 homeTeamID,
     uint256 awayTeamID,
-    uint256 startTime
+    uint256 startTime,
+    bytes calldata web3FunctionArgsHex
   ) public payable {
     require(msg.sender == tx.origin);
     require(0 < startTime);
@@ -125,7 +132,7 @@ contract Bet is AutomateTaskCreator {
       moduleData.args[0] = _proxyModuleArg();
       moduleData.args[1] = _web3FunctionModuleArg(
         moneyLineFunctionHash,
-        _returnWeb3FunctionArgsHex(address(this), gameID, startTime)
+        web3FunctionArgsHex
       );
 
       moneyLine.taskID = _createTask(
@@ -179,7 +186,8 @@ contract Bet is AutomateTaskCreator {
     uint256 homeTeamID,
     uint256 awayTeamID,
     int spread,
-    uint256 startTime
+    uint256 startTime,
+    bytes calldata web3FunctionArgsHex
   ) public payable {
     require(msg.sender == tx.origin);
     require(0 < startTime);
@@ -197,7 +205,7 @@ contract Bet is AutomateTaskCreator {
       moduleData.args[0] = _proxyModuleArg();
       moduleData.args[1] = _web3FunctionModuleArg(
         pointSpreadFunctionHash,
-        _returnWeb3FunctionArgsHex(address(this), gameID, startTime)
+        web3FunctionArgsHex
       );
       pointSpread.taskID = _createTask(
         address(this),
@@ -243,10 +251,12 @@ contract Bet is AutomateTaskCreator {
 
   function pointTotalBet(
     uint256 gameID,
+    uint256 overUnder,
     uint256 homeTeamID,
     uint256 awayTeamID,
     uint256 pointAmount,
-    uint256 startTime
+    uint256 startTime,
+    bytes calldata web3FunctionArgsHex
   ) public payable {
     require(msg.sender == tx.origin);
     require(0 < startTime);
@@ -264,7 +274,7 @@ contract Bet is AutomateTaskCreator {
       moduleData.args[0] = _proxyModuleArg();
       moduleData.args[1] = _web3FunctionModuleArg(
         pointTotalFunctionHash,
-        _returnWeb3FunctionArgsHex(address(this), gameID, startTime)
+        web3FunctionArgsHex
       );
       pointTotal.taskID = _createTask(
         address(this),
@@ -284,7 +294,7 @@ contract Bet is AutomateTaskCreator {
       Transaction(
         msg.sender,
         msg.value - tax,
-        0,
+        overUnder,
         gameID,
         'Point Total',
         block.timestamp,
@@ -301,7 +311,7 @@ contract Bet is AutomateTaskCreator {
     usersArray.push(payable(msg.sender));
     transaction.addr = msg.sender;
     transaction.amount += msg.value - tax;
-    transaction.teamID = 0;
+    transaction.teamID = overUnder;
     transaction.gameID = gameID;
     transaction.betType = 'Point Total';
     transaction.time = block.timestamp;
@@ -365,8 +375,10 @@ contract Bet is AutomateTaskCreator {
 
   function rewardPointSpreadWinners(
     uint256 gameID,
-    int winnerScore,
-    int loserScore
+    int homeScore,
+    int awayScore,
+    uint256 homeTeamID,
+    uint256 awayTeamID
   ) public onlyDedicatedMsgSender {
     address payable[] memory winners;
     uint winnersPurse = 0;
@@ -377,7 +389,19 @@ contract Bet is AutomateTaskCreator {
         .receipt[currentUserID]
         .amount;
       int spread = newPointSpreadBet[gameID].spreadAmount[currentUserID];
-      if (winnerScore + spread > loserScore && !checkSender(currentUserID)) {
+      if (
+        newPointSpreadBet[gameID].receipt[currentUserID].teamID == homeTeamID &&
+        homeScore + spread > awayScore &&
+        !checkSender(currentUserID)
+      ) {
+        winners[winnersCount] = currentUserID;
+        winnersCount++;
+        winnersPurse += msgValue;
+      } else if (
+        newPointSpreadBet[gameID].receipt[currentUserID].teamID == awayTeamID &&
+        awayScore + spread > homeScore &&
+        !checkSender(currentUserID)
+      ) {
         winners[winnersCount] = currentUserID;
         winnersCount++;
         winnersPurse += msgValue;
@@ -409,23 +433,25 @@ contract Bet is AutomateTaskCreator {
     address payable[] memory winners;
     uint winnersPurse = 0;
     uint winnersCount = 0;
-    uint drawTotal = 0;
     for (uint i = 0; i < newPointTotalBet[gameID].usersArray.length; i++) {
       address payable currentUserID = newPointTotalBet[gameID].usersArray[i];
       uint256 msgValue = newPointTotalBet[gameID].receipt[currentUserID].amount;
       if (
-        total > newPointTotalBet[gameID].pointAmount[currentUserID] &&
+        newPointTotalBet[gameID].receipt[currentUserID].teamID == 0 &&
+        total < newPointTotalBet[gameID].pointAmount[currentUserID] &&
         !checkSender(currentUserID)
       ) {
         winners[winnersCount] = currentUserID;
         winnersCount++;
         winnersPurse += msgValue;
       } else if (
-        total == newPointTotalBet[gameID].pointAmount[currentUserID] &&
+        newPointTotalBet[gameID].receipt[currentUserID].teamID == 1 &&
+        total > newPointTotalBet[gameID].pointAmount[currentUserID] &&
         !checkSender(currentUserID)
       ) {
-        drawTotal += msgValue;
-        currentUserID.transfer(msgValue);
+        winners[winnersCount] = currentUserID;
+        winnersCount++;
+        winnersPurse += msgValue;
       }
       userReceipts[currentUserID].escrow -= msgValue;
 
@@ -442,8 +468,8 @@ contract Bet is AutomateTaskCreator {
     }
     for (uint b = 0; b < winners.length; b++) {
       uint256 msgValue = newPointTotalBet[gameID].receipt[winners[b]].amount;
-      uint256 share = msgValue / (winnersPurse - drawTotal);
-      winners[b].transfer((newPointTotalBet[gameID].total - drawTotal) * share);
+      uint256 share = msgValue / (winnersPurse);
+      winners[b].transfer((newPointTotalBet[gameID].total) * share);
     }
   }
 

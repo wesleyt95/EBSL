@@ -12,6 +12,13 @@ const betContractNoSigner = new ethers.Contract(
   contract.abi,
   provider
 );
+const paramData = ethers.Interface.from(contract.abi).encodeFunctionData(
+  'getWeb3FunctionArgsHex',
+  [process.env.CONTRACT_ADDRESS, Number(router.params.id)]
+);
+
+const homeDialog = ref(false);
+const awayDialog = ref(false);
 
 const gameArray = ref([]);
 const gameTotal = ref();
@@ -21,10 +28,6 @@ const homeOdds = ref();
 const awayOdds = ref();
 const statsArrayAway = ref([]);
 const statsArrayHome = ref([]);
-
-const homeDialog = ref(false);
-const awayDialog = ref(false);
-
 const homeBetType = ref();
 const homeMoneyline = ref();
 const homeSpread = ref();
@@ -33,14 +36,14 @@ const awayBetType = ref();
 const awayMoneyline = ref();
 const awaySpread = ref();
 const awayTotal = ref();
-
+const overUnderHome = ref();
+const overUnderAway = ref();
 const awayCurrentMoneyline = ref();
 const homeCurrentMoneyline = ref();
 const awayCurrentPointSpread = ref();
 const homeCurrentPointSpread = ref();
 const awayCurrentPointTotal = ref();
 const homeCurrentPointTotal = ref();
-
 const awayCurrentMoneylineUser = ref();
 const homeCurrentMoneylineUser = ref();
 const awayCurrentPointSpreadUser = ref();
@@ -54,23 +57,19 @@ const returnGameTotal = computed(() => {
 const returnHomeTotal = computed(() => {
   return homeTotalBet.value;
 });
-
 const returnAwayTotal = computed(() => {
   return awayTotalBet.value;
 });
-
 const returnHomeOdds = computed(() => {
   if (homeOdds.value == undefined) {
     return 0;
   } else return homeOdds.value;
 });
-
 const returnAwayOdds = computed(() => {
   if (awayOdds.value == undefined) {
     return 0;
   } else return awayOdds.value;
 });
-
 const returnAwayMoneylineUser = computed(() => {
   if (awayCurrentMoneylineUser.value == undefined) {
     return null;
@@ -222,10 +221,9 @@ const statColumns = [
 
 watchEffect(async () => {
   await fetch(
-    `https://api.sportsdata.io/v3/nba/stats/json/BoxScore/${router.params.id}?key=791f4f4fb36a49b69188829ef354d39b`
+    `https://api.sportsdata.io/v3/nba/stats/json/BoxScore/${router.params.id}?key=186578d61751474db1ac789b9613a9b1`
   ).then((responseData) =>
     responseData.json().then(async (data) => {
-      console.log(data);
       gameArray.value = data.Game;
       statsArrayAway.value = await data.PlayerGames?.filter(
         (row) => row.TeamID === gameArray.value.AwayTeamID
@@ -401,6 +399,7 @@ const sendBetAway = async () => {
         gameArray.value.HomeTeamID,
         gameArray.value.AwayTeamID,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
+        paramData,
         overrides
       );
 
@@ -420,8 +419,9 @@ const sendBetAway = async () => {
         gameArray.value.AwayTeamID,
         gameArray.value.HomeTeamID,
         gameArray.value.AwayTeamID,
-        gameArray.value.PointSpread,
+        gameArray.value.PointSpread * -1,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
+        paramData,
         overrides
       );
       await tx.wait();
@@ -437,11 +437,12 @@ const sendBetAway = async () => {
     try {
       const tx = await betContract.pointTotalBet(
         Number(router.params.id),
-        gameArray.value.AwayTeamID,
+        Number(overUnderAway.value),
         gameArray.value.HomeTeamID,
         gameArray.value.AwayTeamID,
         gameArray.value.OverUnder,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
+        paramData,
         overrides
       );
       await tx.wait();
@@ -471,6 +472,7 @@ const sendBetHome = async () => {
         gameArray.value.HomeTeamID,
         gameArray.value.AwayTeamID,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
+        paramData,
         overrides
       );
       await tx.wait();
@@ -491,6 +493,7 @@ const sendBetHome = async () => {
         gameArray.value.AwayTeamID,
         gameArray.value.PointSpread,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
+        paramData,
         overrides
       );
       await tx.wait();
@@ -506,11 +509,12 @@ const sendBetHome = async () => {
     try {
       const tx = await betContract.pointTotalBet(
         Number(router.params.id),
-        gameArray.value.HomeTeamID,
+        Number(overUnderHome.value),
         gameArray.value.HomeTeamID,
         gameArray.value.AwayTeamID,
         gameArray.value.OverUnder,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
+        paramData,
         overrides
       );
       await tx.wait();
@@ -534,8 +538,8 @@ const sendBetHome = async () => {
             <div style="width: 40%">
               <div>
                 <q-img
-                  height="2.5em"
-                  width="2.5em"
+                  fit="contain"
+                  style="max-height: 2.5em; max-width: 2.5em"
                   :src="
                     TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID)
                       .WikipediaLogoUrl
@@ -550,8 +554,8 @@ const sendBetHome = async () => {
             <div style="width: 40%">
               <div>
                 <q-img
-                  height="2.5em"
-                  width="2.5em"
+                  fit="contain"
+                  style="max-height: 2.5em; max-width: 2.5em"
                   :src="
                     TEAMS.find((row) => row.TeamID === gameArray.HomeTeamID)
                       .WikipediaLogoUrl
@@ -605,9 +609,18 @@ const sendBetHome = async () => {
                   'Total Bet: ' + returnAwayTotal + ' ETH'
                 }}</q-card-section>
                 <q-card-section
-                  >Money Line: {{ gameArray.AwayTeamMoneyLine }}</q-card-section
+                  >Money Line: {{ returnAwayMoneyline }}</q-card-section
+                >
+                <q-card-section
+                  >[
+                  {{
+                    (gameArray.PointSpread < 0 ? '+' : null) +
+                    gameArray.PointSpread * -1
+                  }}
+                  ] Point Spread: {{ returnAwayPointSpread }}</q-card-section
                 ><q-card-section
-                  >Point Total: {{ gameArray.OverUnder }}</q-card-section
+                  >[ {{ gameArray.OverUnder }} ] Point Total:
+                  {{ returnAwayPointTotal }}</q-card-section
                 ></q-card
               >
               <q-dialog
@@ -621,6 +634,7 @@ const sendBetHome = async () => {
                   <q-toolbar>
                     <q-avatar>
                       <q-img
+                        fit="contain"
                         src="https://content.sportslogos.net/logos/6/982/full/8147__national_basketball_association-primary-2018.png"
                       />
                     </q-avatar>
@@ -631,11 +645,16 @@ const sendBetHome = async () => {
                     <q-btn flat round dense icon="close" v-close-popup />
                   </q-toolbar>
                   <q-card-section>
-                    <div class="text-h3 text-center">
-                      {{ gameArray.AwayTeam
-                      }}<q-img
-                        height="1.7em"
-                        width="1.7em"
+                    <div class="text-h2 text-center">
+                      {{
+                        TEAMS.find((row) => row.Key === gameArray.AwayTeam).City
+                      }}
+                      {{
+                        TEAMS.find((row) => row.Key === gameArray.AwayTeam).Name
+                      }}
+                      <q-img
+                        fit="contain"
+                        style="max-height: 2em; max-width: 2em"
                         :src="
                           TEAMS.find(
                             (row) => row.TeamID === gameArray.AwayTeamID
@@ -645,32 +664,25 @@ const sendBetHome = async () => {
                       />
                     </div>
                   </q-card-section>
-                  <div class="betTypes">
-                    <q-radio
-                      v-model="awayBetType"
-                      val="moneyline"
-                      checked-icon="null"
-                      unchecked-icon="null"
-                    >
-                      <q-card-section>
-                        <div>
-                          <span class="text-h6"
-                            >Money Line{{ returnAwayMoneylineUser }}</span
-                          >
-                          <div
-                            v-if="awayCurrentMoneyline !== undefined"
-                            class="betValue"
-                          >
-                            {{ returnAwayMoneyline }}
-                          </div>
+                  <div class="betTypes" @click="awayBetType = 'moneyline'">
+                    <q-card-section>
+                      <div>
+                        <span class="text-h6"
+                          >Money Line{{ returnAwayMoneylineUser }}</span
+                        >
+                        <div
+                          v-if="awayCurrentMoneyline !== undefined"
+                          class="betValue"
+                        >
+                          {{ returnAwayMoneyline }}
                         </div>
-                      </q-card-section>
+                      </div>
+                    </q-card-section>
 
-                      <q-card-section class="q-pt-none">
-                        Place your wager on
-                        {{ gameArray.AwayTeam }} winning the game.
-                      </q-card-section>
-                    </q-radio>
+                    <q-card-section class="q-pt-none">
+                      Place your wager on
+                      {{ gameArray.AwayTeam }} winning the game.
+                    </q-card-section>
                     <div v-if="awayBetType === 'moneyline'">
                       <q-input
                         style="max-width: 300px; margin: 0 auto 1em auto"
@@ -683,32 +695,28 @@ const sendBetHome = async () => {
                     </div>
                   </div>
 
-                  <div class="betTypes">
-                    <q-radio
-                      v-model="awayBetType"
-                      val="spread"
-                      checked-icon="null"
-                      unchecked-icon="null"
-                    >
-                      <q-card-section>
-                        <div>
-                          <span class="text-h6">
-                            Point Spread {{ returnAwayPointSpreadUser }}
-                          </span>
-                          <div
-                            v-if="awayCurrentPointSpread !== undefined"
-                            class="betValue"
-                          >
-                            {{ returnAwayPointSpread }}
-                          </div>
+                  <div class="betTypes" @click="awayBetType = 'spread'">
+                    <q-card-section>
+                      <div>
+                        <span class="text-h6">
+                          [{{
+                            (gameArray.PointSpread < 0 ? '+' : null) +
+                            gameArray.PointSpread * -1
+                          }}] Point Spread {{ returnAwayPointSpreadUser }}
+                        </span>
+                        <div
+                          v-if="awayCurrentPointSpread !== undefined"
+                          class="betValue"
+                        >
+                          {{ returnAwayPointSpread }}
                         </div>
-                      </q-card-section>
+                      </div>
+                    </q-card-section>
 
-                      <q-card-section class="q-pt-none">
-                        The point spread is a calculated points difference
-                        determined by oddsmakers between two teams lining up.
-                      </q-card-section>
-                    </q-radio>
+                    <q-card-section class="q-pt-none">
+                      The point spread is a calculated points difference
+                      determined by oddsmakers between two teams lining up.
+                    </q-card-section>
                     <div v-if="awayBetType === 'spread'">
                       <q-input
                         style="max-width: 300px; margin: 0 auto 1em auto"
@@ -720,43 +728,39 @@ const sendBetHome = async () => {
                       ></q-input>
                     </div>
                   </div>
-                  <q-card class="betTypes">
-                    <q-radio
-                      v-model="awayBetType"
-                      val="total"
-                      checked-icon="null"
-                      unchecked-icon="null"
-                    >
-                      <q-card-section>
-                        <div>
-                          <span class="text-h6">
-                            Point Total {{ returnAwayPointTotalUser }}
-                          </span>
-                          <div
-                            v-if="awayCurrentPointTotal !== undefined"
-                            class="betValue"
-                          >
-                            {{ returnAwayPointTotal }}
-                          </div>
+                  <q-card class="betTypes" @click="awayBetType = 'total'">
+                    <q-card-section>
+                      <div>
+                        <span class="text-h6">
+                          [{{ gameArray.OverUnder }}] Point Total
+                          {{ returnAwayPointTotalUser }}
+                        </span>
+                        <div
+                          v-if="awayCurrentPointTotal !== undefined"
+                          class="betValue"
+                        >
+                          {{ returnAwayPointTotal }}
                         </div>
-                      </q-card-section>
-
-                      <q-card-section class="q-pt-none">
-                        You are placing a wager based on whether or not the two
-                        teams on the court exceed or fail to meet a certain
-                        combined score.
-                      </q-card-section>
-                      <div v-if="awayBetType === 'total'">
-                        <q-input
-                          style="max-width: 300px; margin: 0 auto 1em auto"
-                          square
-                          outlined
-                          label="ETH"
-                          type="number"
-                          v-model="awayTotal"
-                        ></q-input>
                       </div>
-                    </q-radio>
+                    </q-card-section>
+
+                    <q-card-section class="q-pt-none">
+                      You are placing a wager based on whether or not the two
+                      teams on the court exceed or fail to meet a certain
+                      combined score.
+                    </q-card-section>
+                    <div v-if="awayBetType === 'total'">
+                      <q-radio v-model="overUnderAway" val="0" label="Under" />
+                      <q-radio v-model="overUnderAway" val="1" label="Over" />
+                      <q-input
+                        style="max-width: 300px; margin: 0 auto 1em auto"
+                        square
+                        outlined
+                        label="ETH"
+                        type="number"
+                        v-model="awayTotal"
+                      ></q-input>
+                    </div>
                   </q-card>
                   <div class="text-center">
                     <q-btn
@@ -797,9 +801,18 @@ const sendBetHome = async () => {
                   'Total Bet: ' + returnHomeTotal + ' ETH'
                 }}</q-card-section>
                 <q-card-section
-                  >Money Line: {{ gameArray.HomeTeamMoneyLine }}</q-card-section
+                  >Money Line: {{ returnHomeMoneyline }}</q-card-section
+                >
+                <q-card-section
+                  >[
+                  {{
+                    (gameArray.PointSpread > 0 ? '+' : null) +
+                    gameArray.PointSpread
+                  }}
+                  ] Point Spread: {{ returnHomePointSpread }}</q-card-section
                 ><q-card-section
-                  >Point Total: {{ gameArray.OverUnder }}</q-card-section
+                  >[ {{ gameArray.OverUnder }} ] Point Total:
+                  {{ returnHomePointTotal }}</q-card-section
                 ></q-card
               >
               <q-dialog
@@ -824,11 +837,16 @@ const sendBetHome = async () => {
                     <q-btn flat round dense icon="close" v-close-popup />
                   </q-toolbar>
                   <q-card-section>
-                    <div class="text-h3 text-center">
-                      {{ gameArray.HomeTeam
-                      }}<q-img
-                        height="1.7em"
-                        width="1.7em"
+                    <div class="text-h2 text-center">
+                      {{
+                        TEAMS.find((row) => row.Key === gameArray.HomeTeam).City
+                      }}
+                      {{
+                        TEAMS.find((row) => row.Key === gameArray.HomeTeam).Name
+                      }}
+                      <q-img
+                        fit="contain"
+                        style="max-height: 2em; max-width: 2em"
                         :src="
                           TEAMS.find(
                             (row) => row.TeamID === gameArray.HomeTeamID
@@ -838,32 +856,24 @@ const sendBetHome = async () => {
                       />
                     </div>
                   </q-card-section>
-                  <div class="betTypes">
-                    <q-radio
-                      v-model="homeBetType"
-                      val="moneyline"
-                      checked-icon="null"
-                      unchecked-icon="null"
-                    >
-                      <q-card-section>
-                        <div>
-                          <span class="text-h6">
-                            Money Line {{ returnHomeMoneylineUser }}</span
-                          >
-                          <div
-                            v-if="homeCurrentMoneyline !== undefined"
-                            class="betValue"
-                          >
-                            {{ returnHomeMoneyline }}
-                          </div>
+                  <div class="betTypes" @click="homeBetType = 'moneyline'">
+                    <q-card-section>
+                      <div>
+                        <span class="text-h6">
+                          Money Line {{ returnHomeMoneylineUser }}</span
+                        >
+                        <div
+                          v-if="homeCurrentMoneyline !== undefined"
+                          class="betValue"
+                        >
+                          {{ returnHomeMoneyline }}
                         </div>
-                      </q-card-section>
-
-                      <q-card-section class="q-pt-none">
-                        Place your wager on
-                        {{ gameArray.HomeTeam }} winning the game
-                      </q-card-section>
-                    </q-radio>
+                      </div>
+                    </q-card-section>
+                    <q-card-section class="q-pt-none">
+                      Place your wager on
+                      {{ gameArray.HomeTeam }} winning the game
+                    </q-card-section>
                     <div v-if="homeBetType === 'moneyline'">
                       <q-input
                         style="max-width: 300px; margin: 0 auto 1em auto"
@@ -876,32 +886,29 @@ const sendBetHome = async () => {
                     </div>
                   </div>
 
-                  <div class="betTypes">
-                    <q-radio
-                      v-model="homeBetType"
-                      val="spread"
-                      checked-icon="null"
-                      unchecked-icon="null"
-                    >
-                      <q-card-section>
-                        <div>
-                          <span class="text-h6">
-                            Point Spread {{ returnHomePointSpreadUser }}
-                          </span>
-                          <div
-                            v-if="homeCurrentPointSpread !== undefined"
-                            class="betValue"
-                          >
-                            {{ returnHomePointSpread }}
-                          </div>
+                  <div class="betTypes" @click="homeBetType = 'spread'">
+                    <q-card-section>
+                      <div>
+                        <span class="text-h6">
+                          [{{
+                            (gameArray.PointSpread > 0 ? '+' : null) +
+                            gameArray.PointSpread
+                          }}] Point Spread {{ returnHomePointSpreadUser }}
+                        </span>
+                        <div
+                          v-if="homeCurrentPointSpread !== undefined"
+                          class="betValue"
+                        >
+                          {{ returnHomePointSpread }}
                         </div>
-                      </q-card-section>
+                      </div>
+                    </q-card-section>
 
-                      <q-card-section class="q-pt-none">
-                        The point spread is a calculated points difference
-                        determined by oddsmakers between two teams lining up.
-                      </q-card-section>
-                    </q-radio>
+                    <q-card-section class="q-pt-none">
+                      The point spread is a calculated points difference
+                      determined by oddsmakers between two teams lining up.
+                    </q-card-section>
+
                     <div v-if="homeBetType === 'spread'">
                       <q-input
                         style="max-width: 300px; margin: 0 auto 1em auto"
@@ -913,43 +920,39 @@ const sendBetHome = async () => {
                       ></q-input>
                     </div>
                   </div>
-                  <div class="betTypes">
-                    <q-radio
-                      v-model="homeBetType"
-                      val="total"
-                      checked-icon="null"
-                      unchecked-icon="null"
-                    >
-                      <q-card-section>
-                        <div>
-                          <span class="text-h6">
-                            Point Total {{ returnHomePointTotalUser }}
-                          </span>
-                          <div
-                            v-if="homeCurrentPointTotal !== undefined"
-                            class="betValue"
-                          >
-                            {{ returnHomePointTotal }}
-                          </div>
+                  <div class="betTypes" @click="homeBetType = 'total'">
+                    <q-card-section>
+                      <div>
+                        <span class="text-h6">
+                          [{{ gameArray.OverUnder }}] Point Total
+                          {{ returnHomePointTotalUser }}
+                        </span>
+                        <div
+                          v-if="homeCurrentPointTotal !== undefined"
+                          class="betValue"
+                        >
+                          {{ returnHomePointTotal }}
                         </div>
-                      </q-card-section>
-
-                      <q-card-section class="q-pt-none">
-                        You are placing a wager based on whether or not the two
-                        teams on the court exceed or fail to meet a certain
-                        combined score.
-                      </q-card-section>
-                      <div v-if="homeBetType === 'total'">
-                        <q-input
-                          style="max-width: 300px; margin: 0 auto 1em auto"
-                          square
-                          outlined
-                          label="ETH"
-                          type="number"
-                          v-model="homeTotal"
-                        ></q-input>
                       </div>
-                    </q-radio>
+                    </q-card-section>
+
+                    <q-card-section class="q-pt-none">
+                      You are placing a wager based on whether or not the two
+                      teams on the court exceed or fail to meet a certain
+                      combined score.
+                    </q-card-section>
+                    <div v-if="homeBetType === 'total'">
+                      <q-radio v-model="overUnderHome" val="0" label="Under" />
+                      <q-radio v-model="overUnderHome" val="1" label="Over" />
+                      <q-input
+                        style="max-width: 300px; margin: 0 auto 1em auto"
+                        square
+                        outlined
+                        label="ETH"
+                        type="number"
+                        v-model="homeTotal"
+                      ></q-input>
+                    </div>
                   </div>
                   <div class="text-center">
                     <q-btn
@@ -963,40 +966,35 @@ const sendBetHome = async () => {
           </div>
         </q-card-section>
         <q-card-section>
-          <div class="row items-center justify-evenly">
-            <div>
-              <q-table
-                :title="gameArray.AwayTeam"
-                :rows="statsArrayAway"
-                :columns="statColumns"
-                :row-key="(row) => row.StatID"
-                :rows-per-page-options="[0]"
-                :auto-width="true"
-                virtual-scroll
-                style="height: 30em"
-                @row-click="
-                  (evt, row, index) =>
-                    this.$router.replace({ path: `/players/${row.PlayerID}` })
-                "
-              />
-            </div>
-            <div @click="logResult">
-              <q-table
-                :title="gameArray.HomeTeam"
-                :rows="statsArrayHome"
-                :columns="statColumns"
-                :row-key="(row) => row.StatID"
-                :rows-per-page-options="[0]"
-                :auto-width="true"
-                virtual-scroll
-                style="height: 30em"
-                @row-click="
-                  (evt, row, index) =>
-                    this.$router.replace({ path: `/players/${row.PlayerID}` })
-                "
-              />
-            </div>
-          </div>
+          <q-table
+            :title="gameArray.AwayTeam"
+            :rows="statsArrayAway"
+            :columns="statColumns"
+            :row-key="(row) => row.StatID"
+            :rows-per-page-options="[0]"
+            :auto-width="true"
+            virtual-scroll
+            style="max-height: 30em"
+            @row-click="
+              (evt, row, index) =>
+                this.$router.replace({ path: `/players/${row.PlayerID}` })
+            "
+          />
+
+          <q-table
+            :title="gameArray.HomeTeam"
+            :rows="statsArrayHome"
+            :columns="statColumns"
+            :row-key="(row) => row.StatID"
+            :rows-per-page-options="[0]"
+            :auto-width="true"
+            virtual-scroll
+            style="max-height: 30em"
+            @row-click="
+              (evt, row, index) =>
+                this.$router.replace({ path: `/players/${row.PlayerID}` })
+            "
+          />
         </q-card-section>
       </q-card>
     </div>
@@ -1018,16 +1016,19 @@ const sendBetHome = async () => {
   border-radius: 10px;
   padding: 2em;
   margin: auto;
-  width: 10vw;
+  min-width: 10vw;
 }
 .betTypes {
-  border: 3px $blue-grey-10 solid;
+  border: 5px $grey-4 solid;
+  border-radius: 12px !important;
   text-align: center;
   margin: 1em auto;
   width: 80%;
-  background: #fff;
+  background: $grey-1;
 }
-
+.betTypes:hover {
+  cursor: pointer;
+}
 .betValue {
   border: 3px $blue-grey-10 solid;
   width: 7.5em;
