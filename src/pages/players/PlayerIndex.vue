@@ -138,7 +138,7 @@ const averageColumnsPost = [
 watchEffect(async () => {
   await fetch(
     // `https://www.balldontlie.io/api/v1/players/${Number(router.params.id)}`
-    `https://api.sportsdata.io/v3/nba/scores/json/Player/${router.params.id}?key=186578d61751474db1ac789b9613a9b1`
+    `https://api.sportsdata.io/v3/nba/scores/json/Player/${router.params.id}?key=${process.env.SPORTSDATA_API_KEY}`
   ).then((responseData) =>
     responseData
       .json()
@@ -146,7 +146,7 @@ watchEffect(async () => {
   );
 
   await fetch(
-    `https://api.sportsdata.io/v3/nba/stats/json/PlayerGameStatsBySeason/2023/${router.params.id}/all?key=186578d61751474db1ac789b9613a9b1`
+    `https://api.sportsdata.io/v3/nba/stats/json/PlayerGameStatsBySeason/2023/${router.params.id}/all?key=${process.env.SPORTSDATA_API_KEY}`
   ).then((responseData) =>
     responseData.json().then((data) => {
       regularSeason.value = data;
@@ -154,7 +154,7 @@ watchEffect(async () => {
   );
 
   await fetch(
-    'https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStats/2023?key=186578d61751474db1ac789b9613a9b1'
+    `https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStats/2023?key=${process.env.SPORTSDATA_API_KEY}`
   ).then((responseData) =>
     responseData
       .json()
@@ -168,7 +168,7 @@ watchEffect(async () => {
       )
   );
   await fetch(
-    `https://api.sportsdata.io/v3/nba/stats/json/PlayerGameStatsBySeason/2023POST/${router.params.id}/all?key=186578d61751474db1ac789b9613a9b1`
+    `https://api.sportsdata.io/v3/nba/stats/json/PlayerGameStatsBySeason/2023POST/${router.params.id}/all?key=${process.env.SPORTSDATA_API_KEY}`
   ).then((responseData) =>
     responseData.json().then((data) => {
       postSeason.value = data;
@@ -176,7 +176,7 @@ watchEffect(async () => {
   );
   if (postSeason.value.length > 0) {
     await fetch(
-      'https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStats/2023POST?key=186578d61751474db1ac789b9613a9b1'
+      `https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStats/2023POST?key=${process.env.SPORTSDATA_API_KEY}`
     ).then((responseData) =>
       responseData
         .json()

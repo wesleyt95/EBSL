@@ -12,6 +12,24 @@ const transactionHistoryInactive = ref([]);
 const transactionHistoryEBSL = ref([]);
 const nbaNews = ref([]);
 
+const etherscanBetType = (methodID) => {
+  return ethers.Interface.from(contract.abi).getFunctionName(methodID);
+};
+
+const etherscanTeam = (methodID, input, teamID) => {
+  const data = ethers.Interface.from(contract.abi).decodeFunctionData(
+    etherscanBetType(methodID),
+    input
+  )[teamID];
+  if (data < 99) {
+    return TEAMS.find((row) => row.TeamID === Number(data)).Name;
+  } else if (data === 99) {
+    return 'Under';
+  } else if (data === 100) {
+    return 'Over';
+  }
+};
+
 watchEffect(async () => {
   const betContract = new ethers.Contract(
     process.env.CONTRACT_ADDRESS,
@@ -28,12 +46,19 @@ watchEffect(async () => {
     (tx) => JSON.parse(tx)[6] === false
   );
   await fetch(
-    'https://api-goerli.etherscan.io/api?module=account&action=txlist&address=0xFC691638a649BceA784Dae35b4dAac11a80bFE99&startblock=0&endblock=99999999&page=1&offset=10&sort=asc&apikey=P9ZXDRE5HXDTQXCEVMFAP5BYIZGE3CQ942'
+    `https://api-goerli.etherscan.io/api?module=account&action=txlist&address=${process.env.CONTRACT_ADDRESS}&startblock=0&endblock=99999999&page=1&offset=10&sort=asc&apikey=${process.env.ETHERSCAN_API_KEY}`
   )
     .then((response) => response.json())
-    .then((data) => ((transactionHistoryEBSL.value = data), console.log(data)));
+    .then(
+      (data) => (
+        (transactionHistoryEBSL.value = data.result.filter(
+          (tx) => tx.value !== '0' && tx.functionName !== 'deposit()'
+        )),
+        console.log(transactionHistoryEBSL.value)
+      )
+    );
   await fetch(
-    'https://api.sportsdata.io/v3/nba/scores/json/News?key=186578d61751474db1ac789b9613a9b1'
+    `https://api.sportsdata.io/v3/nba/scores/json/News?key=${process.env.SPORTSDATA_API_KEY}`
   ).then((responseData) =>
     responseData.json().then((data) => (nbaNews.value = data))
   );
@@ -59,111 +84,171 @@ const logResult = async () => {
 
 <template>
   <q-page class="fit">
-    <q-card class="newsCard">
-      <q-scroll-area style="height: 48em">
-        <q-card-section>
-          <div class="text-h6 mainSign">Recent News</div>
-          <div v-for="(news, index) in nbaNews" :key="index">
-            <a style="text-decoration: none" :href="news.Url">
-              <div class="text-center receiptItem">
-                <div class="text-yellow-14 text-weight-bold">
-                  {{ news.Title }}
-                </div>
-                <div class="text-grey-1">
-                  [{{ ' ' + news.OriginalSource + ' ' }}]
-                </div>
-                <div class="text-red">
-                  <div>{{ new Date(news.Updated).toLocaleDateString() }}</div>
-                </div>
-              </div></a
-            >
-          </div></q-card-section
-        >
-      </q-scroll-area>
-    </q-card>
-    <q-card class="receiptCard">
-      <q-btn @click="logResult">click</q-btn>
-      <q-scroll-area style="height: 48em">
-        <template v-if="transactionHistory.length > 0"
-          ><q-card-section>
-            <div class="text-h6 mainSign">Active Transactions</div>
-            <div v-for="(tx, index) in transactionHistory" :key="index">
-              <RouterLink
-                style="text-decoration: none"
-                :to="`/games/${JSON.parse(tx)[3]}`"
-              >
-                <div class="receiptItem">
-                  <div class="text-center text-red text-weight-bold">
-                    {{
-                      new Date(
-                        Number(JSON.parse(tx)[5]) * 1000
-                      ).toLocaleDateString()
-                    }}
+    <div class="row q-my-auto">
+      <q-card class="newsCard">
+        <q-scroll-area style="height: 22.5em">
+          <q-card-section>
+            <div class="text-h6 mainSign">Recent News</div>
+            <div v-for="(news, index) in nbaNews" :key="index">
+              <a style="text-decoration: none" :href="news.Url">
+                <div class="text-center receiptItem">
+                  <div class="text-yellow-14 text-weight-bold">
+                    {{ news.Title }}
                   </div>
-                  <div class="row justify-between">
-                    <div>{{ JSON.parse(tx)[4] }}</div>
-                    <div
-                      style="float: left; margin-left: -1em"
-                      class="text-grey-1"
-                    >
-                      {{
-                        TEAMS.find(
-                          (row) => row.TeamID === Number(JSON.parse(tx)[2])
-                        ).Name
-                      }}
-                    </div>
-                    <div>
-                      {{
-                        ethers.formatEther(JSON.parse(tx)[1]).substring(0, 6) +
-                        ' ETH'
-                      }}
-                    </div>
+                  <div class="text-grey-1">
+                    [{{ ' ' + news.OriginalSource + ' ' }}]
+                  </div>
+                  <div class="text-red">
+                    <div>{{ new Date(news.Updated).toLocaleDateString() }}</div>
                   </div>
                 </div>
-              </RouterLink>
+              </a>
             </div></q-card-section
-          ></template
-        >
-        <template v-if="transactionHistoryInactive.length > 0"
-          ><q-card-section>
-            <div class="text-h6 mainSign">Past Transactions</div>
-            <div v-for="(tx, index) in transactionHistoryInactive" :key="index">
-              <RouterLink
-                style="text-decoration: none"
-                :to="`/games/${JSON.parse(tx)[3]}`"
+          >
+        </q-scroll-area>
+      </q-card>
+      <q-card class="receiptCard">
+        <q-scroll-area style="height: 22.5em">
+          <q-btn @click="logResult">click</q-btn>
+          <template v-if="transactionHistory.length > 0">
+            <q-card-section>
+              <div class="text-h6 mainSign">Active Transactions</div>
+              <div v-for="(tx, index) in transactionHistory" :key="index">
+                <RouterLink
+                  style="text-decoration: none"
+                  :to="`/games/${JSON.parse(tx)[3]}`"
+                >
+                  <div class="receiptItem">
+                    <div class="text-center text-red text-weight-bold">
+                      {{
+                        new Date(
+                          Number(JSON.parse(tx)[5]) * 1000
+                        ).toLocaleDateString()
+                      }}
+                    </div>
+                    <div class="row justify-between">
+                      <div>{{ JSON.parse(tx)[4] }}</div>
+                      <div
+                        style="float: left; margin-left: -1em"
+                        class="text-grey-1"
+                      >
+                        {{
+                          TEAMS.find(
+                            (row) => row.TeamID === Number(JSON.parse(tx)[2])
+                          ).Name
+                        }}
+                      </div>
+                      <div>
+                        {{
+                          ethers
+                            .formatEther(JSON.parse(tx)[1])
+                            .substring(0, 6) + ' ETH'
+                        }}
+                      </div>
+                    </div>
+                  </div>
+                </RouterLink>
+              </div>
+            </q-card-section>
+          </template>
+          <template v-if="transactionHistory.length === 0">
+            <q-card-section>
+              <div class="text-h6 mainSign">Active Transactions</div>
+              <div class="receiptItem text-center">No Active Transactions</div>
+            </q-card-section>
+          </template>
+          <template v-if="transactionHistoryInactive.length > 0">
+            <q-card-section>
+              <div class="text-h6 mainSign">Past Transactions</div>
+              <div
+                v-for="(tx, index) in transactionHistoryInactive"
+                :key="index"
               >
-                <div class="receiptItem">
-                  <div class="text-center text-red text-weight-bold">
-                    {{
-                      new Date(
-                        Number(JSON.parse(tx)[5]) * 1000
-                      ).toLocaleDateString()
-                    }}
-                  </div>
-                  <div class="row justify-between">
-                    <div>{{ JSON.parse(tx)[4] }}</div>
-                    <div
-                      style="float: left; margin-left: -1em"
-                      class="text-grey-1"
-                    >
+                <RouterLink
+                  style="text-decoration: none"
+                  :to="`/games/${JSON.parse(tx)[3]}`"
+                >
+                  <div class="receiptItem">
+                    <div class="text-center text-red text-weight-bold">
                       {{
-                        TEAMS.find(
-                          (row) => row.TeamID === Number(JSON.parse(tx)[2])
-                        ).Name
+                        new Date(
+                          Number(JSON.parse(tx)[5]) * 1000
+                        ).toLocaleDateString()
                       }}
                     </div>
-                    <div>
-                      {{
-                        ethers.formatEther(JSON.parse(tx)[1]).substring(0, 6) +
-                        ' ETH'
-                      }}
+                    <div class="row justify-between">
+                      <div>{{ JSON.parse(tx)[4] }}</div>
+                      <div
+                        style="float: left; margin-left: -1em"
+                        class="text-grey-1"
+                      >
+                        {{
+                          TEAMS.find(
+                            (row) => row.TeamID === Number(JSON.parse(tx)[2])
+                          ).Name
+                        }}
+                      </div>
+                      <div>
+                        {{
+                          ethers
+                            .formatEther(JSON.parse(tx)[1])
+                            .substring(0, 6) + ' ETH'
+                        }}
+                      </div>
                     </div>
                   </div>
+                </RouterLink>
+              </div>
+            </q-card-section>
+          </template>
+          <template v-if="transactionHistoryInactive.length === 0">
+            <q-card-section>
+              <div class="text-h6 mainSign">Inactive Transactions</div>
+              <div class="receiptItem text-center">
+                No Inactive Transactions
+              </div>
+            </q-card-section>
+          </template>
+        </q-scroll-area>
+      </q-card>
+    </div>
+    <q-card class="etherscanCard">
+      <q-scroll-area style="height: 20em">
+        <div class="text-h6 mainSign">EBSL Transactions</div>
+        <div v-for="(receipts, index) in transactionHistoryEBSL" :key="index">
+          <a
+            style="text-decoration: none"
+            :href="`https://goerli.etherscan.io/tx/${receipts.hash}`"
+            ><div class="text-center receiptItem">
+              <div class="text-red text-weight-bold">
+                {{ receipts.from }}
+                <span class="text-grey-1">
+                  {{
+                    ` (${ethers.formatEther(receipts.value).substring(0, 6)})` +
+                    ' ETH'
+                  }}
+                </span>
+              </div>
+              <div class="row justify-between">
+                <div>
+                  {{ etherscanBetType(receipts.methodId) }} ({{
+                    etherscanTeam(receipts.methodId, receipts.input, 1)
+                  }})
                 </div>
-              </RouterLink>
+                <div>
+                  {{ etherscanTeam(receipts.methodId, receipts.input, 3) }}
+                  @
+                  {{ etherscanTeam(receipts.methodId, receipts.input, 2) }}
+                </div>
+                <div>
+                  {{ new Date(receipts.timeStamp * 1000).toLocaleDateString() }}
+                  -
+                  {{ new Date(receipts.timeStamp * 1000).toLocaleTimeString() }}
+                </div>
+              </div>
             </div>
-          </q-card-section></template
-        >
+          </a>
+        </div>
       </q-scroll-area>
     </q-card>
   </q-page>
@@ -177,28 +262,34 @@ const logResult = async () => {
   text-align: center;
 }
 .receiptCard {
-  margin: 1em 0.5em 0 0;
+  margin: 1em auto 0.5em auto;
   border: 5px $grey-4 solid;
   border-radius: 5px;
   padding: 1em;
   color: $blue-grey-10;
   background: $grey-1;
   height: 100%;
-  width: 25%;
-  min-width: 25em;
-  float: right;
+  width: 49%;
 }
 .newsCard {
-  margin: 1em 0 0 0.5em;
+  margin: 1em auto 0.5em auto;
   border: 5px $grey-4 solid;
   border-radius: 5px;
   padding: 1em;
   color: $blue-grey-10;
   background: $grey-1;
   height: 100%;
-  width: 25%;
-  min-width: 25em;
-  float: left;
+  width: 49%;
+}
+.etherscanCard {
+  margin: 0.5em 1em 0 1em;
+  border: 5px $grey-4 solid;
+  border-radius: 5px;
+  padding: 1em;
+  color: $blue-grey-10;
+  background: $grey-1;
+  height: 100%;
+  width: 98%;
 }
 .receiptItem {
   border: 4px red solid;

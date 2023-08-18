@@ -437,7 +437,7 @@ contract Bet is AutomateTaskCreator {
       address payable currentUserID = newPointTotalBet[gameID].usersArray[i];
       uint256 msgValue = newPointTotalBet[gameID].receipt[currentUserID].amount;
       if (
-        newPointTotalBet[gameID].receipt[currentUserID].teamID == 0 &&
+        newPointTotalBet[gameID].receipt[currentUserID].teamID == 99 &&
         total < newPointTotalBet[gameID].pointAmount[currentUserID] &&
         !checkSender(currentUserID)
       ) {
@@ -445,7 +445,7 @@ contract Bet is AutomateTaskCreator {
         winnersCount++;
         winnersPurse += msgValue;
       } else if (
-        newPointTotalBet[gameID].receipt[currentUserID].teamID == 1 &&
+        newPointTotalBet[gameID].receipt[currentUserID].teamID == 100 &&
         total > newPointTotalBet[gameID].pointAmount[currentUserID] &&
         !checkSender(currentUserID)
       ) {

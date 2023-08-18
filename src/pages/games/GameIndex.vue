@@ -221,7 +221,7 @@ const statColumns = [
 
 watchEffect(async () => {
   await fetch(
-    `https://api.sportsdata.io/v3/nba/stats/json/BoxScore/${router.params.id}?key=186578d61751474db1ac789b9613a9b1`
+    `https://api.sportsdata.io/v3/nba/stats/json/BoxScore/${router.params.id}?key=${process.env.SPORTSDATA_API_KEY}`
   ).then((responseData) =>
     responseData.json().then(async (data) => {
       gameArray.value = data.Game;
@@ -749,8 +749,16 @@ const sendBetHome = async () => {
                       combined score.
                     </q-card-section>
                     <div v-if="awayBetType === 'total'">
-                      <q-radio v-model="overUnderAway" val="0" label="Under" />
-                      <q-radio v-model="overUnderAway" val="1" label="Over" />
+                      <q-radio
+                        v-model="overUnderAway"
+                        :val="99"
+                        label="Under"
+                      />
+                      <q-radio
+                        v-model="overUnderAway"
+                        :val="100"
+                        label="Over"
+                      />
                       <q-input
                         style="max-width: 300px; margin: 0 auto 1em auto"
                         square
@@ -941,8 +949,16 @@ const sendBetHome = async () => {
                       combined score.
                     </q-card-section>
                     <div v-if="homeBetType === 'total'">
-                      <q-radio v-model="overUnderHome" val="0" label="Under" />
-                      <q-radio v-model="overUnderHome" val="1" label="Over" />
+                      <q-radio
+                        v-model="overUnderHome"
+                        :val="99"
+                        label="Under"
+                      />
+                      <q-radio
+                        v-model="overUnderHome"
+                        :val="100"
+                        label="Over"
+                      />
                       <q-input
                         style="max-width: 300px; margin: 0 auto 1em auto"
                         square

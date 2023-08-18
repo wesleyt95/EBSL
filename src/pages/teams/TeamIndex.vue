@@ -12,7 +12,7 @@ const gamesArrayPlayoffs = ref([]);
 
 const getGameID = async (date) => {
   await fetch(
-    `https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/${date}?key=186578d61751474db1ac789b9613a9b1`
+    `https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/${date}?key=${process.env.SPORTSDATA_API_KEY}`
   ).then((responseData) =>
     responseData.json().then((data) => {
       const filteredData = data.filter((game) => {
@@ -52,7 +52,7 @@ watchEffect(async () => {
       )
   );
   await fetch(
-    `https://api.sportsdata.io/v3/nba/scores/json/PlayersBasic/${team.Key}?key=186578d61751474db1ac789b9613a9b1`
+    `https://api.sportsdata.io/v3/nba/scores/json/PlayersBasic/${team.Key}?key=${process.env.SPORTSDATA_API_KEY}`
   ).then((responseData) =>
     responseData.json().then((data) => (playersArray.value = data))
   );
