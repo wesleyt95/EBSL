@@ -653,7 +653,14 @@ const sendBetHome = async () => {
                       }}
                     </div>
                   </q-card-section>
-                  <div class="betTypes" @click="awayBetType = 'moneyline'">
+                  <div
+                    :class="
+                      awayBetType === 'moneyline'
+                        ? 'betTypesSelected'
+                        : 'betTypes'
+                    "
+                    @click="awayBetType = 'moneyline'"
+                  >
                     <q-card-section>
                       <div>
                         <span class="text-h6"
@@ -684,7 +691,12 @@ const sendBetHome = async () => {
                     </div>
                   </div>
 
-                  <div class="betTypes" @click="awayBetType = 'spread'">
+                  <div
+                    :class="
+                      awayBetType === 'spread' ? 'betTypesSelected' : 'betTypes'
+                    "
+                    @click="awayBetType = 'spread'"
+                  >
                     <q-card-section>
                       <div>
                         <span class="text-h6">
@@ -717,7 +729,12 @@ const sendBetHome = async () => {
                       ></q-input>
                     </div>
                   </div>
-                  <q-card class="betTypes" @click="awayBetType = 'total'">
+                  <q-card
+                    :class="
+                      awayBetType === 'total' ? 'betTypesSelected' : 'betTypes'
+                    "
+                    @click="awayBetType = 'total'"
+                  >
                     <q-card-section>
                       <div>
                         <span class="text-h6">
@@ -877,7 +894,14 @@ const sendBetHome = async () => {
                       }}
                     </div>
                   </q-card-section>
-                  <div class="betTypes" @click="homeBetType = 'moneyline'">
+                  <div
+                    :class="
+                      homeBetType === 'moneyline'
+                        ? 'betTypesSelected'
+                        : 'betTypes'
+                    "
+                    @click="homeBetType = 'moneyline'"
+                  >
                     <q-card-section>
                       <div>
                         <span class="text-h6">
@@ -907,7 +931,12 @@ const sendBetHome = async () => {
                     </div>
                   </div>
 
-                  <div class="betTypes" @click="homeBetType = 'spread'">
+                  <div
+                    :class="
+                      homeBetType === 'spread' ? 'betTypesSelected' : 'betTypes'
+                    "
+                    @click="homeBetType = 'spread'"
+                  >
                     <q-card-section>
                       <div>
                         <span class="text-h6">
@@ -941,7 +970,12 @@ const sendBetHome = async () => {
                       ></q-input>
                     </div>
                   </div>
-                  <div class="betTypes" @click="homeBetType = 'total'">
+                  <div
+                    :class="
+                      homeBetType === 'total' ? 'betTypesSelected' : 'betTypes'
+                    "
+                    @click="homeBetType = 'total'"
+                  >
                     <q-card-section>
                       <div>
                         <span class="text-h6">
@@ -1042,6 +1076,7 @@ const sendBetHome = async () => {
   padding: 0.5em;
   font-weight: 650;
 }
+
 .mainCard {
   margin: 2em;
   color: $blue-grey-10;
@@ -1050,15 +1085,6 @@ const sendBetHome = async () => {
   border-radius: 5px;
   padding: 1em;
 }
-.score {
-  color: $lime-12;
-  background-color: black;
-  border: 3px $lime-12 solid;
-  border-radius: 10px;
-  padding: 2em;
-  margin: auto;
-  min-width: 10vw;
-}
 .betTypes {
   border: 5px $grey-4 solid;
   border-radius: 12px !important;
@@ -1066,6 +1092,14 @@ const sendBetHome = async () => {
   margin: 1em auto;
   width: 80%;
   background: $grey-1;
+}
+.betTypesSelected {
+  border: 2.5px red solid;
+  border-radius: 12px !important;
+  text-align: center;
+  margin: 1em auto;
+  width: 80%;
+  background: $grey-2;
 }
 .betTypes:hover {
   cursor: pointer;
@@ -1077,7 +1111,7 @@ const sendBetHome = async () => {
 }
 .dateSign {
   color: $blue-grey-10;
-  border: 3px red solid;
+  border: 4px $grey-6 solid;
   border-radius: 5px;
   font-weight: 1000;
   background-color: $grey-1;

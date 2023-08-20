@@ -101,37 +101,25 @@ const averageColumns = [
     field: 'BlockedShots',
     format: (val) => (val / gamesPlayed.value).toFixed(1),
   },
-];
-const averageColumnsPost = [
   {
-    name: 'Points',
-    label: 'Points',
-    field: 'Points',
-    format: (val) => (val / gamesPlayedPlayoffs.value).toFixed(1),
+    name: 'FieldGoalsPercentage',
+    label: 'FG %',
+    field: 'FieldGoalsPercentage',
   },
   {
-    name: 'Rebounds',
-    label: 'Rebounds',
-    field: 'Rebounds',
-    format: (val) => (val / gamesPlayedPlayoffs.value).toFixed(1),
+    name: 'ThreePointersPercentage',
+    label: '3pt %',
+    field: 'ThreePointersPercentage',
   },
   {
-    name: 'Assists',
-    label: 'Assists',
-    field: 'Assists',
-    format: (val) => (val / gamesPlayedPlayoffs.value).toFixed(1),
+    name: 'FreeThrowsPercentage',
+    label: 'FT %',
+    field: 'FreeThrowsPercentage',
   },
   {
-    name: 'Steals',
-    label: 'Steals',
-    field: 'Steals',
-    format: (val) => (val / gamesPlayedPlayoffs.value).toFixed(1),
-  },
-  {
-    name: 'BlockedShots',
-    label: 'Blocks',
-    field: 'BlockedShots',
-    format: (val) => (val / gamesPlayedPlayoffs.value).toFixed(1),
+    name: 'PlayerEfficiencyRating',
+    label: 'PER',
+    field: 'PlayerEfficiencyRating',
   },
 ];
 
@@ -250,7 +238,7 @@ watchEffect(async () => {
             v-if="postSeason.length > 0"
             title="Post Season Averages"
             :rows="[averagesPlayoffs]"
-            :columns="averageColumnsPost"
+            :columns="averageColumns"
             row-key="PlayerID"
             :rows-per-page-options="[0]"
             :auto-width="true"
