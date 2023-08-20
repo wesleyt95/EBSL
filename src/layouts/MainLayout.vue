@@ -399,30 +399,36 @@ function toggleLeftDrawer() {
                       replace
                     >
                       <q-card
-                        class="text-blue-grey-10 text-center bg-grey-1 searchCard"
+                        class="text-blue-grey-10 row justify-between items-center text-center bg-grey-1 searchCard"
                       >
                         <q-img
                           :src="
                             TEAMS.find((t) => t.TeamID === player.TeamID)
                               .WikipediaLogoUrl
                           "
-                          style="
-                            max-height: 70px;
-                            max-width: 90px;
-                            float: left;
-                            margin-top: auto;
-                          "
+                          style="max-height: 70px; max-width: 90px"
                           fit="contain"
                         />
                         <q-card-section>
-                          <q-item-label
-                            >{{ player.FirstName
-                            }}{{ ' ' + player.LastName + ' ' }}
+                          <q-item-label class="text-bold">
+                            <span class="text-h6">
+                              {{ player.FirstName }}
+                              {{ ' ' + player.LastName + ' ' }}
+                            </span>
                             <span
-                              class="text-yellow-14 bg-blue-grey-10 text-bold q-ma-sm q-pa-xs"
+                              class="text-yellow-14 bg-blue-grey-10 q-mx-sm q-pa-xs searchPosition"
                             >
                               {{ player.Position }}
                             </span>
+                          </q-item-label>
+                        </q-card-section>
+                        <q-card-section>
+                          <q-item-label>
+                            {{
+                              new Date(player.BirthDate)
+                                .toISOString()
+                                .split('T')[0]
+                            }}
                           </q-item-label>
                           <div :key="player.Height">
                             {{ player.Weight }} lbs |
@@ -504,5 +510,10 @@ function toggleLeftDrawer() {
 }
 .searchCard {
   border: 3px $grey-4 solid;
+}
+.searchPosition {
+  border-radius: 5px;
+  border: 3px $grey-6 solid;
+  font-size: 10px;
 }
 </style>

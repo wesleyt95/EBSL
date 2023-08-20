@@ -337,14 +337,14 @@ const logResult = async () => {
   width: 49%;
 }
 .etherscanCard {
-  margin: 0.5em 1em 0 1em;
+  margin: 0.5em auto 0 auto;
   border: 5px $grey-4 solid;
   border-radius: 10px;
   padding: 1em;
   color: $blue-grey-10;
   background: $grey-1;
   height: 100%;
-  width: 98%;
+  width: 99%;
 }
 .receiptItem {
   border: 5px $grey-4 solid;
