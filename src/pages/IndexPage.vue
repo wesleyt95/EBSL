@@ -4,9 +4,9 @@
 import { ref, watchEffect } from 'vue';
 import { TEAMS } from './teams/nba-teams.js';
 import { ethers } from 'ethers';
+const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 
 const provider = new ethers.BrowserProvider(window.ethereum);
-const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 const transactionHistory = ref([]);
 const transactionHistoryInactive = ref([]);
 const transactionHistoryEBSL = ref([]);
@@ -17,45 +17,86 @@ const etherscanBetType = (methodID) => {
 };
 
 const etherscanTeam = (methodID, input, teamID) => {
+  const betType = etherscanBetType(methodID);
   const data = ethers.Interface.from(contract.abi).decodeFunctionData(
-    etherscanBetType(methodID),
+    betType,
     input
   )[teamID];
-  if (data < 99) {
+
+  if (Number(data) < 99) {
     return TEAMS.find((row) => row.TeamID === Number(data)).Name;
-  } else if (data === 99) {
+  } else if (Number(data) === 99) {
     return 'Under';
-  } else if (data === 100) {
+  } else if (Number(data) === 100) {
     return 'Over';
+  }
+};
+const etherscanTeamBet = (methodID, input, teamID) => {
+  const betType = etherscanBetType(methodID);
+  const data = ethers.Interface.from(contract.abi).decodeFunctionData(
+    betType,
+    input
+  )[teamID];
+  if (betType === 'pointSpreadBet') {
+    const spreadData = ethers.Interface.from(contract.abi).decodeFunctionData(
+      betType,
+      input
+    )[4];
+    return (
+      TEAMS.find((row) => row.TeamID === Number(data)).Name +
+      ' ' +
+      (spreadData > 0 ? '+' : '') +
+      Number(spreadData) / 10
+    );
+  } else {
+    if (Number(data) < 99 && betType === 'moneyLineBet') {
+      return TEAMS.find((row) => row.TeamID === Number(data)).Name;
+    } else if (Number(data) === 99 && betType === 'pointTotalBet') {
+      return 'Under';
+    } else if (Number(data) === 100 && betType === 'pointTotalBet') {
+      return 'Over';
+    }
+  }
+};
+
+const returnBetType = (betType) => {
+  if (betType === 'moneyLineBet') {
+    return 'Money Line';
+  } else if (betType === 'pointSpreadBet') {
+    return 'Point Spread';
+  } else if (betType === 'pointTotalBet') {
+    return 'Point Total';
   }
 };
 
 watchEffect(async () => {
-  const betContract = new ethers.Contract(
-    process.env.CONTRACT_ADDRESS,
-    contract.abi,
-    await provider.getSigner()
-  );
-  const data = await betContract.returnReceipts();
-  const receipt = data.map((tx) =>
-    JSON.stringify(tx, (_, v) => (typeof v === 'bigint' ? v.toString() : v))
-  );
+  if (window.ethereum.chainId === '0x5') {
+    const betContract = new ethers.Contract(
+      process.env.CONTRACT_ADDRESS,
+      contract.abi,
+      await provider.getSigner()
+    );
+    const data = await betContract.returnReceipts();
+    const receipt = data.map((tx) =>
+      JSON.stringify(tx, (_, v) => (typeof v === 'bigint' ? v.toString() : v))
+    );
 
-  transactionHistory.value = receipt.filter((tx) => JSON.parse(tx)[6] === true);
-  transactionHistoryInactive.value = receipt.filter(
-    (tx) => JSON.parse(tx)[6] === false
-  );
+    transactionHistory.value = receipt.filter(
+      (tx) => JSON.parse(tx)[6] === true
+    );
+    transactionHistoryInactive.value = receipt.filter(
+      (tx) => JSON.parse(tx)[6] === false
+    );
+  }
   await fetch(
-    `https://api-goerli.etherscan.io/api?module=account&action=txlist&address=${process.env.CONTRACT_ADDRESS}&startblock=0&endblock=99999999&page=1&offset=10&sort=asc&apikey=${process.env.ETHERSCAN_API_KEY}`
+    `https://api-goerli.etherscan.io/api?module=account&action=txlist&address=${process.env.CONTRACT_ADDRESS}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=${process.env.ETHERSCAN_API_KEY}`
   )
     .then((response) => response.json())
     .then(
-      (data) => (
+      (data) =>
         (transactionHistoryEBSL.value = data.result.filter(
           (tx) => tx.value !== '0' && tx.functionName !== 'deposit()'
-        )),
-        console.log(transactionHistoryEBSL.value)
-      )
+        ))
     );
   await fetch(
     `https://api.sportsdata.io/v3/nba/scores/json/News?key=${process.env.SPORTSDATA_API_KEY}`
@@ -83,7 +124,7 @@ const logResult = async () => {
 </script>
 
 <template>
-  <q-page class="fit">
+  <q-page class="fit bg-grey-1">
     <div class="row q-my-auto">
       <q-card class="newsCard">
         <q-scroll-area style="height: 22.5em">
@@ -92,10 +133,10 @@ const logResult = async () => {
             <div v-for="(news, index) in nbaNews" :key="index">
               <a style="text-decoration: none" :href="news.Url">
                 <div class="text-center receiptItem">
-                  <div class="text-yellow-14 text-weight-bold">
+                  <div class="text-blue-grey-10 text-weight-bold">
                     {{ news.Title }}
                   </div>
-                  <div class="text-grey-1">
+                  <div class="text-grey-6">
                     [{{ ' ' + news.OriginalSource + ' ' }}]
                   </div>
                   <div class="text-red">
@@ -130,12 +171,19 @@ const logResult = async () => {
                       <div>{{ JSON.parse(tx)[4] }}</div>
                       <div
                         style="float: left; margin-left: -1em"
-                        class="text-grey-1"
+                        class="text-grey-6"
                       >
                         {{
                           TEAMS.find(
                             (row) => row.TeamID === Number(JSON.parse(tx)[2])
-                          ).Name
+                          )
+                            ? TEAMS.find(
+                                (row) =>
+                                  row.TeamID === Number(JSON.parse(tx)[2])
+                              ).Name
+                            : Number(JSON.parse(tx)[2]) < 99
+                            ? 'Over'
+                            : 'Under'
                         }}
                       </div>
                       <div>
@@ -180,12 +228,19 @@ const logResult = async () => {
                       <div>{{ JSON.parse(tx)[4] }}</div>
                       <div
                         style="float: left; margin-left: -1em"
-                        class="text-grey-1"
+                        class="text-grey-6"
                       >
                         {{
                           TEAMS.find(
                             (row) => row.TeamID === Number(JSON.parse(tx)[2])
-                          ).Name
+                          )
+                            ? TEAMS.find(
+                                (row) =>
+                                  row.TeamID === Number(JSON.parse(tx)[2])
+                              ).Name
+                            : Number(JSON.parse(tx)[2]) < 99
+                            ? 'Over'
+                            : 'Under'
                         }}
                       </div>
                       <div>
@@ -222,17 +277,17 @@ const logResult = async () => {
             ><div class="text-center receiptItem">
               <div class="text-red text-weight-bold">
                 {{ receipts.from }}
-                <span class="text-grey-1">
+                <span class="text-grey-6">
                   {{
-                    ` (${ethers.formatEther(receipts.value).substring(0, 6)})` +
-                    ' ETH'
+                    ` (${ethers.formatEther(receipts.value).substring(0, 6)}` +
+                    ' ETH)'
                   }}
                 </span>
               </div>
               <div class="row justify-between">
                 <div>
-                  {{ etherscanBetType(receipts.methodId) }} ({{
-                    etherscanTeam(receipts.methodId, receipts.input, 1)
+                  {{ returnBetType(etherscanBetType(receipts.methodId)) }} ({{
+                    etherscanTeamBet(receipts.methodId, receipts.input, 1)
                   }})
                 </div>
                 <div>
@@ -264,7 +319,7 @@ const logResult = async () => {
 .receiptCard {
   margin: 1em auto 0.5em auto;
   border: 5px $grey-4 solid;
-  border-radius: 5px;
+  border-radius: 10px;
   padding: 1em;
   color: $blue-grey-10;
   background: $grey-1;
@@ -274,7 +329,7 @@ const logResult = async () => {
 .newsCard {
   margin: 1em auto 0.5em auto;
   border: 5px $grey-4 solid;
-  border-radius: 5px;
+  border-radius: 10px;
   padding: 1em;
   color: $blue-grey-10;
   background: $grey-1;
@@ -284,7 +339,7 @@ const logResult = async () => {
 .etherscanCard {
   margin: 0.5em 1em 0 1em;
   border: 5px $grey-4 solid;
-  border-radius: 5px;
+  border-radius: 10px;
   padding: 1em;
   color: $blue-grey-10;
   background: $grey-1;
@@ -292,11 +347,14 @@ const logResult = async () => {
   width: 98%;
 }
 .receiptItem {
-  border: 4px red solid;
-  border-radius: 5px;
-  color: $yellow-14;
-  background: $blue-grey-10;
+  border: 5px $grey-4 solid;
+  border-radius: 10px;
+  color: $blue-grey-10;
+  background: $grey-1;
   margin: 1em 0;
   padding: 0.5em;
+}
+.receiptItem:hover {
+  background: $grey-2;
 }
 </style>

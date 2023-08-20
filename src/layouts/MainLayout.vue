@@ -4,6 +4,7 @@ import { useWalletStore } from 'stores/web3wallet';
 import { ethers } from 'ethers';
 import { TEAMS } from '../pages/teams/nba-teams.js';
 import EssentialLink from 'components/EssentialLink.vue';
+const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 const store = useWalletStore();
 const provider = new ethers.BrowserProvider(window.ethereum);
 const user = store.user;
@@ -12,7 +13,6 @@ const chainId = store.chainID;
 const chainIdRef = ref(chainId);
 const isConnected = store.isConnected;
 const isConnectedRef = ref(store.isConnected);
-const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 
 const balance = ref();
 const escrow = ref();
@@ -96,43 +96,36 @@ const getSearchResults = async () => {
     );
   }
 };
+window.ethereum.on('accountsChanged', (accounts) => {
+  userRef.value = accounts[0];
+  store.user = userRef.value;
+  window.location.reload();
+});
+window.ethereum.on('chainChanged', (chainId) => {
+  chainIdRef.value = chainId;
+  store.chainID = chainIdRef.value;
+  window.location.reload();
+});
 
+window.ethereum.on('connect', () => {
+  isConnectedRef.value = true;
+  store.isConnected = isConnectedRef.value;
+  chainIdRef.value = window.ethereum.chainId;
+  store.chainID = chainIdRef.value;
+  userRef.value = window.ethereum._state.accounts[0];
+  store.user = userRef.value;
+  window.location.reload();
+});
+window.ethereum.on('disconnect', () => {
+  isConnectedRef.value = false;
+  store.isConnected = isConnectedRef.value;
+  chainIdRef.value = undefined;
+  store.chainID = chainIdRef.value;
+  userRef.value = undefined;
+  store.user = userRef.value;
+  window.location.reload();
+});
 watchEffect(async () => {
-  if (user == undefined && window.ethereum._state.accounts) {
-    userRef.value = window.ethereum._state.accounts[0];
-    store.user = userRef.value;
-  }
-  if (chainId == undefined && window.ethereum.chainId) {
-    chainIdRef.value = window.ethereum.chainId;
-    store.chainID = chainIdRef.value;
-  }
-  if (isConnected !== true && window.ethereum.isConnected()) {
-    isConnectedRef.value = true;
-    store.isConnected = isConnectedRef.value;
-  }
-  window.ethereum.on('accountsChanged', (accounts) => {
-    userRef.value = accounts[0];
-    store.user = userRef.value;
-  });
-  window.ethereum.on('chainChanged', (chainId) => {
-    chainIdRef.value = chainId;
-    store.chainID = chainIdRef.value;
-    window.location.reload();
-  });
-
-  window.ethereum.on(
-    'connect',
-    () => (
-      (isConnectedRef.value = true),
-      (store.isConnected = isConnectedRef.value = true)
-    )
-  );
-  window.ethereum.on(
-    'disconnect',
-    () => (
-      (isConnectedRef.value = false), (store.isConnected = isConnectedRef.value)
-    )
-  );
   if (datesArray.value.length === 0) {
     getDatesArray();
   }
@@ -142,14 +135,9 @@ watchEffect(async () => {
     responseData.json().then((data) => (gamesArray.value = data))
   );
 
-  if (isConnected === true) {
-    if (user != undefined && balance.value === undefined) {
-      const weiBalance = await provider.getBalance(user);
-      balance.value = ethers.formatEther(weiBalance).substring(0, 6);
-    }
-  }
-
-  if (escrow.value == undefined && user != undefined) {
+  if (chainIdRef.value === '0x5') {
+    const weiBalance = await provider.getBalance(userRef.value);
+    balance.value = ethers.formatEther(weiBalance).substring(0, 6);
     const betContract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
       contract.abi,
@@ -202,7 +190,7 @@ function toggleLeftDrawer() {
 
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header class="bg-grey-4" elevated>
+    <q-header class="bg-grey-3" elevated>
       <q-toolbar class="bg-blue-grey-10">
         <q-btn
           flat
@@ -217,31 +205,37 @@ function toggleLeftDrawer() {
           ><RouterLink style="text-decoration: none; color: white" to="/">
             <q-avatar>
               <q-img
-                src="https://content.sportslogos.net/logos/6/982/full/8147__national_basketball_association-primary-2018.png"
+                src="https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png"
                 fit="contain"
               /> </q-avatar
             >EBSL</RouterLink
           >
         </q-toolbar-title>
         <template
-          v-if="isConnected === true && user !== undefined && chainId === '0x5'"
+          v-if="
+            isConnectedRef === true &&
+            userRef !== undefined &&
+            chainIdRef === '0x5'
+          "
         >
-          <div :key="user">
+          <div :key="userRef">
             <span class="menuWallet">
               Escrow:
-              <span class="text-grey-1">{{ returnEscrow + ' ETH' }}</span>
+              <span class="text-blue-grey-10">{{ returnEscrow + ' ETH' }}</span>
               | Balance:
-              <span class="text-grey-1">{{ returnETH + ' ETH' }}</span>
+              <span class="text-blue-grey-10">{{ returnETH + ' ETH' }}</span>
             </span>
           </div>
         </template>
 
         <template
           v-else-if="
-            isConnected === true && chainId === '0x5' && user === undefined
+            isConnectedRef === true &&
+            chainIdRef === '0x5' &&
+            userRef === undefined
           "
         >
-          <div :key="user">
+          <div>
             <q-btn
               @click="getSigner"
               text-color="grey-1"
@@ -250,12 +244,8 @@ function toggleLeftDrawer() {
           </div>
         </template>
 
-        <template
-          v-else-if="
-            isConnected === true && chainId !== '0x5' && user !== undefined
-          "
-        >
-          <div :key="chainId">
+        <template v-else-if="isConnectedRef === true && chainIdRef !== '0x5'">
+          <div>
             <q-btn
               disabled
               color="white"
@@ -265,7 +255,7 @@ function toggleLeftDrawer() {
           </div>
         </template>
         <template v-else-if="isConnected === false">
-          <div :key="isConnected">
+          <div>
             <q-btn
               disabled
               color="white"
@@ -279,14 +269,14 @@ function toggleLeftDrawer() {
         <div class="q-my-md">
           <span
             v-if="selectedDate === todayFormatted"
-            class="todaySign bg-blue-grey-10 q-pa-sm"
+            class="todaySign q-pa-sm"
           >
             Today's Games: (<span class="text-red">{{
               returnSelectedDate
             }}</span
             >)
           </span>
-          <span v-else class="todaySign bg-blue-grey-10 q-pa-sm">
+          <span v-else class="todaySign q-pa-sm">
             (<span class="text-red">{{ returnSelectedDate }}</span
             >)
           </span>
@@ -319,7 +309,7 @@ function toggleLeftDrawer() {
                       <div class="gameCard">
                         <div>
                           {{
-                            game.Quarter === 0
+                            game.Status === 'Scheduled'
                               ? new Date(game.DateTimeUTC).toLocaleTimeString(
                                   [],
                                   {
@@ -338,7 +328,7 @@ function toggleLeftDrawer() {
                         </div>
                         <q-separator color="white" />
                         <div>
-                          <span class="text-yellow-14">@</span>
+                          <span class="text-red">@</span>
                           {{ game.HomeTeam }}
                           <span v-if="game.HomeTeamScore > 0"
                             >: {{ game.HomeTeamScore }}</span
@@ -362,7 +352,7 @@ function toggleLeftDrawer() {
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
-        <q-item-label :key="user" class="text-center menuAddress" header>
+        <q-item-label :key="userRef" class="text-center menuAddress" header>
           <span class="text-red">@</span>{{ currentAccount }}
         </q-item-label>
         <q-input
@@ -467,37 +457,41 @@ function toggleLeftDrawer() {
 
 <style lang="scss" scoped>
 .menuWallet {
-  color: $lime-12;
-  background-color: black;
-  border: 3px $grey-1 solid;
+  color: $red;
+  background-color: $grey-1;
+  border: 4px $grey-6 solid;
   border-radius: 5px;
   padding: 5px;
+  font-weight: 650;
 }
 
 .gameCard {
-  color: $grey-1;
+  color: $blue-grey-10;
   margin: 5px;
-  background-color: $blue-grey-10;
-  border: 2px red solid;
+  background-color: $grey-1;
+  border: 2px $grey-6 solid;
   border-radius: 5px;
   padding: 5px;
   width: 8em;
 }
-
+.gameCard:hover {
+  background-color: $grey-2;
+  border: 2px $blue-grey-10 solid;
+}
 .gameRow {
   border: 2px $blue-grey-10 solid;
   border-radius: 5px;
-  width: 92%;
   margin: auto;
-  padding: 5px;
+  padding: 5px 25px;
   height: 100px;
 }
 
 .todaySign {
-  color: $yellow-14;
+  color: $blue-grey-10;
   border: 3px red solid;
   border-radius: 5px;
   font-weight: 1000;
+  background-color: $grey-1;
 }
 
 .menuAddress {

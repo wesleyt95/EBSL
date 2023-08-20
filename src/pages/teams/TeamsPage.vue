@@ -32,4 +32,7 @@ import { TEAMS } from './nba-teams.js';
   text-align: center;
   margin: 2em;
 }
+.tile:hover {
+  background: $grey-2;
+}
 </style>

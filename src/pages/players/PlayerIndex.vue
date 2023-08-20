@@ -137,12 +137,9 @@ const averageColumnsPost = [
 
 watchEffect(async () => {
   await fetch(
-    // `https://www.balldontlie.io/api/v1/players/${Number(router.params.id)}`
     `https://api.sportsdata.io/v3/nba/scores/json/Player/${router.params.id}?key=${process.env.SPORTSDATA_API_KEY}`
   ).then((responseData) =>
-    responseData
-      .json()
-      .then((data) => ((playerArray.value = data), console.log(data)))
+    responseData.json().then((data) => (playerArray.value = data))
   );
 
   await fetch(
@@ -278,8 +275,7 @@ watchEffect(async () => {
           style="height: 30em"
           no-data-label="No data available"
           @row-click="
-            (evt, row, index) =>
-              this.$router.replace({ path: `/games/${row.GameID}` })
+            (evt, row, index) => $router.push({ path: `/games/${row.GameID}` })
           "
         />
         <q-table
@@ -294,8 +290,7 @@ watchEffect(async () => {
           style="height: 30em"
           no-data-label="No data available"
           @row-click="
-            (evt, row, index) =>
-              this.$router.replace({ path: `/games/${row.GameID}` })
+            (evt, row, index) => $router.push({ path: `/games/${row.GameID}` })
           "
         />
       </div>

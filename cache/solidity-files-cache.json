@@ -116,8 +116,8 @@
       ]
     },
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\Bet.sol": {
-      "lastModificationDate": 1692244140198,
-      "contentHash": "e99201bc8ff512c594261cc5b58e391a",
+      "lastModificationDate": 1692422898375,
+      "contentHash": "c739ac37e94064e846569b49127a1a6b",
       "sourceName": "contracts/Bet.sol",
       "solcConfig": {
         "version": "0.8.21",

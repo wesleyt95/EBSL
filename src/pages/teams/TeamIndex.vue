@@ -93,14 +93,14 @@ const playerColumns = [
 ];
 </script>
 <template>
-  <h3 class="text-center">
-    {{ team.City }} {{ team.Name
-    }}<q-img
+  <h3 class="q-mb-xs text-center">
+    <q-img
       fit="contain"
       style="max-height: 2em; max-width: 2em"
       :src="team.WikipediaLogoUrl"
     />
   </h3>
+  <h2 class="text-center q-mt-xs">{{ team.City }} {{ team.Name }}</h2>
   <q-card
     ><q-card-section>
       <div>
@@ -115,7 +115,7 @@ const playerColumns = [
           style="height: 30em"
           @row-click="
             (evt, row, index) =>
-              this.$router.replace({ path: `/players/${row.PlayerID}` })
+              $router.push({ path: `/players/${row.PlayerID}` })
           "
         /></div></q-card-section
   ></q-card>
@@ -143,7 +143,7 @@ const playerColumns = [
           </div>
           <q-separator color="white" />
           <div>
-            <span class="text-yellow-14">@</span>
+            <span class="text-red">@</span>
             {{ game.home_team.abbreviation }}
             <span v-if="game.period > 0">: {{ game.home_team_score }}</span>
           </div>
@@ -175,7 +175,7 @@ const playerColumns = [
           </div>
           <q-separator color="white" />
           <div>
-            <span class="text-yellow-14">@</span>
+            <span class="text-red">@</span>
             {{ game.home_team.abbreviation }}
             <span v-if="game.period > 0">: {{ game.home_team_score }}</span>
           </div>
@@ -186,13 +186,16 @@ const playerColumns = [
 </template>
 <style scoped lang="scss">
 .gameCard {
-  color: $grey-1;
+  color: $blue-grey-10;
   margin: 5px;
-  background-color: $blue-grey-10;
-  border: 2px red solid;
+  background-color: $grey-1;
+  border: 2px $grey-6 solid;
   border-radius: 5px;
   padding: 5px;
   width: 8em;
+}
+.gameCard:hover {
   cursor: pointer;
+  background-color: $grey-2;
 }
 </style>

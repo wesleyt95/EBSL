@@ -74,8 +74,6 @@ contract Bet is AutomateTaskCreator {
   mapping(uint256 => MoneyLine) public newMoneyLineBet;
   mapping(uint256 => PointSpread) public newPointSpreadBet;
   mapping(uint256 => PointTotal) public newPointTotalBet;
-  mapping(uint256 => uint256) public visitor_team_score;
-  mapping(uint256 => uint256) public home_team_score;
 
   function checkSender(address user) public view returns (bool) {
     for (uint i = 0; i < blockedUsers.length; i++) {
@@ -391,7 +389,7 @@ contract Bet is AutomateTaskCreator {
       int spread = newPointSpreadBet[gameID].spreadAmount[currentUserID];
       if (
         newPointSpreadBet[gameID].receipt[currentUserID].teamID == homeTeamID &&
-        homeScore + spread > awayScore &&
+        (homeScore * 10) + spread > awayScore * 10 &&
         !checkSender(currentUserID)
       ) {
         winners[winnersCount] = currentUserID;
@@ -399,7 +397,7 @@ contract Bet is AutomateTaskCreator {
         winnersPurse += msgValue;
       } else if (
         newPointSpreadBet[gameID].receipt[currentUserID].teamID == awayTeamID &&
-        awayScore + spread > homeScore &&
+        (awayScore * 10) + spread > homeScore * 10 &&
         !checkSender(currentUserID)
       ) {
         winners[winnersCount] = currentUserID;
@@ -438,7 +436,7 @@ contract Bet is AutomateTaskCreator {
       uint256 msgValue = newPointTotalBet[gameID].receipt[currentUserID].amount;
       if (
         newPointTotalBet[gameID].receipt[currentUserID].teamID == 99 &&
-        total < newPointTotalBet[gameID].pointAmount[currentUserID] &&
+        total * 10 < newPointTotalBet[gameID].pointAmount[currentUserID] &&
         !checkSender(currentUserID)
       ) {
         winners[winnersCount] = currentUserID;
@@ -446,7 +444,7 @@ contract Bet is AutomateTaskCreator {
         winnersPurse += msgValue;
       } else if (
         newPointTotalBet[gameID].receipt[currentUserID].teamID == 100 &&
-        total > newPointTotalBet[gameID].pointAmount[currentUserID] &&
+        total * 10 > newPointTotalBet[gameID].pointAmount[currentUserID] &&
         !checkSender(currentUserID)
       ) {
         winners[winnersCount] = currentUserID;

@@ -3,10 +3,11 @@ import { ref, watchEffect, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { ethers } from 'ethers';
 import { TEAMS } from '../teams/nba-teams.js';
+const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 
 const router = useRoute();
 const provider = new ethers.BrowserProvider(window.ethereum);
-const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
+
 const betContractNoSigner = new ethers.Contract(
   process.env.CONTRACT_ADDRESS,
   contract.abi,
@@ -233,151 +234,152 @@ watchEffect(async () => {
       );
     })
   );
+  if (window.ethereum.chainId === '0x5') {
+    if (gameTotal.value == undefined) {
+      gameTotal.value = await betContractNoSigner.totalBetOnGame(
+        Number(router.params.id)
+      );
+    }
+    if (homeTotalBet.value == undefined) {
+      homeTotalBet.value = await betContractNoSigner.totalBetOnTeam(
+        Number(router.params.id),
+        gameArray.value.HomeTeamID
+      );
+    }
+    if (awayTotalBet.value == undefined) {
+      awayTotalBet.value = await betContractNoSigner.totalBetOnTeam(
+        Number(router.params.id),
+        gameArray.value.AwayTeamID
+      );
+    }
+    if (homeOdds.value == undefined) {
+      homeOdds.value = await betContractNoSigner.returnOdds(
+        Number(router.params.id),
+        gameArray.value.HomeTeamID
+      );
+    }
+    if (awayOdds.value == undefined) {
+      awayOdds.value = await betContractNoSigner.returnOdds(
+        Number(router.params.id),
+        gameArray.value.AwayTeamID
+      );
+    }
+    const betContract = new ethers.Contract(
+      process.env.CONTRACT_ADDRESS,
+      contract.abi,
+      await provider.getSigner()
+    );
+    if (homeCurrentMoneylineUser.value == undefined) {
+      const receipt = await betContract.returnMoneyLineBetReceipt(
+        Number(router.params.id),
+        gameArray.value.HomeTeamID
+      );
+      homeCurrentMoneylineUser.value = JSON.stringify(receipt, (_, v) =>
+        typeof v === 'bigint' ? v.toString() : v
+      );
+    }
 
-  if (gameTotal.value == undefined) {
-    gameTotal.value = await betContractNoSigner.totalBetOnGame(
-      Number(router.params.id)
-    );
-  }
-  if (homeTotalBet.value == undefined) {
-    homeTotalBet.value = await betContractNoSigner.totalBetOnTeam(
-      Number(router.params.id),
-      gameArray.value.HomeTeamID
-    );
-  }
-  if (awayTotalBet.value == undefined) {
-    awayTotalBet.value = await betContractNoSigner.totalBetOnTeam(
-      Number(router.params.id),
-      gameArray.value.AwayTeamID
-    );
-  }
-  if (homeOdds.value == undefined) {
-    homeOdds.value = await betContractNoSigner.returnOdds(
-      Number(router.params.id),
-      gameArray.value.HomeTeamID
-    );
-  }
-  if (awayOdds.value == undefined) {
-    awayOdds.value = await betContractNoSigner.returnOdds(
-      Number(router.params.id),
-      gameArray.value.AwayTeamID
-    );
-  }
-  const betContract = new ethers.Contract(
-    process.env.CONTRACT_ADDRESS,
-    contract.abi,
-    await provider.getSigner()
-  );
-  if (homeCurrentMoneylineUser.value == undefined) {
-    const receipt = await betContract.returnMoneyLineBetReceipt(
-      Number(router.params.id),
-      gameArray.value.HomeTeamID
-    );
-    homeCurrentMoneylineUser.value = JSON.stringify(receipt, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-  }
+    if (awayCurrentMoneylineUser.value == undefined) {
+      const receipt = await betContract.returnMoneyLineBetReceipt(
+        Number(router.params.id),
+        gameArray.value.AwayTeamID
+      );
+      awayCurrentMoneylineUser.value = JSON.stringify(receipt, (_, v) =>
+        typeof v === 'bigint' ? v.toString() : v
+      );
+    }
 
-  if (awayCurrentMoneylineUser.value == undefined) {
-    const receipt = await betContract.returnMoneyLineBetReceipt(
-      Number(router.params.id),
-      gameArray.value.AwayTeamID
-    );
-    awayCurrentMoneylineUser.value = JSON.stringify(receipt, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-  }
+    if (homeCurrentMoneyline.value == undefined) {
+      const receipt = await betContract.returnMoneyLineBetTotal(
+        Number(router.params.id),
+        gameArray.value.HomeTeamID
+      );
+      homeCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
+        typeof v === 'bigint' ? v.toString() : v
+      );
+    }
 
-  if (homeCurrentMoneyline.value == undefined) {
-    const receipt = await betContract.returnMoneyLineBetTotal(
-      Number(router.params.id),
-      gameArray.value.HomeTeamID
-    );
-    homeCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-  }
+    if (awayCurrentMoneyline.value == undefined) {
+      const receipt = await betContract.returnMoneyLineBetTotal(
+        Number(router.params.id),
+        gameArray.value.AwayTeamID
+      );
+      awayCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
+        typeof v === 'bigint' ? v.toString() : v
+      );
+    }
+    if (homeCurrentPointSpreadUser.value == undefined) {
+      const receipt = await betContract.returnPointSpreadBetReceipt(
+        Number(router.params.id)
+      );
+      homeCurrentPointSpreadUser.value = JSON.stringify(receipt, (_, v) =>
+        typeof v === 'bigint' ? v.toString() : v
+      );
+    }
 
-  if (awayCurrentMoneyline.value == undefined) {
-    const receipt = await betContract.returnMoneyLineBetTotal(
-      Number(router.params.id),
-      gameArray.value.AwayTeamID
-    );
-    awayCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-  }
-  if (homeCurrentPointSpreadUser.value == undefined) {
-    const receipt = await betContract.returnPointSpreadBetReceipt(
-      Number(router.params.id)
-    );
-    homeCurrentPointSpreadUser.value = JSON.stringify(receipt, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-  }
+    if (awayCurrentPointSpreadUser.value == undefined) {
+      const receipt = await betContract.returnPointSpreadBetReceipt(
+        Number(router.params.id)
+      );
+      awayCurrentPointSpreadUser.value = JSON.stringify(receipt, (_, v) =>
+        typeof v === 'bigint' ? v.toString() : v
+      );
+    }
 
-  if (awayCurrentPointSpreadUser.value == undefined) {
-    const receipt = await betContract.returnPointSpreadBetReceipt(
-      Number(router.params.id)
-    );
-    awayCurrentPointSpreadUser.value = JSON.stringify(receipt, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-  }
+    if (homeCurrentPointSpread.value == undefined) {
+      const receipt = await betContract.returnPointSpreadBetTotal(
+        Number(router.params.id),
+        gameArray.value.HomeTeamID
+      );
+      homeCurrentPointSpread.value = JSON.stringify(receipt, (_, v) =>
+        typeof v === 'bigint' ? v.toString() : v
+      );
+    }
 
-  if (homeCurrentPointSpread.value == undefined) {
-    const receipt = await betContract.returnPointSpreadBetTotal(
-      Number(router.params.id),
-      gameArray.value.HomeTeamID
-    );
-    homeCurrentPointSpread.value = JSON.stringify(receipt, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-  }
+    if (awayCurrentPointSpread.value == undefined) {
+      const receipt = await betContract.returnPointSpreadBetTotal(
+        Number(router.params.id),
+        gameArray.value.AwayTeamID
+      );
+      awayCurrentPointSpread.value = JSON.stringify(receipt, (_, v) =>
+        typeof v === 'bigint' ? v.toString() : v
+      );
+    }
+    if (homeCurrentPointTotalUser.value == undefined) {
+      const receipt = await betContract.returnPointTotalBetReceipt(
+        Number(router.params.id)
+      );
+      homeCurrentPointTotalUser.value = JSON.stringify(receipt, (_, v) =>
+        typeof v === 'bigint' ? v.toString() : v
+      );
+    }
 
-  if (awayCurrentPointSpread.value == undefined) {
-    const receipt = await betContract.returnPointSpreadBetTotal(
-      Number(router.params.id),
-      gameArray.value.AwayTeamID
-    );
-    awayCurrentPointSpread.value = JSON.stringify(receipt, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-  }
-  if (homeCurrentPointTotalUser.value == undefined) {
-    const receipt = await betContract.returnPointTotalBetReceipt(
-      Number(router.params.id)
-    );
-    homeCurrentPointTotalUser.value = JSON.stringify(receipt, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-  }
+    if (awayCurrentPointTotalUser.value == undefined) {
+      const receipt = await betContract.returnPointTotalBetReceipt(
+        Number(router.params.id)
+      );
+      awayCurrentPointTotalUser.value = JSON.stringify(receipt, (_, v) =>
+        typeof v === 'bigint' ? v.toString() : v
+      );
+    }
 
-  if (awayCurrentPointTotalUser.value == undefined) {
-    const receipt = await betContract.returnPointTotalBetReceipt(
-      Number(router.params.id)
-    );
-    awayCurrentPointTotalUser.value = JSON.stringify(receipt, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-  }
+    if (homeCurrentPointTotal.value == undefined) {
+      const receipt = await betContract.returnPointTotalBetTotal(
+        Number(router.params.id)
+      );
+      homeCurrentPointTotal.value = JSON.stringify(receipt, (_, v) =>
+        typeof v === 'bigint' ? v.toString() : v
+      );
+    }
 
-  if (homeCurrentPointTotal.value == undefined) {
-    const receipt = await betContract.returnPointTotalBetTotal(
-      Number(router.params.id)
-    );
-    homeCurrentPointTotal.value = JSON.stringify(receipt, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
-  }
-
-  if (awayCurrentPointTotal.value == undefined) {
-    const receipt = await betContract.returnPointTotalBetTotal(
-      Number(router.params.id)
-    );
-    awayCurrentPointTotal.value = JSON.stringify(receipt, (_, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    );
+    if (awayCurrentPointTotal.value == undefined) {
+      const receipt = await betContract.returnPointTotalBetTotal(
+        Number(router.params.id)
+      );
+      awayCurrentPointTotal.value = JSON.stringify(receipt, (_, v) =>
+        typeof v === 'bigint' ? v.toString() : v
+      );
+    }
   }
 });
 
@@ -419,7 +421,7 @@ const sendBetAway = async () => {
         gameArray.value.AwayTeamID,
         gameArray.value.HomeTeamID,
         gameArray.value.AwayTeamID,
-        gameArray.value.PointSpread * -1,
+        gameArray.value.PointSpread * -10,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
         paramData,
         overrides
@@ -440,7 +442,7 @@ const sendBetAway = async () => {
         Number(overUnderAway.value),
         gameArray.value.HomeTeamID,
         gameArray.value.AwayTeamID,
-        gameArray.value.OverUnder,
+        gameArray.value.OverUnder * 10,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
         paramData,
         overrides
@@ -491,7 +493,7 @@ const sendBetHome = async () => {
         gameArray.value.HomeTeamID,
         gameArray.value.HomeTeamID,
         gameArray.value.AwayTeamID,
-        gameArray.value.PointSpread,
+        gameArray.value.PointSpread * 10,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
         paramData,
         overrides
@@ -512,7 +514,7 @@ const sendBetHome = async () => {
         Number(overUnderHome.value),
         gameArray.value.HomeTeamID,
         gameArray.value.AwayTeamID,
-        gameArray.value.OverUnder,
+        gameArray.value.OverUnder * 10,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
         paramData,
         overrides
@@ -536,13 +538,16 @@ const sendBetHome = async () => {
         <q-card-section>
           <div class="row items-center justify-evenly text-h3 text-center">
             <div style="width: 40%">
-              <div>
+              <div class="hover">
                 <q-img
                   fit="contain"
                   style="max-height: 2.5em; max-width: 2.5em"
                   :src="
                     TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID)
                       .WikipediaLogoUrl
+                  "
+                  @click="
+                    $router.push({ path: `/teams/${gameArray.AwayTeamID}` })
                   "
                   :key="gameArray.AwayTeamID"
                 />
@@ -551,7 +556,7 @@ const sendBetHome = async () => {
             </div>
             <div style="width: 10%">@</div>
             <div style="width: 40%">
-              <div>
+              <div class="hover">
                 {{ `${returnHomeOdds}%` }}
                 <q-img
                   fit="contain"
@@ -560,68 +565,50 @@ const sendBetHome = async () => {
                     TEAMS.find((row) => row.TeamID === gameArray.HomeTeamID)
                       .WikipediaLogoUrl
                   "
+                  @click="
+                    $router.push({ path: `/teams/${gameArray.HomeTeamID}` })
+                  "
                   :key="gameArray.HomeTeamID"
                 />
               </div>
             </div>
           </div>
         </q-card-section>
-        <q-card-section v-if="gameArray.Quarter === 0">
-          <div class="row items-center justify-evenly text-center">
-            <div>
-              {{
-                TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID)
-                  .Division
-              }}
-              Division|{{
-                TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID)
-                  .Conference
-              }}
-              Conference
-            </div>
-            <div class="text-md align-center">
-              <div v-if="gameArray.SeriesInfo === true">Playoffs</div>
-              <div>{{ new Date(gameArray.DateTime).toLocaleTimeString() }}</div>
-              <div>{{ new Date(gameArray.DateTime).toLocaleDateString() }}</div>
-            </div>
-            <div>
-              {{
-                TEAMS.find((row) => row.TeamID === gameArray.HomeTeamID)
-                  .Division
-              }}
-              Division|{{
-                TEAMS.find((row) => row.TeamID === gameArray.HomeTeamID)
-                  .Conference
-              }}
-              Conference
-            </div>
-          </div>
-        </q-card-section>
-        <q-card-section v-else>
+
+        <q-card-section>
           <div
             style="width: 80%"
             class="flex full-width row items-center justify-evenly text-center q-mx-auto"
           >
             <div>
-              <q-card @click="awayDialog = true"
-                ><q-card-section>{{
-                  'Total Bet: ' + returnAwayTotal + ' ETH'
-                }}</q-card-section>
-                <q-card-section
-                  >Money Line: {{ returnAwayMoneyline }}</q-card-section
-                >
-                <q-card-section
-                  >[
+              <q-card class="betCard">
+                <q-card-section>
+                  Total Bet:
+                  <span class="text-red">{{ returnAwayTotal + ' ETH' }}</span>
+                </q-card-section>
+                <q-card-section>
+                  Money Line:
+                  <span class="text-red">{{ returnAwayMoneyline }}</span>
+                </q-card-section>
+                <q-card-section>
+                  [
                   {{
                     (gameArray.PointSpread < 0 ? '+' : null) +
                     gameArray.PointSpread * -1
                   }}
-                  ] Point Spread: {{ returnAwayPointSpread }}</q-card-section
-                ><q-card-section
-                  >[ {{ gameArray.OverUnder }} ] Point Total:
-                  {{ returnAwayPointTotal }}</q-card-section
-                ></q-card
-              >
+                  ] Point Spread:
+                  <span class="text-red">{{ returnAwayPointSpread }}</span>
+                </q-card-section>
+                <q-card-section>
+                  [ {{ gameArray.OverUnder }} ] Point Total:
+                  <span class="text-red">{{ returnAwayPointTotal }}</span>
+                </q-card-section>
+                <q-btn
+                  @click="awayDialog = true"
+                  :disabled="gameArray.Status !== 'Scheduled'"
+                  >Place Bet</q-btn
+                >
+              </q-card>
               <q-dialog
                 v-model="awayDialog"
                 persistent
@@ -632,25 +619,18 @@ const sendBetHome = async () => {
                 <q-card class="bg-grey-1 text-blue-grey-10">
                   <q-toolbar>
                     <q-avatar>
-                      <q-img
+                      <img
                         fit="contain"
-                        src="https://content.sportslogos.net/logos/6/982/full/8147__national_basketball_association-primary-2018.png"
+                        src="https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png"
                       />
                     </q-avatar>
-                    <q-toolbar-title
-                      ><span class="text-weight-bold">EBSL</span>
+                    <q-toolbar-title>
+                      <span class="text-weight-bold">EBSL</span>
                     </q-toolbar-title>
-
                     <q-btn flat round dense icon="close" v-close-popup />
                   </q-toolbar>
                   <q-card-section>
-                    <div class="text-h2 text-center">
-                      {{
-                        TEAMS.find((row) => row.Key === gameArray.AwayTeam).City
-                      }}
-                      {{
-                        TEAMS.find((row) => row.Key === gameArray.AwayTeam).Name
-                      }}
+                    <h3 class="text-center q-mb-xs">
                       <q-img
                         fit="contain"
                         style="max-height: 2em; max-width: 2em"
@@ -661,6 +641,14 @@ const sendBetHome = async () => {
                         "
                         :key="gameArray.AwayTeamID"
                       />
+                    </h3>
+                    <div class="text-h2 text-center q-mt-xs">
+                      {{
+                        TEAMS.find((row) => row.Key === gameArray.AwayTeam).City
+                      }}
+                      {{
+                        TEAMS.find((row) => row.Key === gameArray.AwayTeam).Name
+                      }}
                     </div>
                   </q-card-section>
                   <div class="betTypes" @click="awayBetType = 'moneyline'">
@@ -778,50 +766,72 @@ const sendBetHome = async () => {
                 </q-card>
               </q-dialog>
             </div>
-            <div class="row items-center justify-evenly text-center score">
-              <div>
+            <div class="row items-center justify-evenly text-center betCard">
+              <div v-if="gameArray.Status !== 'Scheduled'">
                 <span>Away</span>
-                <div style="font-weight: 800" class="text-h3">
+                <div
+                  style="font-weight: 800; margin: 0.25em 0.3em"
+                  class="text-h3"
+                >
                   {{ gameArray.AwayTeamScore }}
                 </div>
               </div>
               <div class="text-md align-center">
+                <div v-if="gameArray.Status === 'Scheduled'">
+                  {{ new Date(gameArray.DateTime).toLocaleTimeString() }}
+                </div>
                 <div v-if="gameArray.SeriesInfo === true">Playoffs</div>
-                <div v-if="gameArray.Status !== 'Final'">
+                <div class="text-red">{{ gameArray.Status }}</div>
+                <div
+                  v-if="
+                    gameArray.Status.charAt(0) !== 'F' &&
+                    gameArray.Status !== 'Scheduled'
+                  "
+                >
                   {{ gameArray.TimeRemainingMinutes }}:{{
                     gameArray.TimeRemainingSeconds
                   }}
                 </div>
-                <div>{{ gameArray.Status }}</div>
+
                 <div>{{ `${returnGameTotal} ETH` }}</div>
               </div>
-              <div>
+              <div v-if="gameArray.Status !== 'Scheduled'">
                 <span>Home</span>
-                <div style="font-weight: 800" class="text-h3">
+                <div
+                  style="font-weight: 800; margin: 0.25em 0.3em"
+                  class="text-h3"
+                >
                   {{ gameArray.HomeTeamScore }}
                 </div>
               </div>
             </div>
             <div>
-              <q-card @click="homeDialog = true"
-                ><q-card-section>{{
-                  'Total Bet: ' + returnHomeTotal + ' ETH'
-                }}</q-card-section>
-                <q-card-section
-                  >Money Line: {{ returnHomeMoneyline }}</q-card-section
-                >
-                <q-card-section
-                  >[
+              <q-card class="betCard">
+                <q-card-section>
+                  Total Bet:
+                  <span class="text-red">{{ returnHomeTotal + ' ETH' }}</span>
+                </q-card-section>
+                <q-card-section>
+                  Money Line:
+                  <span class="text-red">{{ returnHomeMoneyline }}</span>
+                </q-card-section>
+                <q-card-section>
+                  [
                   {{
                     (gameArray.PointSpread > 0 ? '+' : null) +
                     gameArray.PointSpread
                   }}
-                  ] Point Spread: {{ returnHomePointSpread }}</q-card-section
-                ><q-card-section
-                  >[ {{ gameArray.OverUnder }} ] Point Total:
-                  {{ returnHomePointTotal }}</q-card-section
-                ></q-card
-              >
+                  ] Point Spread:
+                  <span class="text-red">{{ returnHomePointSpread }}</span>
+                </q-card-section>
+                <q-card-section>
+                  [
+                  {{ gameArray.OverUnder }}
+                  ] Point Total:
+                  <span class="text-red">{{ returnHomePointTotal }}</span>
+                </q-card-section>
+                <q-btn @click="homeDialog = true">Place Bet</q-btn>
+              </q-card>
               <q-dialog
                 v-model="homeDialog"
                 persistent
@@ -833,24 +843,18 @@ const sendBetHome = async () => {
                   <q-toolbar>
                     <q-avatar>
                       <img
-                        src="https://content.sportslogos.net/logos/6/982/full/8147__national_basketball_association-primary-2018.png"
+                        src="https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png"
                       />
                     </q-avatar>
 
-                    <q-toolbar-title
-                      ><span class="text-weight-bold">EBSL</span>
+                    <q-toolbar-title>
+                      <span class="text-weight-bold">EBSL</span>
                     </q-toolbar-title>
 
                     <q-btn flat round dense icon="close" v-close-popup />
                   </q-toolbar>
                   <q-card-section>
-                    <div class="text-h2 text-center">
-                      {{
-                        TEAMS.find((row) => row.Key === gameArray.HomeTeam).City
-                      }}
-                      {{
-                        TEAMS.find((row) => row.Key === gameArray.HomeTeam).Name
-                      }}
+                    <h3 class="text-center q-mb-xs">
                       <q-img
                         fit="contain"
                         style="max-height: 2em; max-width: 2em"
@@ -861,6 +865,14 @@ const sendBetHome = async () => {
                         "
                         :key="gameArray.HomeTeamID"
                       />
+                    </h3>
+                    <div class="text-h2 text-center q-mt-xs">
+                      {{
+                        TEAMS.find((row) => row.Key === gameArray.HomeTeam).City
+                      }}
+                      {{
+                        TEAMS.find((row) => row.Key === gameArray.HomeTeam).Name
+                      }}
                     </div>
                   </q-card-section>
                   <div class="betTypes" @click="homeBetType = 'moneyline'">
@@ -980,7 +992,7 @@ const sendBetHome = async () => {
             </div>
           </div>
         </q-card-section>
-        <q-card-section>
+        <q-card-section v-if="gameArray.Status !== 'Scheduled'">
           <q-table
             :title="gameArray.AwayTeam"
             :rows="statsArrayAway"
@@ -992,7 +1004,7 @@ const sendBetHome = async () => {
             style="max-height: 30em"
             @row-click="
               (evt, row, index) =>
-                this.$router.replace({ path: `/players/${row.PlayerID}` })
+                $router.push({ path: `/players/${row.PlayerID}` })
             "
           />
 
@@ -1007,7 +1019,7 @@ const sendBetHome = async () => {
             style="max-height: 30em"
             @row-click="
               (evt, row, index) =>
-                this.$router.replace({ path: `/players/${row.PlayerID}` })
+                $router.push({ path: `/players/${row.PlayerID}` })
             "
           />
         </q-card-section>
@@ -1016,6 +1028,18 @@ const sendBetHome = async () => {
   </q-page>
 </template>
 <style lang="scss" scoped>
+.hover:hover {
+  cursor: pointer;
+}
+.betCard {
+  border: 5px $grey-4 solid;
+  border-radius: 10px;
+  color: $blue-grey-10;
+  background: $grey-1;
+  margin: auto;
+  padding: 0.5em;
+  font-weight: 650;
+}
 .mainCard {
   margin: 2em;
   color: $blue-grey-10;

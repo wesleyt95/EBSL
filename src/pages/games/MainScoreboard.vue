@@ -42,7 +42,7 @@ watchEffect(async () => {
               <div class="gameCard">
                 <div>
                   {{
-                    games.Quarter === 0
+                    games.Status === 'Scheduled'
                       ? new Date(games.DateTimeUTC).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',
@@ -58,7 +58,7 @@ watchEffect(async () => {
                 </div>
                 <q-separator color="white" />
                 <div>
-                  <span class="text-yellow-14">@</span>
+                  <span class="text-red">@</span>
                   {{ games.HomeTeam }}
                   <span v-if="games.HomeTeamScore > 0"
                     >: {{ games.HomeTeamScore }}</span
@@ -75,16 +75,15 @@ watchEffect(async () => {
 </template>
 <style scoped lang="scss">
 .gameCard {
-  color: $grey-1;
+  color: $blue-grey-10;
   margin: 5px;
-  background-color: $blue-grey-10;
-  border: 2px red solid;
+  background-color: $grey-1;
+  border: 2px $grey-6 solid;
   border-radius: 5px;
   padding: 5px;
   width: 8em;
 }
-.respons {
-  width: 15em;
-  height: 10em;
+.gameCard:hover {
+  background-color: $grey-2;
 }
 </style>
