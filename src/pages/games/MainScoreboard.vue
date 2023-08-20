@@ -18,7 +18,7 @@ watchEffect(async () => {
 });
 </script>
 <template>
-  <div class="text-h4 text-center q-my-xl">
+  <div class="text-h5 text-center q-my-xl">
     Game Schedule: {{ selectedDate }}
     <q-icon name="event" class="cursor-pointer">
       <q-popup-proxy cover :breakpoint="600">

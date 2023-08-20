@@ -533,7 +533,9 @@ const sendBetHome = async () => {
     <div>
       <q-card v-if="gameArray.DateTimeUTC" class="mainCard">
         <div class="text-center">
-          {{ new Date(gameArray.DateTimeUTC).toLocaleDateString() }}
+          <span class="dateSign">
+            {{ new Date(gameArray.DateTimeUTC).toLocaleDateString() }}
+          </span>
         </div>
         <q-card-section>
           <div class="row items-center justify-evenly text-h3 text-center">
@@ -1072,5 +1074,14 @@ const sendBetHome = async () => {
   border: 3px $blue-grey-10 solid;
   width: 7.5em;
   margin: 0 auto;
+}
+.dateSign {
+  color: $blue-grey-10;
+  border: 3px red solid;
+  border-radius: 5px;
+  font-weight: 1000;
+  background-color: $grey-1;
+  margin: 0 auto;
+  padding: 0.25em 0.5em;
 }
 </style>

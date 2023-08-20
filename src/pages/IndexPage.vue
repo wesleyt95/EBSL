@@ -207,7 +207,7 @@ const logResult = async () => {
           </template>
           <template v-if="transactionHistoryInactive.length > 0">
             <q-card-section>
-              <div class="text-h6 mainSign">Past Transactions</div>
+              <div class="text-h6 mainSign">Transaction History</div>
               <div
                 v-for="(tx, index) in transactionHistoryInactive"
                 :key="index"
@@ -258,10 +258,8 @@ const logResult = async () => {
           </template>
           <template v-if="transactionHistoryInactive.length === 0">
             <q-card-section>
-              <div class="text-h6 mainSign">Inactive Transactions</div>
-              <div class="receiptItem text-center">
-                No Inactive Transactions
-              </div>
+              <div class="text-h6 mainSign">Transaction History</div>
+              <div class="receiptItem text-center">None</div>
             </q-card-section>
           </template>
         </q-scroll-area>
@@ -290,9 +288,9 @@ const logResult = async () => {
                     etherscanTeamBet(receipts.methodId, receipts.input, 1)
                   }})
                 </div>
-                <div>
+                <div class="text-bold">
                   {{ etherscanTeam(receipts.methodId, receipts.input, 3) }}
-                  @
+                  <span class="text-yellow-14">@</span>
                   {{ etherscanTeam(receipts.methodId, receipts.input, 2) }}
                 </div>
                 <div>
