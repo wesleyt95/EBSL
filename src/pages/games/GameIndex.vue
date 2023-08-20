@@ -1099,10 +1099,11 @@ const sendBetHome = async () => {
   text-align: center;
   margin: 1em auto;
   width: 80%;
-  background: $grey-2;
+  background: $grey-3;
 }
 .betTypes:hover {
   cursor: pointer;
+  background: $grey-2;
 }
 .betValue {
   border: 3px $blue-grey-10 solid;
