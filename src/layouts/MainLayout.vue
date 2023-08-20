@@ -14,6 +14,8 @@ const chainIdRef = ref(chainId);
 const isConnected = store.isConnected;
 const isConnectedRef = ref(store.isConnected);
 
+const appChainID = process.env.CHAIN_ID;
+
 const balance = ref();
 const escrow = ref();
 
@@ -135,7 +137,7 @@ watchEffect(async () => {
     responseData.json().then((data) => (gamesArray.value = data))
   );
 
-  if (chainIdRef.value === '0x5') {
+  if (chainIdRef.value === process.env.CHAIN_ID) {
     const weiBalance = await provider.getBalance(userRef.value);
     balance.value = ethers.formatEther(weiBalance).substring(0, 6);
     const betContract = new ethers.Contract(
@@ -215,7 +217,7 @@ function toggleLeftDrawer() {
           v-if="
             isConnectedRef === true &&
             userRef !== undefined &&
-            chainIdRef === '0x5'
+            chainIdRef === appChainID
           "
         >
           <div :key="userRef">
@@ -231,7 +233,7 @@ function toggleLeftDrawer() {
         <template
           v-else-if="
             isConnectedRef === true &&
-            chainIdRef === '0x5' &&
+            chainIdRef === appChainID &&
             userRef === undefined
           "
         >
@@ -244,7 +246,9 @@ function toggleLeftDrawer() {
           </div>
         </template>
 
-        <template v-else-if="isConnectedRef === true && chainIdRef !== '0x5'">
+        <template
+          v-else-if="isConnectedRef === true && chainIdRef !== appChainID"
+        >
           <div>
             <q-btn
               disabled

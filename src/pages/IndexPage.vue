@@ -70,7 +70,7 @@ const returnBetType = (betType) => {
 };
 
 watchEffect(async () => {
-  if (window.ethereum.chainId === '0x5') {
+  if (window.ethereum.chainId === process.env.CHAIN_ID) {
     const betContract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
       contract.abi,

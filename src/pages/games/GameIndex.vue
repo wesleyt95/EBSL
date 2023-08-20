@@ -234,7 +234,7 @@ watchEffect(async () => {
       );
     })
   );
-  if (window.ethereum.chainId === '0x5') {
+  if (window.ethereum.chainId === process.env.CHAIN_ID) {
     if (gameTotal.value == undefined) {
       gameTotal.value = await betContractNoSigner.totalBetOnGame(
         Number(router.params.id)
