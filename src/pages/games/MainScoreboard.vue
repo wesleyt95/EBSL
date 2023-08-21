@@ -43,7 +43,7 @@ watchEffect(async () => {
                 <div>
                   {{
                     games.Status === 'Scheduled'
-                      ? new Date(games.DateTimeUTC).toLocaleTimeString([], {
+                      ? new Date(games.DateTime).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',
                         })

@@ -531,10 +531,10 @@ const sendBetHome = async () => {
 <template>
   <q-page>
     <div>
-      <q-card v-if="gameArray.DateTimeUTC" class="mainCard">
+      <q-card v-if="gameArray.DateTime" class="mainCard">
         <div class="text-center">
           <span class="dateSign">
-            {{ new Date(gameArray.DateTimeUTC).toLocaleDateString() }}
+            {{ new Date(gameArray.DateTime).toLocaleDateString() }}
           </span>
         </div>
         <q-card-section>
@@ -1099,7 +1099,7 @@ const sendBetHome = async () => {
   text-align: center;
   margin: 1em auto;
   width: 80%;
-  background: $grey-3;
+  background: $grey-2;
 }
 .betTypes:hover {
   cursor: pointer;

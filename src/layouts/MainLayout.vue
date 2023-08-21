@@ -314,13 +314,10 @@ function toggleLeftDrawer() {
                         <div>
                           {{
                             game.Status === 'Scheduled'
-                              ? new Date(game.DateTimeUTC).toLocaleTimeString(
-                                  [],
-                                  {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  }
-                                )
+                              ? new Date(game.DateTime).toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
                               : game.Status
                           }}
                         </div>

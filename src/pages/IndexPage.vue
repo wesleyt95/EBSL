@@ -101,7 +101,12 @@ watchEffect(async () => {
   await fetch(
     `https://api.sportsdata.io/v3/nba/scores/json/News?key=${process.env.SPORTSDATA_API_KEY}`
   ).then((responseData) =>
-    responseData.json().then((data) => (nbaNews.value = data))
+    responseData
+      .json()
+      .then(
+        (data) =>
+          (nbaNews.value = data.map((row) => ({ ...row, modalValue: false })))
+      )
   );
 });
 const logResult = async () => {
@@ -131,21 +136,48 @@ const logResult = async () => {
           <q-card-section>
             <div class="text-h6 mainSign">Recent News</div>
             <div v-for="(news, index) in nbaNews" :key="index">
-              <a style="text-decoration: none" :href="news.Url">
-                <div class="text-center receiptItem">
-                  <div class="text-blue-grey-10 text-weight-bold">
-                    {{ news.Title }}
-                  </div>
-                  <div class="text-grey-6">
-                    [{{ ' ' + news.OriginalSource + ' ' }}]
-                  </div>
-                  <div class="text-red">
-                    <div>{{ new Date(news.Updated).toLocaleDateString() }}</div>
-                  </div>
+              <div
+                class="text-center receiptItem"
+                @click="news.modalValue = true"
+              >
+                <div class="text-blue-grey-10 text-weight-bold">
+                  {{ news.Title }}
                 </div>
-              </a>
-            </div></q-card-section
-          >
+                <div v-if="news.OriginalSource !== null" class="text-grey-6">
+                  [{{ ' ' + news.OriginalSource + ' ' }}]
+                </div>
+                <div class="text-red">
+                  <div>{{ new Date(news.Updated).toLocaleDateString() }}</div>
+                </div>
+                <q-dialog v-model="news.modalValue">
+                  <q-card>
+                    <q-card-section>
+                      <div class="text-h6">{{ news.Title }}</div>
+                    </q-card-section>
+
+                    <q-card-section class="q-pt-none">
+                      {{ news.Content }}
+                    </q-card-section>
+                    <q-card-section
+                      class="text-center text-bold"
+                      v-if="news.OriginalSource !== null"
+                    >
+                      Source: {{ news.OriginalSource }}
+                    </q-card-section>
+
+                    <q-card-actions align="right">
+                      <q-btn
+                        label="Close"
+                        color="blue-grey-10"
+                        size="sm"
+                        v-close-popup
+                      />
+                    </q-card-actions>
+                  </q-card>
+                </q-dialog>
+              </div>
+            </div>
+          </q-card-section>
         </q-scroll-area>
       </q-card>
       <q-card class="receiptCard">
@@ -354,5 +386,6 @@ const logResult = async () => {
 }
 .receiptItem:hover {
   background: $grey-2;
+  cursor: pointer;
 }
 </style>

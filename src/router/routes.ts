@@ -33,6 +33,11 @@ const routes: RouteRecordRaw[] = [
       { path: ':id', component: () => import('pages/players/PlayerIndex.vue') },
     ],
   },
+  {
+    path: '/players',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [{ path: '', component: () => import('pages/AdminIndex.vue') }],
+  },
 
   // Always leave this as last one,
   // but you can also remove it
