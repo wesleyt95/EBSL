@@ -109,23 +109,6 @@ watchEffect(async () => {
       )
   );
 });
-const logResult = async () => {
-  const betContract = new ethers.Contract(
-    process.env.CONTRACT_ADDRESS,
-    contract.abi,
-    await provider.getSigner()
-  );
-  try {
-    const tx = await betContract.deposit({
-      value: ethers.parseEther('0.06'),
-    });
-    await tx.wait();
-    window.location.reload();
-    console.log(tx);
-  } catch (err) {
-    console.log(err);
-  }
-};
 </script>
 
 <template>
@@ -182,7 +165,6 @@ const logResult = async () => {
       </q-card>
       <q-card class="receiptCard">
         <q-scroll-area style="height: 22.5em">
-          <q-btn @click="logResult">click</q-btn>
           <template v-if="transactionHistory.length > 0">
             <q-card-section>
               <div class="text-h6 mainSign">Active Transactions</div>

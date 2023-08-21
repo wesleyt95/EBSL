@@ -34,7 +34,7 @@ const routes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: '/players',
+    path: '/admin',
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/AdminIndex.vue') }],
   },
