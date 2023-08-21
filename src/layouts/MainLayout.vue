@@ -176,7 +176,7 @@ const essentialLinks = [
     link: 'https://discord.gg/jEw3eFYUpC',
   },
   {
-    title: 'Twitter',
+    title: 'Twitter / X',
     caption: '@EBSLeague',
     icon: 'public',
     link: 'https://twitter.com/EBSLeague',
@@ -380,9 +380,10 @@ function toggleLeftDrawer() {
                       position: sticky;
                       top: 0px;
                       z-index: 1;
-                      background-color: white;
+                      background-color: #fff;
                     "
-                    ><q-input
+                  >
+                    <q-input
                       square
                       outlined
                       v-model="searchValue"
@@ -390,7 +391,8 @@ function toggleLeftDrawer() {
                       type="search"
                       class="dialogSearchInput"
                       @keyup.enter="getSearchResults"
-                  /></q-card-section>
+                    />
+                  </q-card-section>
 
                   <q-card-section
                     class="scroll"
@@ -403,7 +405,7 @@ function toggleLeftDrawer() {
                       replace
                     >
                       <q-card
-                        class="text-blue-grey-10 row justify-between items-center text-center bg-grey-1 searchCard"
+                        class="text-blue-grey-10 row justify-evenly items-center text-center bg-grey-1 searchCard"
                       >
                         <q-img
                           :src="

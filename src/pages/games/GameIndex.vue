@@ -556,7 +556,7 @@ const sendBetHome = async () => {
                 {{ `${returnAwayOdds}%` }}
               </div>
             </div>
-            <div style="width: 10%">@</div>
+            <div style="width: 20%">@</div>
             <div style="width: 40%">
               <div class="hover">
                 {{ `${returnHomeOdds}%` }}
@@ -787,7 +787,7 @@ const sendBetHome = async () => {
             </div>
             <div class="row items-center justify-evenly text-center betCard">
               <div v-if="gameArray.Status !== 'Scheduled'">
-                <span>Away</span>
+                <span class="homeAwaySign">Away</span>
                 <div
                   style="font-weight: 800; margin: 0.25em 0.3em"
                   class="text-h3"
@@ -815,7 +815,7 @@ const sendBetHome = async () => {
                 <div>{{ `${returnGameTotal} ETH` }}</div>
               </div>
               <div v-if="gameArray.Status !== 'Scheduled'">
-                <span>Home</span>
+                <span class="homeAwaySign">Home</span>
                 <div
                   style="font-weight: 800; margin: 0.25em 0.3em"
                   class="text-h3"
@@ -1118,5 +1118,13 @@ const sendBetHome = async () => {
   background-color: $grey-1;
   margin: 0 auto;
   padding: 0.25em 0.5em;
+}
+.homeAwaySign {
+  color: $blue-grey-10;
+  border: 4px $grey-5 solid;
+  border-radius: 5px;
+  font-weight: 1000;
+  background-color: $grey-1;
+  padding: 0 0.5em;
 }
 </style>
