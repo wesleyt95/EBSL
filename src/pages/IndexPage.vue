@@ -15,7 +15,6 @@ const nbaNews = ref([]);
 const etherscanBetType = (methodID) => {
   return ethers.Interface.from(contract.abi).getFunctionName(methodID);
 };
-
 const etherscanTeam = (methodID, input, teamID) => {
   const betType = etherscanBetType(methodID);
   const data = ethers.Interface.from(contract.abi).decodeFunctionData(
@@ -58,7 +57,6 @@ const etherscanTeamBet = (methodID, input, teamID) => {
     }
   }
 };
-
 const returnBetType = (betType) => {
   if (betType === 'moneyLineBet') {
     return 'Money Line';
@@ -216,7 +214,7 @@ watchEffect(async () => {
           <template v-if="transactionHistory.length === 0">
             <q-card-section>
               <div class="text-h6 mainSign">Active Transactions</div>
-              <div class="receiptItem text-center">No Active Transactions</div>
+              <div class="receiptItem text-center">None</div>
             </q-card-section>
           </template>
           <template v-if="transactionHistoryInactive.length > 0">
@@ -281,41 +279,54 @@ watchEffect(async () => {
     </div>
     <q-card class="etherscanCard">
       <q-scroll-area style="height: 20em">
-        <div class="text-h6 mainSign">EBSL Transactions</div>
-        <div v-for="(receipts, index) in transactionHistoryEBSL" :key="index">
-          <a
-            style="text-decoration: none"
-            :href="`https://goerli.etherscan.io/tx/${receipts.hash}`"
-            ><div class="text-center receiptItem">
-              <div class="text-red text-weight-bold">
-                {{ receipts.from }}
-                <span class="text-grey-6">
-                  {{
-                    ` (${ethers.formatEther(receipts.value).substring(0, 6)}` +
-                    ' ETH)'
-                  }}
-                </span>
+        <template v-if="transactionHistoryEBSL.length > 0">
+          <div class="text-h6 mainSign">EBSL Transactions</div>
+          <div v-for="(receipts, index) in transactionHistoryEBSL" :key="index">
+            <a
+              style="text-decoration: none"
+              :href="`https://goerli.etherscan.io/tx/${receipts.hash}`"
+              ><div class="text-center receiptItem">
+                <div class="text-red text-weight-bold">
+                  {{ receipts.from }}
+                  <span class="text-grey-6">
+                    {{
+                      ` (${ethers
+                        .formatEther(receipts.value)
+                        .substring(0, 6)}` + ' ETH)'
+                    }}
+                  </span>
+                </div>
+                <div class="row justify-between">
+                  <div>
+                    {{ returnBetType(etherscanBetType(receipts.methodId)) }} ({{
+                      etherscanTeamBet(receipts.methodId, receipts.input, 1)
+                    }})
+                  </div>
+                  <div class="text-bold">
+                    {{ etherscanTeam(receipts.methodId, receipts.input, 3) }}
+                    <span class="text-yellow-14">@</span>
+                    {{ etherscanTeam(receipts.methodId, receipts.input, 2) }}
+                  </div>
+                  <div>
+                    {{
+                      new Date(receipts.timeStamp * 1000).toLocaleDateString()
+                    }}
+                    -
+                    {{
+                      new Date(receipts.timeStamp * 1000).toLocaleTimeString()
+                    }}
+                  </div>
+                </div>
               </div>
-              <div class="row justify-between">
-                <div>
-                  {{ returnBetType(etherscanBetType(receipts.methodId)) }} ({{
-                    etherscanTeamBet(receipts.methodId, receipts.input, 1)
-                  }})
-                </div>
-                <div class="text-bold">
-                  {{ etherscanTeam(receipts.methodId, receipts.input, 3) }}
-                  <span class="text-yellow-14">@</span>
-                  {{ etherscanTeam(receipts.methodId, receipts.input, 2) }}
-                </div>
-                <div>
-                  {{ new Date(receipts.timeStamp * 1000).toLocaleDateString() }}
-                  -
-                  {{ new Date(receipts.timeStamp * 1000).toLocaleTimeString() }}
-                </div>
-              </div>
-            </div>
-          </a>
-        </div>
+            </a>
+          </div>
+        </template>
+        <template v-if="transactionHistoryEBSL.length === 0">
+          <q-card-section>
+            <div class="text-h6 mainSign">EBSL Transactions</div>
+            <div class="receiptItem text-center">None</div>
+          </q-card-section>
+        </template>
       </q-scroll-area>
     </q-card>
   </q-page>

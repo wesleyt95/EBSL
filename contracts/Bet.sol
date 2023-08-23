@@ -3,6 +3,7 @@ pragma solidity ^0.8.21;
 
 import {AutomateTaskCreator} from './AutomateTaskCreator.sol';
 import {Module, ModuleData} from './Types.sol';
+import {Strings} from '@openzeppelin/contracts/utils/Strings.sol';
 
 contract Bet is AutomateTaskCreator {
   address payable private admin;
@@ -12,8 +13,8 @@ contract Bet is AutomateTaskCreator {
 
   constructor(
     string memory _moneyLineFunctionHash,
-    string memory _pointTotalFunctionHash,
-    string memory _pointSpreadFunctionHash
+    string memory _pointSpreadFunctionHash,
+    string memory _pointTotalFunctionHash
   )
     AutomateTaskCreator(
       0x2A6C106ae13B558BB9E2Ec64Bd2f1f7BEFF3A5E0,
@@ -93,27 +94,12 @@ contract Bet is AutomateTaskCreator {
     odds = (bettingTeam * 100) / gameTotal;
   }
 
-  function _getWeb3FunctionArgsHex(
-    address web3fAddress,
-    uint256 gameID
-  ) internal pure returns (bytes memory web3FunctionArgsHex) {
-    web3FunctionArgsHex = abi.encode(web3fAddress, gameID);
-  }
-
-  function getWeb3FunctionArgsHex(
-    address web3fAddress,
-    uint256 gameID
-  ) public pure {
-    _getWeb3FunctionArgsHex(web3fAddress, gameID);
-  }
-
   function moneyLineBet(
     uint256 gameID,
     uint256 teamID,
     uint256 homeTeamID,
     uint256 awayTeamID,
-    uint256 startTime,
-    bytes calldata web3FunctionArgsHex
+    uint256 startTime
   ) public payable {
     require(msg.sender == tx.origin);
     require(0 < startTime);
@@ -130,7 +116,7 @@ contract Bet is AutomateTaskCreator {
       moduleData.args[0] = _proxyModuleArg();
       moduleData.args[1] = _web3FunctionModuleArg(
         moneyLineFunctionHash,
-        web3FunctionArgsHex
+        abi.encode(Strings.toHexString(address(this)), gameID)
       );
 
       moneyLine.taskID = _createTask(
@@ -184,8 +170,7 @@ contract Bet is AutomateTaskCreator {
     uint256 homeTeamID,
     uint256 awayTeamID,
     int spread,
-    uint256 startTime,
-    bytes calldata web3FunctionArgsHex
+    uint256 startTime
   ) public payable {
     require(msg.sender == tx.origin);
     require(0 < startTime);
@@ -203,7 +188,7 @@ contract Bet is AutomateTaskCreator {
       moduleData.args[0] = _proxyModuleArg();
       moduleData.args[1] = _web3FunctionModuleArg(
         pointSpreadFunctionHash,
-        web3FunctionArgsHex
+        abi.encode(Strings.toHexString(address(this)), gameID)
       );
       pointSpread.taskID = _createTask(
         address(this),
@@ -253,8 +238,7 @@ contract Bet is AutomateTaskCreator {
     uint256 homeTeamID,
     uint256 awayTeamID,
     uint256 pointAmount,
-    uint256 startTime,
-    bytes calldata web3FunctionArgsHex
+    uint256 startTime
   ) public payable {
     require(msg.sender == tx.origin);
     require(0 < startTime);
@@ -272,7 +256,7 @@ contract Bet is AutomateTaskCreator {
       moduleData.args[0] = _proxyModuleArg();
       moduleData.args[1] = _web3FunctionModuleArg(
         pointTotalFunctionHash,
-        web3FunctionArgsHex
+        abi.encode(Strings.toHexString(address(this)), gameID)
       );
       pointTotal.taskID = _createTask(
         address(this),
@@ -337,7 +321,7 @@ contract Bet is AutomateTaskCreator {
       }
       userReceipts[winningUserID].escrow -= msgValue;
       for (uint x = 0; x < userReceipts[winningUserID].receipts.length; x++) {
-        Transaction memory myArray = userReceipts[winningUserID].receipts[x];
+        Transaction storage myArray = userReceipts[winningUserID].receipts[x];
         if (
           myArray.gameID == gameID &&
           keccak256(abi.encodePacked(myArray.betType)) ==
@@ -359,7 +343,7 @@ contract Bet is AutomateTaskCreator {
       .receipt[loserID][losingUserID].amount;
       userReceipts[losingUserID].escrow -= msgValue;
       for (uint x = 0; x < userReceipts[losingUserID].receipts.length; x++) {
-        Transaction memory myArray = userReceipts[losingUserID].receipts[x];
+        Transaction storage myArray = userReceipts[losingUserID].receipts[x];
         if (
           myArray.gameID == gameID &&
           keccak256(abi.encodePacked(myArray.betType)) ==
@@ -406,10 +390,9 @@ contract Bet is AutomateTaskCreator {
       }
       userReceipts[currentUserID].escrow -= msgValue;
       for (uint x = 0; x < userReceipts[currentUserID].receipts.length; x++) {
-        Transaction memory myArray = userReceipts[currentUserID].receipts[x];
+        Transaction storage myArray = userReceipts[currentUserID].receipts[x];
         if (
-          keccak256(abi.encodePacked(myArray.gameID)) ==
-          keccak256(abi.encodePacked(gameID)) &&
+          myArray.gameID == gameID &&
           keccak256(abi.encodePacked(myArray.betType)) ==
           keccak256(abi.encodePacked('Point Spread'))
         ) {
@@ -454,7 +437,7 @@ contract Bet is AutomateTaskCreator {
       userReceipts[currentUserID].escrow -= msgValue;
 
       for (uint x = 0; x < userReceipts[currentUserID].receipts.length; x++) {
-        Transaction memory myArray = userReceipts[currentUserID].receipts[x];
+        Transaction storage myArray = userReceipts[currentUserID].receipts[x];
         if (
           myArray.gameID == gameID &&
           (keccak256(abi.encodePacked(myArray.betType))) ==
@@ -523,7 +506,11 @@ contract Bet is AutomateTaskCreator {
     blockedUsers.push(user);
   }
 
-  function deposit() public payable {
-    _depositFunds1Balance(msg.value, ETH, admin);
+  function deposit(
+    uint256 _amount,
+    address _token,
+    address _sponsor
+  ) public payable {
+    _depositFunds1Balance(_amount, _token, _sponsor);
   }
 }

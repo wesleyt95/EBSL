@@ -140,13 +140,15 @@ watchEffect(async () => {
   if (chainIdRef.value === process.env.CHAIN_ID) {
     const weiBalance = await provider.getBalance(userRef.value);
     balance.value = ethers.formatEther(weiBalance).substring(0, 6);
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
-    const value = await betContract.returnEscrow();
-    escrow.value = ethers.formatEther(value).substring(0, 6);
+    if (userRef.value != undefined) {
+      const betContract = new ethers.Contract(
+        process.env.CONTRACT_ADDRESS,
+        contract.abi,
+        await provider.getSigner()
+      );
+      const value = await betContract.returnEscrow();
+      escrow.value = ethers.formatEther(value).substring(0, 6);
+    }
   }
 });
 

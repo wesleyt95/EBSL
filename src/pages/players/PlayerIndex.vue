@@ -131,7 +131,7 @@ watchEffect(async () => {
   );
 
   await fetch(
-    `https://api.sportsdata.io/v3/nba/stats/json/PlayerGameStatsBySeason/2023/${router.params.id}/all?key=${process.env.SPORTSDATA_API_KEY}`
+    `https://api.sportsdata.io/v3/nba/stats/json/PlayerGameStatsBySeason/${process.env.SPORTSDATA_API_YEAR}/${router.params.id}/all?key=${process.env.SPORTSDATA_API_KEY}`
   ).then((responseData) =>
     responseData.json().then((data) => {
       regularSeason.value = data;
@@ -139,7 +139,7 @@ watchEffect(async () => {
   );
 
   await fetch(
-    `https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStats/2023?key=${process.env.SPORTSDATA_API_KEY}`
+    `https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStats/${process.env.SPORTSDATA_API_YEAR}?key=${process.env.SPORTSDATA_API_KEY}`
   ).then((responseData) =>
     responseData
       .json()
@@ -153,7 +153,7 @@ watchEffect(async () => {
       )
   );
   await fetch(
-    `https://api.sportsdata.io/v3/nba/stats/json/PlayerGameStatsBySeason/2023POST/${router.params.id}/all?key=${process.env.SPORTSDATA_API_KEY}`
+    `https://api.sportsdata.io/v3/nba/stats/json/PlayerGameStatsBySeason/${process.env.SPORTSDATA_API_YEAR}POST/${router.params.id}/all?key=${process.env.SPORTSDATA_API_KEY}`
   ).then((responseData) =>
     responseData.json().then((data) => {
       postSeason.value = data;
@@ -161,7 +161,7 @@ watchEffect(async () => {
   );
   if (postSeason.value.length > 0) {
     await fetch(
-      `https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStats/2023POST?key=${process.env.SPORTSDATA_API_KEY}`
+      `https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStats/${process.env.SPORTSDATA_API_YEAR}POST?key=${process.env.SPORTSDATA_API_KEY}`
     ).then((responseData) =>
       responseData
         .json()

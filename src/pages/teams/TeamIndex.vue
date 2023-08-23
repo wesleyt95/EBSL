@@ -28,7 +28,9 @@ const getGameID = async (date) => {
 
 watchEffect(async () => {
   await fetch(
-    `https://www.balldontlie.io/api/v1/games?seasons[]=2022&team_ids[]=${team.id}&per_page=100&postseason=false`
+    `https://www.balldontlie.io/api/v1/games?seasons[]=${
+      Number(process.env.SPORTSDATA_API_YEAR) - 1
+    }&team_ids[]=${team.id}&per_page=100&postseason=false`
   ).then((responseData) =>
     responseData
       .json()
@@ -40,7 +42,9 @@ watchEffect(async () => {
       )
   );
   await fetch(
-    `https://www.balldontlie.io/api/v1/games?seasons[]=2022&team_ids[]=${team.id}&per_page=100&postseason=true`
+    `https://www.balldontlie.io/api/v1/games?seasons[]=${
+      Number(process.env.SPORTSDATA_API_YEAR) - 1
+    }&team_ids[]=${team.id}&per_page=100&postseason=true`
   ).then((responseData) =>
     responseData
       .json()

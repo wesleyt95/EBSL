@@ -13,10 +13,6 @@ const betContractNoSigner = new ethers.Contract(
   contract.abi,
   provider
 );
-const paramData = ethers.Interface.from(contract.abi).encodeFunctionData(
-  'getWeb3FunctionArgsHex',
-  [process.env.CONTRACT_ADDRESS, Number(router.params.id)]
-);
 
 const homeDialog = ref(false);
 const awayDialog = ref(false);
@@ -401,7 +397,6 @@ const sendBetAway = async () => {
         gameArray.value.HomeTeamID,
         gameArray.value.AwayTeamID,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
-        paramData,
         overrides
       );
 
@@ -423,7 +418,6 @@ const sendBetAway = async () => {
         gameArray.value.AwayTeamID,
         gameArray.value.PointSpread * -10,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
-        paramData,
         overrides
       );
       await tx.wait();
@@ -444,7 +438,6 @@ const sendBetAway = async () => {
         gameArray.value.AwayTeamID,
         gameArray.value.OverUnder * 10,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
-        paramData,
         overrides
       );
       await tx.wait();
@@ -474,7 +467,6 @@ const sendBetHome = async () => {
         gameArray.value.HomeTeamID,
         gameArray.value.AwayTeamID,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
-        paramData,
         overrides
       );
       await tx.wait();
@@ -495,7 +487,6 @@ const sendBetHome = async () => {
         gameArray.value.AwayTeamID,
         gameArray.value.PointSpread * 10,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
-        paramData,
         overrides
       );
       await tx.wait();
@@ -516,7 +507,6 @@ const sendBetHome = async () => {
         gameArray.value.AwayTeamID,
         gameArray.value.OverUnder * 10,
         Date.parse(gameArray.value.DateTimeUTC) / 1000,
-        paramData,
         overrides
       );
       await tx.wait();
@@ -607,7 +597,7 @@ const sendBetHome = async () => {
                 </q-card-section>
                 <q-btn
                   @click="awayDialog = true"
-                  :disabled="gameArray.Status !== 'Scheduled'"
+                  :disabled="gameArray.Status === 'Scheduled'"
                   >Place Bet</q-btn
                 >
               </q-card>
@@ -664,7 +654,7 @@ const sendBetHome = async () => {
                     <q-card-section>
                       <div>
                         <span class="text-h6"
-                          >Money Line{{ returnAwayMoneylineUser }}</span
+                          >Money Line {{ returnAwayMoneylineUser }}</span
                         >
                         <div
                           v-if="awayCurrentMoneyline !== undefined"
@@ -849,7 +839,11 @@ const sendBetHome = async () => {
                   ] Point Total:
                   <span class="text-red">{{ returnHomePointTotal }}</span>
                 </q-card-section>
-                <q-btn @click="homeDialog = true">Place Bet</q-btn>
+                <q-btn
+                  @click="homeDialog = true"
+                  :disabled="gameArray.Status === 'Scheduled'"
+                  >Place Bet</q-btn
+                >
               </q-card>
               <q-dialog
                 v-model="homeDialog"
