@@ -101,7 +101,7 @@ const etherscanTeamBet = (methodID, input, teamID) => {
 
 watchEffect(async () => {
   await fetch(
-    `https://api-goerli.etherscan.io/api?module=account&action=txlist&address=${process.env.CONTRACT_ADDRESS}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=${process.env.ETHERSCAN_API_KEY}`
+    `https://api-goerli.etherscan.io/api?module=account&action=txlist&address=${process.env.CONTRACT_ADDRESS}&startblock=0&endblock=99999999&page=1&offset=100&sort=desc&apikey=${process.env.ETHERSCAN_API_KEY}`
   )
     .then((response) => response.json())
     .then(
@@ -187,7 +187,7 @@ watchEffect(async () => {
         <q-btn class="q-my-md" @click="blockUser(userBlock)">Block</q-btn>
       </div>
     </div>
-    <div v-else>Imposter</div>
+    <div class="text-h2 text-center q-ma-md" v-else>Unauthorized</div>
   </div>
 </template>
 <style lang="scss" scoped>

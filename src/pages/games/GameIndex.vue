@@ -530,7 +530,7 @@ const sendBetHome = async () => {
 
         <q-card-section>
           <div class="megatron">
-            <div class="text-center text-h4 text-bold">
+            <div class="text-center text-h5 text-bold">
               <span>
                 {{
                   TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID).City
@@ -539,7 +539,7 @@ const sendBetHome = async () => {
                   TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID).Name
                 }}
               </span>
-              <span> @ </span>
+              <span class="text-red"> @ </span>
               <span>
                 {{
                   TEAMS.find((row) => row.TeamID === gameArray.HomeTeamID).City
@@ -550,26 +550,28 @@ const sendBetHome = async () => {
               </span>
             </div>
             <div class="row items-center justify-evenly text-center">
-              <div style="float: left">
-                <div style="max-height: 15em; max-width: 15em" class="hover">
-                  <q-img
-                    fit="contain"
-                    style="max-height: 15em; max-width: 15em"
-                    :src="
-                      TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID)
-                        .WikipediaLogoUrl
-                    "
-                    @click="
-                      $router.push({ path: `/teams/${gameArray.AwayTeamID}` })
-                    "
-                    :key="gameArray.AwayTeamID"
-                  />
-                  <div class="text-h3">
-                    {{ `${returnAwayOdds}%` }}
+              <div class="col">
+                <div>
+                  <div style="max-height: 12em; max-width: 12em" class="hover">
+                    <q-img
+                      fit="contain"
+                      style="max-height: 12em; max-width: 12em"
+                      :src="
+                        TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID)
+                          .WikipediaLogoUrl
+                      "
+                      @click="
+                        $router.push({ path: `/teams/${gameArray.AwayTeamID}` })
+                      "
+                      :key="gameArray.AwayTeamID"
+                    />
+                    <div class="text-h3">
+                      {{ `${returnAwayOdds}%` }}
+                    </div>
                   </div>
                 </div>
               </div>
-              <div>
+              <div class="col-3">
                 <q-card class="betCard">
                   <q-card-section>
                     Total Bet:
@@ -778,66 +780,72 @@ const sendBetHome = async () => {
                   </q-card>
                 </q-dialog>
               </div>
-              <div v-if="gameArray.Status !== 'Scheduled'">
-                <span class="homeAwaySign">Away</span>
-                <div
-                  style="font-weight: 800; margin: 0.25em 0.3em"
-                  class="text-h1"
-                >
-                  {{ gameArray.AwayTeamScore }}
-                </div>
-              </div>
-              <div class="text-h6 text-bold align-center">
-                <div v-if="gameArray.Status === 'Scheduled'">
-                  {{ new Date(gameArray.DateTime).toLocaleTimeString() }}
-                </div>
-                <div v-if="gameArray.SeasonType === 2">Preseason</div>
-                <div v-if="gameArray.SeasonType === 1">Regular Season</div>
-                <div
-                  v-if="
-                    gameArray.SeasonType === 3 &&
-                    gameArray.SeriesInfo.MaxLength === 1
-                  "
-                >
-                  Play In
-                </div>
-                <div
-                  v-if="
-                    gameArray.SeasonType === 3 &&
-                    gameArray.SeriesInfo.MaxLength === 7
-                  "
-                >
-                  Playoffs
-                </div>
-                <div
-                  v-if="
-                    gameArray.SeasonType === 3 &&
-                    gameArray.SeriesInfo.MaxLength === 7
-                  "
-                >
-                  Series: ({{ gameArray.SeriesInfo.AwayTeamWins }}-{{
-                    gameArray.SeriesInfo.HomeTeamWins
-                  }})
-                </div>
-                <div class="text-red">{{ gameArray.Status }}</div>
-                <div v-if="gameArray.Quarter !== null">
-                  {{ gameArray.TimeRemainingMinutes }}:{{
-                    gameArray.TimeRemainingSeconds
-                  }}
-                </div>
+              <div class="col-4 megatronStatusOuter">
+                <div class="row items-center">
+                  <div class="col" v-if="gameArray.Status !== 'Scheduled'">
+                    <span class="homeAwaySign">Away</span>
+                    <div
+                      style="font-weight: 800; margin: 0.1em 0.15em"
+                      class="text-h2 text-center float-left"
+                    >
+                      {{ gameArray.AwayTeamScore }}
+                    </div>
+                  </div>
+                  <div
+                    class="text-subtitle1 text-bold align-center megatronStatus col-6"
+                  >
+                    <div v-if="gameArray.Status === 'Scheduled'">
+                      {{ new Date(gameArray.DateTime).toLocaleTimeString() }}
+                    </div>
+                    <div v-if="gameArray.SeasonType === 2">Preseason</div>
+                    <div v-if="gameArray.SeasonType === 1">Regular Season</div>
+                    <div
+                      v-if="
+                        gameArray.SeasonType === 3 &&
+                        gameArray.SeriesInfo.MaxLength === 1
+                      "
+                    >
+                      Play In
+                    </div>
+                    <div
+                      v-if="
+                        gameArray.SeasonType === 3 &&
+                        gameArray.SeriesInfo.MaxLength === 7
+                      "
+                    >
+                      Playoffs
+                    </div>
+                    <div
+                      v-if="
+                        gameArray.SeasonType === 3 &&
+                        gameArray.SeriesInfo.MaxLength === 7
+                      "
+                    >
+                      Series: ({{ gameArray.SeriesInfo.AwayTeamWins }}-{{
+                        gameArray.SeriesInfo.HomeTeamWins
+                      }})
+                    </div>
+                    <div class="text-red">{{ gameArray.Status }}</div>
+                    <div v-if="gameArray.Quarter !== null">
+                      {{ gameArray.TimeRemainingMinutes }}:{{
+                        gameArray.TimeRemainingSeconds
+                      }}
+                    </div>
 
-                <div>{{ `${returnGameTotal} ETH` }}</div>
-              </div>
-              <div v-if="gameArray.Status !== 'Scheduled'">
-                <span class="homeAwaySign">Home</span>
-                <div
-                  style="font-weight: 800; margin: 0.25em 0.3em"
-                  class="text-h1"
-                >
-                  {{ gameArray.HomeTeamScore }}
+                    <div>{{ `${returnGameTotal} ETH` }}</div>
+                  </div>
+                  <div class="col" v-if="gameArray.Status !== 'Scheduled'">
+                    <span class="homeAwaySign">Home</span>
+                    <div
+                      style="font-weight: 800; margin: 0.1em 0.15em"
+                      class="text-h2 text-center"
+                    >
+                      {{ gameArray.HomeTeamScore }}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div>
+              <div class="col-3">
                 <q-card class="betCard">
                   <q-card-section>
                     Total Bet:
@@ -1049,21 +1057,24 @@ const sendBetHome = async () => {
                   </q-card>
                 </q-dialog>
               </div>
-              <div style="float: right">
-                <div style="max-height: 15em; max-width: 15em" class="hover">
-                  <q-img
-                    fit="contain"
-                    style="max-height: 15em; max-width: 15em"
-                    :src="
-                      TEAMS.find((row) => row.TeamID === gameArray.HomeTeamID)
-                        .WikipediaLogoUrl
-                    "
-                    @click="
-                      $router.push({ path: `/teams/${gameArray.HomeTeamID}` })
-                    "
-                    :key="gameArray.HomeTeamID"
-                  />
-                  <div class="text-h3">{{ `${returnHomeOdds}%` }}</div>
+
+              <div class="col">
+                <div>
+                  <div style="max-height: 12em; max-width: 12em" class="hover">
+                    <q-img
+                      fit="contain"
+                      style="max-height: 12em; max-width: 12em"
+                      :src="
+                        TEAMS.find((row) => row.TeamID === gameArray.HomeTeamID)
+                          .WikipediaLogoUrl
+                      "
+                      @click="
+                        $router.push({ path: `/teams/${gameArray.HomeTeamID}` })
+                      "
+                      :key="gameArray.HomeTeamID"
+                    />
+                    <div class="text-h3">{{ `${returnHomeOdds}%` }}</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1127,6 +1138,17 @@ const sendBetHome = async () => {
   font-weight: 650;
 }
 
+.megatronStatus {
+  border: 8px $grey-4 solid;
+  border-radius: 10px;
+  padding: 0.5em 1em;
+}
+.megatronStatusOuter {
+  border: 10px $grey-4 solid;
+  border-radius: 10px;
+  padding: 1em;
+}
+
 .mainCard {
   margin: 2em;
   color: $blue-grey-10;
@@ -1144,12 +1166,12 @@ const sendBetHome = async () => {
   background: $grey-1;
 }
 .betTypesSelected {
-  border: 2.5px red solid;
+  border: 5px $grey-6 solid;
   border-radius: 12px !important;
   text-align: center;
   margin: 1em auto;
   width: 85%;
-  background: $grey-2;
+  background: $grey-1;
 }
 .betTypes:hover {
   cursor: pointer;

@@ -451,8 +451,8 @@ contract Bet is AutomateTaskCreator {
     }
     for (uint b = 0; b < winners.length; b++) {
       uint256 msgValue = newPointTotalBet[gameID].receipt[winners[b]].amount;
-      uint256 share = msgValue / (winnersPurse);
-      winners[b].transfer((newPointTotalBet[gameID].total) * share);
+      uint256 share = msgValue / winnersPurse;
+      winners[b].transfer(newPointTotalBet[gameID].total * share);
     }
     _cancelTask(newPointTotalBet[gameID].taskID);
   }
