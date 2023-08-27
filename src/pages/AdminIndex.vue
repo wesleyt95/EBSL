@@ -101,13 +101,16 @@ const etherscanTeamBet = (methodID, input, teamID) => {
 
 watchEffect(async () => {
   await fetch(
-    `https://api-goerli.etherscan.io/api?module=account&action=txlist&address=${process.env.CONTRACT_ADDRESS}&startblock=0&endblock=99999999&page=1&offset=100&sort=desc&apikey=${process.env.ETHERSCAN_API_KEY}`
+    `https://api-goerli.etherscan.io/api?module=account&action=txlist&address=${process.env.CONTRACT_ADDRESS}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey=${process.env.ETHERSCAN_API_KEY}`
   )
     .then((response) => response.json())
     .then(
       (data) =>
         (transactionHistoryEBSL.value = data.result.filter(
-          (tx) => tx.value !== '0' && tx.functionName !== 'deposit()'
+          (tx) =>
+            tx.methodId === '0xf12b2a8b' ||
+            tx.methodId === '0xb1a374dd' ||
+            tx.methodId === '0x753dc3b8'
         ))
     );
 });
