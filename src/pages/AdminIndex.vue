@@ -22,7 +22,7 @@ const logResult = async (amount) => {
       value: ethers.parseEther(amount),
     });
     await tx.wait();
-    window.location.reload();
+    window.location.reload(true);
     console.log(tx);
   } catch (err) {
     console.log(err);
@@ -37,7 +37,7 @@ const blockUser = async (user) => {
   try {
     const tx = await betContract.blockUser(user);
     await tx.wait();
-    window.location.reload();
+    window.location.reload(true);
     console.log(tx);
   } catch (err) {
     console.log(err);

@@ -2,7 +2,7 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\AutomateReady.sol": {
-      "lastModificationDate": 1692741908104,
+      "lastModificationDate": 1692769859125,
       "contentHash": "8cde9db2f80c680514284f17aa1238bd",
       "sourceName": "contracts/AutomateReady.sol",
       "solcConfig": {
@@ -40,7 +40,7 @@
       ]
     },
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\Types.sol": {
-      "lastModificationDate": 1690003171273,
+      "lastModificationDate": 1692769888185,
       "contentHash": "3afa3ef4512acf789a58d4f007b93c65",
       "sourceName": "contracts/Types.sol",
       "solcConfig": {
@@ -78,7 +78,7 @@
       ]
     },
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\AutomateTaskCreator.sol": {
-      "lastModificationDate": 1692741585685,
+      "lastModificationDate": 1692769868597,
       "contentHash": "195133ad8285e543fecc058232b92a4a",
       "sourceName": "contracts/AutomateTaskCreator.sol",
       "solcConfig": {
@@ -116,8 +116,8 @@
       ]
     },
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\Bet.sol": {
-      "lastModificationDate": 1692748693688,
-      "contentHash": "04c78d73c1c77b8a0535d9e2a48fd8b8",
+      "lastModificationDate": 1693092755923,
+      "contentHash": "6f978427444213b5c9a272439f4d315f",
       "sourceName": "contracts/Bet.sol",
       "solcConfig": {
         "version": "0.8.21",

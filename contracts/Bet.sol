@@ -353,6 +353,7 @@ contract Bet is AutomateTaskCreator {
         }
       }
     }
+    _cancelTask(newMoneyLineBet[gameID].taskID);
   }
 
   function rewardPointSpreadWinners(
@@ -405,6 +406,7 @@ contract Bet is AutomateTaskCreator {
       uint256 share = msgValue / winnersPurse;
       winners[b].transfer(newPointSpreadBet[gameID].total * share);
     }
+    _cancelTask(newPointSpreadBet[gameID].taskID);
   }
 
   function rewardPointTotalWinners(
@@ -452,6 +454,7 @@ contract Bet is AutomateTaskCreator {
       uint256 share = msgValue / (winnersPurse);
       winners[b].transfer((newPointTotalBet[gameID].total) * share);
     }
+    _cancelTask(newPointTotalBet[gameID].taskID);
   }
 
   function returnMoneyLineBetReceipt(

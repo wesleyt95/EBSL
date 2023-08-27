@@ -101,22 +101,28 @@ const getSearchResults = async () => {
 window.ethereum.on('accountsChanged', (accounts) => {
   userRef.value = accounts[0];
   store.user = userRef.value;
-  window.location.reload();
+  window.location.reload(true);
 });
 window.ethereum.on('chainChanged', (chainId) => {
   chainIdRef.value = chainId;
   store.chainID = chainIdRef.value;
-  window.location.reload();
+  window.location.reload(true);
 });
 
 window.ethereum.on('connect', () => {
-  isConnectedRef.value = true;
-  store.isConnected = isConnectedRef.value;
-  chainIdRef.value = window.ethereum.chainId;
-  store.chainID = chainIdRef.value;
-  userRef.value = window.ethereum._state.accounts[0];
-  store.user = userRef.value;
-  window.location.reload();
+  if (isConnectedRef.value !== true) {
+    isConnectedRef.value = true;
+    store.isConnected = isConnectedRef.value;
+  }
+  if (typeof userRef.value !== 'string') {
+    userRef.value = window.ethereum._state.accounts[0];
+    store.user = userRef.value;
+  }
+  if (typeof chainIdRef.value !== 'string') {
+    chainIdRef.value = window.ethereum.chainId;
+    store.chainID = chainIdRef.value;
+  }
+  window.location.reload(true);
 });
 window.ethereum.on('disconnect', () => {
   isConnectedRef.value = false;
@@ -125,7 +131,7 @@ window.ethereum.on('disconnect', () => {
   store.chainID = chainIdRef.value;
   userRef.value = undefined;
   store.user = userRef.value;
-  window.location.reload();
+  window.location.reload(true);
 });
 watchEffect(async () => {
   if (datesArray.value.length === 0) {
@@ -137,18 +143,20 @@ watchEffect(async () => {
     responseData.json().then((data) => (gamesArray.value = data))
   );
 
-  if (chainIdRef.value === process.env.CHAIN_ID) {
+  if (
+    chainIdRef.value === process.env.CHAIN_ID &&
+    typeof userRef.value === 'string'
+  ) {
     const weiBalance = await provider.getBalance(userRef.value);
     balance.value = ethers.formatEther(weiBalance).substring(0, 6);
-    if (userRef.value != undefined) {
-      const betContract = new ethers.Contract(
-        process.env.CONTRACT_ADDRESS,
-        contract.abi,
-        await provider.getSigner()
-      );
-      const value = await betContract.returnEscrow();
-      escrow.value = ethers.formatEther(value).substring(0, 6);
-    }
+
+    const betContract = new ethers.Contract(
+      process.env.CONTRACT_ADDRESS,
+      contract.abi,
+      await provider.getSigner()
+    );
+    const value = await betContract.returnEscrow();
+    escrow.value = ethers.formatEther(value).substring(0, 6);
   }
 });
 
@@ -190,6 +198,20 @@ const leftDrawerOpen = ref(false);
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;
 }
+const SwitchNetwork = async () => {
+  let chainId = process.env.CHAIN_ID;
+  await window.ethereum
+    .request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: chainId }],
+    })
+    .then(() => console.log('Successfully! Connected to the requested Network'))
+    .catch((err) => {
+      if (err.message.startsWith('Unrecognized chain ID')) {
+        addNewNetwork();
+      }
+    });
+};
 </script>
 
 <template>
@@ -249,11 +271,15 @@ function toggleLeftDrawer() {
         </template>
 
         <template
-          v-else-if="isConnectedRef === true && chainIdRef !== appChainID"
+          v-else-if="
+            isConnectedRef === true &&
+            chainIdRef !== appChainID &&
+            typeof chainIdRef === 'string'
+          "
         >
           <div>
             <q-btn
-              disabled
+              @click="SwitchNetwork"
               color="white"
               text-color="red"
               label="Invalid Network"
@@ -263,7 +289,7 @@ function toggleLeftDrawer() {
         <template v-else-if="isConnected === false">
           <div>
             <q-btn
-              disabled
+              @click="window.location.reload(true)"
               color="white"
               text-color="black"
               label="MetaMask Undetected"

@@ -401,7 +401,7 @@ const sendBetAway = async () => {
       );
 
       await tx.wait();
-      window.location.reload();
+      window.location.reload(true);
       console.log(tx);
     } catch (err) {
       console.log(err);
@@ -421,7 +421,7 @@ const sendBetAway = async () => {
         overrides
       );
       await tx.wait();
-      window.location.reload();
+      window.location.reload(true);
       console.log(tx);
     } catch (err) {
       console.log(err);
@@ -441,7 +441,7 @@ const sendBetAway = async () => {
         overrides
       );
       await tx.wait();
-      window.location.reload();
+      window.location.reload(true);
       console.log(tx);
     } catch (err) {
       console.log(err);
@@ -470,7 +470,7 @@ const sendBetHome = async () => {
         overrides
       );
       await tx.wait();
-      window.location.reload();
+      window.location.reload(true);
       console.log(tx);
     } catch (err) {
       console.log(err);
@@ -490,7 +490,7 @@ const sendBetHome = async () => {
         overrides
       );
       await tx.wait();
-      window.location.reload();
+      window.location.reload(true);
       console.log(tx);
     } catch (err) {
       console.log(err);
@@ -510,7 +510,7 @@ const sendBetHome = async () => {
         overrides
       );
       await tx.wait();
-      window.location.reload();
+      window.location.reload(true);
       console.log(tx);
     } catch (err) {
       console.log(err);
@@ -527,276 +527,300 @@ const sendBetHome = async () => {
             {{ new Date(gameArray.DateTime).toLocaleDateString() }}
           </span>
         </div>
-        <q-card-section>
-          <div class="row items-center justify-evenly text-h3 text-center">
-            <div style="width: 40%">
-              <div class="hover">
-                <q-img
-                  fit="contain"
-                  style="max-height: 2.5em; max-width: 2.5em"
-                  :src="
-                    TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID)
-                      .WikipediaLogoUrl
-                  "
-                  @click="
-                    $router.push({ path: `/teams/${gameArray.AwayTeamID}` })
-                  "
-                  :key="gameArray.AwayTeamID"
-                />
-                {{ `${returnAwayOdds}%` }}
-              </div>
-            </div>
-            <div style="width: 20%">@</div>
-            <div style="width: 40%">
-              <div class="hover">
-                {{ `${returnHomeOdds}%` }}
-                <q-img
-                  fit="contain"
-                  style="max-height: 2.5em; max-width: 2.5em"
-                  :src="
-                    TEAMS.find((row) => row.TeamID === gameArray.HomeTeamID)
-                      .WikipediaLogoUrl
-                  "
-                  @click="
-                    $router.push({ path: `/teams/${gameArray.HomeTeamID}` })
-                  "
-                  :key="gameArray.HomeTeamID"
-                />
-              </div>
-            </div>
-          </div>
-        </q-card-section>
 
         <q-card-section>
-          <div
-            style="width: 80%"
-            class="flex full-width row items-center justify-evenly text-center q-mx-auto"
-          >
-            <div>
-              <q-card class="betCard">
-                <q-card-section>
-                  Total Bet:
-                  <span class="text-red">{{ returnAwayTotal + ' ETH' }}</span>
-                </q-card-section>
-                <q-card-section>
-                  Money Line:
-                  <span class="text-red">{{ returnAwayMoneyline }}</span>
-                </q-card-section>
-                <q-card-section>
-                  [
-                  {{
-                    (gameArray.PointSpread < 0 ? '+' : null) +
-                    gameArray.PointSpread * -1
-                  }}
-                  ] Point Spread:
-                  <span class="text-red">{{ returnAwayPointSpread }}</span>
-                </q-card-section>
-                <q-card-section>
-                  [ {{ gameArray.OverUnder }} ] Point Total:
-                  <span class="text-red">{{ returnAwayPointTotal }}</span>
-                </q-card-section>
-                <q-btn
-                  @click="awayDialog = true"
-                  :disabled="gameArray.Status === 'Scheduled'"
-                  >Place Bet</q-btn
-                >
-              </q-card>
-              <q-dialog
-                v-model="awayDialog"
-                persistent
-                maximized
-                transition-show="slide-up"
-                transition-hide="slide-down"
-              >
-                <q-card class="bg-grey-1 text-blue-grey-10">
-                  <q-toolbar>
-                    <q-avatar>
-                      <img
-                        fit="contain"
-                        src="https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png"
-                      />
-                    </q-avatar>
-                    <q-toolbar-title>
-                      <span class="text-weight-bold">EBSL</span>
-                    </q-toolbar-title>
-                    <q-btn flat round dense icon="close" v-close-popup />
-                  </q-toolbar>
+          <div class="megatron">
+            <div class="text-center text-h4 text-bold">
+              <span>
+                {{
+                  TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID).City
+                }}
+                {{
+                  TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID).Name
+                }}
+              </span>
+              <span> @ </span>
+              <span>
+                {{
+                  TEAMS.find((row) => row.TeamID === gameArray.HomeTeamID).City
+                }}
+                {{
+                  TEAMS.find((row) => row.TeamID === gameArray.HomeTeamID).Name
+                }}
+              </span>
+            </div>
+            <div class="row items-center justify-evenly text-center">
+              <div style="float: left">
+                <div style="max-height: 15em; max-width: 15em" class="hover">
+                  <q-img
+                    fit="contain"
+                    style="max-height: 15em; max-width: 15em"
+                    :src="
+                      TEAMS.find((row) => row.TeamID === gameArray.AwayTeamID)
+                        .WikipediaLogoUrl
+                    "
+                    @click="
+                      $router.push({ path: `/teams/${gameArray.AwayTeamID}` })
+                    "
+                    :key="gameArray.AwayTeamID"
+                  />
+                  <div class="text-h3">
+                    {{ `${returnAwayOdds}%` }}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <q-card class="betCard">
                   <q-card-section>
-                    <h3 class="text-center q-mb-xs">
-                      <q-img
-                        fit="contain"
-                        style="max-height: 2em; max-width: 2em"
-                        :src="
-                          TEAMS.find(
-                            (row) => row.TeamID === gameArray.AwayTeamID
-                          ).WikipediaLogoUrl
-                        "
-                        :key="gameArray.AwayTeamID"
-                      />
-                    </h3>
-                    <div class="text-h2 text-center q-mt-xs">
-                      {{
-                        TEAMS.find((row) => row.Key === gameArray.AwayTeam).City
-                      }}
-                      {{
-                        TEAMS.find((row) => row.Key === gameArray.AwayTeam).Name
-                      }}
-                    </div>
+                    Total Bet:
+                    <span class="text-red">{{ returnAwayTotal + ' ETH' }}</span>
                   </q-card-section>
-                  <div
-                    :class="
-                      awayBetType === 'moneyline'
-                        ? 'betTypesSelected'
-                        : 'betTypes'
-                    "
-                    @click="awayBetType = 'moneyline'"
+                  <q-card-section>
+                    Money Line:
+                    <span class="text-red">{{ returnAwayMoneyline }}</span>
+                  </q-card-section>
+                  <q-card-section>
+                    [
+                    {{
+                      (gameArray.PointSpread < 0 ? '+' : null) +
+                      gameArray.PointSpread * -1
+                    }}
+                    ] Point Spread:
+                    <span class="text-red">{{ returnAwayPointSpread }}</span>
+                  </q-card-section>
+                  <q-card-section>
+                    [ {{ gameArray.OverUnder }} ] Point Total:
+                    <span class="text-red">{{ returnAwayPointTotal }}</span>
+                  </q-card-section>
+                  <q-btn
+                    @click="awayDialog = true"
+                    :disabled="Date.parse(gameArray.DateTimeUTC) === Date.now()"
+                    >Place Bet</q-btn
                   >
+                </q-card>
+                <q-dialog
+                  v-model="awayDialog"
+                  persistent
+                  maximized
+                  transition-show="slide-up"
+                  transition-hide="slide-down"
+                >
+                  <q-card class="bg-grey-1 text-blue-grey-10">
+                    <q-toolbar>
+                      <q-avatar>
+                        <img
+                          fit="contain"
+                          src="https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png"
+                        />
+                      </q-avatar>
+                      <q-toolbar-title>
+                        <span class="text-weight-bold">EBSL</span>
+                      </q-toolbar-title>
+                      <q-btn flat round dense icon="close" v-close-popup />
+                    </q-toolbar>
                     <q-card-section>
-                      <div>
-                        <span class="text-h6"
-                          >Money Line {{ returnAwayMoneylineUser }}</span
-                        >
-                        <div
-                          v-if="awayCurrentMoneyline !== undefined"
-                          class="betValue"
-                        >
-                          {{ returnAwayMoneyline }}
-                        </div>
+                      <h3 class="text-center q-mb-xs">
+                        <q-img
+                          fit="contain"
+                          style="max-height: 2em; max-width: 2em"
+                          :src="
+                            TEAMS.find(
+                              (row) => row.TeamID === gameArray.AwayTeamID
+                            ).WikipediaLogoUrl
+                          "
+                          :key="gameArray.AwayTeamID"
+                        />
+                      </h3>
+                      <div class="text-h2 text-center q-mt-xs">
+                        {{
+                          TEAMS.find((row) => row.Key === gameArray.AwayTeam)
+                            .City
+                        }}
+                        {{
+                          TEAMS.find((row) => row.Key === gameArray.AwayTeam)
+                            .Name
+                        }}
                       </div>
                     </q-card-section>
+                    <div
+                      :class="
+                        awayBetType === 'moneyline'
+                          ? 'betTypesSelected'
+                          : 'betTypes'
+                      "
+                      @click="awayBetType = 'moneyline'"
+                    >
+                      <q-card-section>
+                        <div>
+                          <span class="text-h6"
+                            >Money Line {{ returnAwayMoneylineUser }}</span
+                          >
+                          <div
+                            v-if="awayCurrentMoneyline !== undefined"
+                            class="betValue"
+                          >
+                            {{ returnAwayMoneyline }}
+                          </div>
+                        </div>
+                      </q-card-section>
 
-                    <q-card-section class="q-pt-none">
-                      Place your wager on
-                      {{ gameArray.AwayTeam }} winning the game.
-                    </q-card-section>
-                    <div v-if="awayBetType === 'moneyline'">
-                      <q-input
-                        style="max-width: 300px; margin: 0 auto 1em auto"
-                        square
-                        outlined
-                        label="ETH"
-                        type="number"
-                        v-model="awayMoneyline"
-                      ></q-input>
+                      <q-card-section class="q-pt-none">
+                        Place your wager on
+                        {{ gameArray.AwayTeam }} winning the game.
+                      </q-card-section>
+                      <div v-if="awayBetType === 'moneyline'">
+                        <q-input
+                          style="max-width: 300px; margin: 0 auto 1em auto"
+                          square
+                          outlined
+                          label="ETH"
+                          type="number"
+                          v-model="awayMoneyline"
+                        ></q-input>
+                      </div>
                     </div>
-                  </div>
 
-                  <div
-                    :class="
-                      awayBetType === 'spread' ? 'betTypesSelected' : 'betTypes'
-                    "
-                    @click="awayBetType = 'spread'"
-                  >
-                    <q-card-section>
-                      <div>
-                        <span class="text-h6">
-                          [{{
-                            (gameArray.PointSpread < 0 ? '+' : null) +
-                            gameArray.PointSpread * -1
-                          }}] Point Spread {{ returnAwayPointSpreadUser }}
-                        </span>
-                        <div
-                          v-if="awayCurrentPointSpread !== undefined"
-                          class="betValue"
-                        >
-                          {{ returnAwayPointSpread }}
+                    <div
+                      :class="
+                        awayBetType === 'spread'
+                          ? 'betTypesSelected'
+                          : 'betTypes'
+                      "
+                      @click="awayBetType = 'spread'"
+                    >
+                      <q-card-section>
+                        <div>
+                          <span class="text-h6">
+                            [{{
+                              (gameArray.PointSpread < 0 ? '+' : null) +
+                              gameArray.PointSpread * -1
+                            }}] Point Spread {{ returnAwayPointSpreadUser }}
+                          </span>
+                          <div
+                            v-if="awayCurrentPointSpread !== undefined"
+                            class="betValue"
+                          >
+                            {{ returnAwayPointSpread }}
+                          </div>
                         </div>
-                      </div>
-                    </q-card-section>
+                      </q-card-section>
 
-                    <q-card-section class="q-pt-none">
-                      The point spread is a calculated points difference
-                      determined by oddsmakers between two teams lining up.
-                    </q-card-section>
-                    <div v-if="awayBetType === 'spread'">
-                      <q-input
-                        style="max-width: 300px; margin: 0 auto 1em auto"
-                        square
-                        outlined
-                        label="ETH"
-                        type="number"
-                        v-model="awaySpread"
-                      ></q-input>
+                      <q-card-section class="q-pt-none">
+                        The point spread is a calculated points difference
+                        determined by oddsmakers between two teams lining up.
+                      </q-card-section>
+                      <div v-if="awayBetType === 'spread'">
+                        <q-input
+                          style="max-width: 300px; margin: 0 auto 1em auto"
+                          square
+                          outlined
+                          label="ETH"
+                          type="number"
+                          v-model="awaySpread"
+                        ></q-input>
+                      </div>
                     </div>
-                  </div>
-                  <q-card
-                    :class="
-                      awayBetType === 'total' ? 'betTypesSelected' : 'betTypes'
-                    "
-                    @click="awayBetType = 'total'"
-                  >
-                    <q-card-section>
-                      <div>
-                        <span class="text-h6">
-                          [{{ gameArray.OverUnder }}] Point Total
-                          {{ returnAwayPointTotalUser }}
-                        </span>
-                        <div
-                          v-if="awayCurrentPointTotal !== undefined"
-                          class="betValue"
-                        >
-                          {{ returnAwayPointTotal }}
+                    <q-card
+                      :class="
+                        awayBetType === 'total'
+                          ? 'betTypesSelected'
+                          : 'betTypes'
+                      "
+                      @click="awayBetType = 'total'"
+                    >
+                      <q-card-section>
+                        <div>
+                          <span class="text-h6">
+                            [{{ gameArray.OverUnder }}] Point Total
+                            {{ returnAwayPointTotalUser }}
+                          </span>
+                          <div
+                            v-if="awayCurrentPointTotal !== undefined"
+                            class="betValue"
+                          >
+                            {{ returnAwayPointTotal }}
+                          </div>
                         </div>
-                      </div>
-                    </q-card-section>
+                      </q-card-section>
 
-                    <q-card-section class="q-pt-none">
-                      You are placing a wager based on whether or not the two
-                      teams on the court exceed or fail to meet a certain
-                      combined score.
-                    </q-card-section>
-                    <div v-if="awayBetType === 'total'">
-                      <q-radio
-                        v-model="overUnderAway"
-                        :val="99"
-                        label="Under"
-                      />
-                      <q-radio
-                        v-model="overUnderAway"
-                        :val="100"
-                        label="Over"
-                      />
-                      <q-input
-                        style="max-width: 300px; margin: 0 auto 1em auto"
-                        square
-                        outlined
-                        label="ETH"
-                        type="number"
-                        v-model="awayTotal"
-                      ></q-input>
+                      <q-card-section class="q-pt-none">
+                        You are placing a wager based on whether or not the two
+                        teams on the court exceed or fail to meet a certain
+                        combined score.
+                      </q-card-section>
+                      <div v-if="awayBetType === 'total'">
+                        <q-radio
+                          v-model="overUnderAway"
+                          :val="99"
+                          label="Under"
+                        />
+                        <q-radio
+                          v-model="overUnderAway"
+                          :val="100"
+                          label="Over"
+                        />
+                        <q-input
+                          style="max-width: 300px; margin: 0 auto 1em auto"
+                          square
+                          outlined
+                          label="ETH"
+                          type="number"
+                          v-model="awayTotal"
+                        ></q-input>
+                      </div>
+                    </q-card>
+                    <div class="text-center">
+                      <q-btn
+                        @click="async () => await sendBetAway()"
+                        label="Confirm"
+                      ></q-btn>
                     </div>
                   </q-card>
-                  <div class="text-center">
-                    <q-btn
-                      @click="async () => await sendBetAway()"
-                      label="Confirm"
-                    ></q-btn>
-                  </div>
-                </q-card>
-              </q-dialog>
-            </div>
-            <div class="row items-center justify-evenly text-center betCard">
+                </q-dialog>
+              </div>
               <div v-if="gameArray.Status !== 'Scheduled'">
                 <span class="homeAwaySign">Away</span>
                 <div
                   style="font-weight: 800; margin: 0.25em 0.3em"
-                  class="text-h3"
+                  class="text-h1"
                 >
                   {{ gameArray.AwayTeamScore }}
                 </div>
               </div>
-              <div class="text-md align-center">
+              <div class="text-h6 text-bold align-center">
                 <div v-if="gameArray.Status === 'Scheduled'">
                   {{ new Date(gameArray.DateTime).toLocaleTimeString() }}
                 </div>
-                <div v-if="gameArray.SeriesInfo === true">Playoffs</div>
-                <div class="text-red">{{ gameArray.Status }}</div>
+                <div v-if="gameArray.SeasonType === 2">Preseason</div>
+                <div v-if="gameArray.SeasonType === 1">Regular Season</div>
                 <div
                   v-if="
-                    gameArray.Status.charAt(0) !== 'F' &&
-                    gameArray.Status !== 'Scheduled'
+                    gameArray.SeasonType === 3 &&
+                    gameArray.SeriesInfo.MaxLength === 1
                   "
                 >
+                  Play In
+                </div>
+                <div
+                  v-if="
+                    gameArray.SeasonType === 3 &&
+                    gameArray.SeriesInfo.MaxLength === 7
+                  "
+                >
+                  Playoffs
+                </div>
+                <div
+                  v-if="
+                    gameArray.SeasonType === 3 &&
+                    gameArray.SeriesInfo.MaxLength === 7
+                  "
+                >
+                  Series: ({{ gameArray.SeriesInfo.AwayTeamWins }}-{{
+                    gameArray.SeriesInfo.HomeTeamWins
+                  }})
+                </div>
+                <div class="text-red">{{ gameArray.Status }}</div>
+                <div v-if="gameArray.Quarter !== null">
                   {{ gameArray.TimeRemainingMinutes }}:{{
                     gameArray.TimeRemainingSeconds
                   }}
@@ -808,217 +832,240 @@ const sendBetHome = async () => {
                 <span class="homeAwaySign">Home</span>
                 <div
                   style="font-weight: 800; margin: 0.25em 0.3em"
-                  class="text-h3"
+                  class="text-h1"
                 >
                   {{ gameArray.HomeTeamScore }}
                 </div>
               </div>
-            </div>
-            <div>
-              <q-card class="betCard">
-                <q-card-section>
-                  Total Bet:
-                  <span class="text-red">{{ returnHomeTotal + ' ETH' }}</span>
-                </q-card-section>
-                <q-card-section>
-                  Money Line:
-                  <span class="text-red">{{ returnHomeMoneyline }}</span>
-                </q-card-section>
-                <q-card-section>
-                  [
-                  {{
-                    (gameArray.PointSpread > 0 ? '+' : null) +
-                    gameArray.PointSpread
-                  }}
-                  ] Point Spread:
-                  <span class="text-red">{{ returnHomePointSpread }}</span>
-                </q-card-section>
-                <q-card-section>
-                  [
-                  {{ gameArray.OverUnder }}
-                  ] Point Total:
-                  <span class="text-red">{{ returnHomePointTotal }}</span>
-                </q-card-section>
-                <q-btn
-                  @click="homeDialog = true"
-                  :disabled="gameArray.Status === 'Scheduled'"
-                  >Place Bet</q-btn
-                >
-              </q-card>
-              <q-dialog
-                v-model="homeDialog"
-                persistent
-                maximized
-                transition-show="slide-up"
-                transition-hide="slide-down"
-              >
-                <q-card class="bg-grey-1 text-blue-grey-10">
-                  <q-toolbar>
-                    <q-avatar>
-                      <img
-                        src="https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png"
-                      />
-                    </q-avatar>
-
-                    <q-toolbar-title>
-                      <span class="text-weight-bold">EBSL</span>
-                    </q-toolbar-title>
-
-                    <q-btn flat round dense icon="close" v-close-popup />
-                  </q-toolbar>
+              <div>
+                <q-card class="betCard">
                   <q-card-section>
-                    <h3 class="text-center q-mb-xs">
-                      <q-img
-                        fit="contain"
-                        style="max-height: 2em; max-width: 2em"
-                        :src="
-                          TEAMS.find(
-                            (row) => row.TeamID === gameArray.HomeTeamID
-                          ).WikipediaLogoUrl
-                        "
-                        :key="gameArray.HomeTeamID"
-                      />
-                    </h3>
-                    <div class="text-h2 text-center q-mt-xs">
-                      {{
-                        TEAMS.find((row) => row.Key === gameArray.HomeTeam).City
-                      }}
-                      {{
-                        TEAMS.find((row) => row.Key === gameArray.HomeTeam).Name
-                      }}
-                    </div>
+                    Total Bet:
+                    <span class="text-red">{{ returnHomeTotal + ' ETH' }}</span>
                   </q-card-section>
-                  <div
-                    :class="
-                      homeBetType === 'moneyline'
-                        ? 'betTypesSelected'
-                        : 'betTypes'
-                    "
-                    @click="homeBetType = 'moneyline'"
+                  <q-card-section>
+                    Money Line:
+                    <span class="text-red">{{ returnHomeMoneyline }}</span>
+                  </q-card-section>
+                  <q-card-section>
+                    [
+                    {{
+                      (gameArray.PointSpread > 0 ? '+' : null) +
+                      gameArray.PointSpread
+                    }}
+                    ] Point Spread:
+                    <span class="text-red">{{ returnHomePointSpread }}</span>
+                  </q-card-section>
+                  <q-card-section>
+                    [
+                    {{ gameArray.OverUnder }}
+                    ] Point Total:
+                    <span class="text-red">{{ returnHomePointTotal }}</span>
+                  </q-card-section>
+                  <q-btn
+                    @click="homeDialog = true"
+                    :disabled="Date.parse(gameArray.DateTimeUTC) === Date.now()"
+                    >Place Bet</q-btn
                   >
-                    <q-card-section>
-                      <div>
-                        <span class="text-h6">
-                          Money Line {{ returnHomeMoneylineUser }}</span
-                        >
-                        <div
-                          v-if="homeCurrentMoneyline !== undefined"
-                          class="betValue"
-                        >
-                          {{ returnHomeMoneyline }}
-                        </div>
-                      </div>
-                    </q-card-section>
-                    <q-card-section class="q-pt-none">
-                      Place your wager on
-                      {{ gameArray.HomeTeam }} winning the game
-                    </q-card-section>
-                    <div v-if="homeBetType === 'moneyline'">
-                      <q-input
-                        style="max-width: 300px; margin: 0 auto 1em auto"
-                        square
-                        outlined
-                        label="ETH"
-                        type="number"
-                        v-model="homeMoneyline"
-                      ></q-input>
-                    </div>
-                  </div>
-
-                  <div
-                    :class="
-                      homeBetType === 'spread' ? 'betTypesSelected' : 'betTypes'
-                    "
-                    @click="homeBetType = 'spread'"
-                  >
-                    <q-card-section>
-                      <div>
-                        <span class="text-h6">
-                          [{{
-                            (gameArray.PointSpread > 0 ? '+' : null) +
-                            gameArray.PointSpread
-                          }}] Point Spread {{ returnHomePointSpreadUser }}
-                        </span>
-                        <div
-                          v-if="homeCurrentPointSpread !== undefined"
-                          class="betValue"
-                        >
-                          {{ returnHomePointSpread }}
-                        </div>
-                      </div>
-                    </q-card-section>
-
-                    <q-card-section class="q-pt-none">
-                      The point spread is a calculated points difference
-                      determined by oddsmakers between two teams lining up.
-                    </q-card-section>
-
-                    <div v-if="homeBetType === 'spread'">
-                      <q-input
-                        style="max-width: 300px; margin: 0 auto 1em auto"
-                        square
-                        outlined
-                        label="ETH"
-                        type="number"
-                        v-model="homeSpread"
-                      ></q-input>
-                    </div>
-                  </div>
-                  <div
-                    :class="
-                      homeBetType === 'total' ? 'betTypesSelected' : 'betTypes'
-                    "
-                    @click="homeBetType = 'total'"
-                  >
-                    <q-card-section>
-                      <div>
-                        <span class="text-h6">
-                          [{{ gameArray.OverUnder }}] Point Total
-                          {{ returnHomePointTotalUser }}
-                        </span>
-                        <div
-                          v-if="homeCurrentPointTotal !== undefined"
-                          class="betValue"
-                        >
-                          {{ returnHomePointTotal }}
-                        </div>
-                      </div>
-                    </q-card-section>
-
-                    <q-card-section class="q-pt-none">
-                      You are placing a wager based on whether or not the two
-                      teams on the court exceed or fail to meet a certain
-                      combined score.
-                    </q-card-section>
-                    <div v-if="homeBetType === 'total'">
-                      <q-radio
-                        v-model="overUnderHome"
-                        :val="99"
-                        label="Under"
-                      />
-                      <q-radio
-                        v-model="overUnderHome"
-                        :val="100"
-                        label="Over"
-                      />
-                      <q-input
-                        style="max-width: 300px; margin: 0 auto 1em auto"
-                        square
-                        outlined
-                        label="ETH"
-                        type="number"
-                        v-model="homeTotal"
-                      ></q-input>
-                    </div>
-                  </div>
-                  <div class="text-center">
-                    <q-btn
-                      @click="async () => await sendBetHome()"
-                      label="Confirm"
-                    ></q-btn>
-                  </div>
                 </q-card>
-              </q-dialog>
+                <q-dialog
+                  v-model="homeDialog"
+                  persistent
+                  maximized
+                  transition-show="slide-up"
+                  transition-hide="slide-down"
+                >
+                  <q-card class="bg-grey-1 text-blue-grey-10">
+                    <q-toolbar>
+                      <q-avatar>
+                        <img
+                          src="https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png"
+                        />
+                      </q-avatar>
+
+                      <q-toolbar-title>
+                        <span class="text-weight-bold">EBSL</span>
+                      </q-toolbar-title>
+
+                      <q-btn flat round dense icon="close" v-close-popup />
+                    </q-toolbar>
+                    <q-card-section>
+                      <h3 class="text-center q-mb-xs">
+                        <q-img
+                          fit="contain"
+                          style="max-height: 2em; max-width: 2em"
+                          :src="
+                            TEAMS.find(
+                              (row) => row.TeamID === gameArray.HomeTeamID
+                            ).WikipediaLogoUrl
+                          "
+                          :key="gameArray.HomeTeamID"
+                        />
+                      </h3>
+                      <div class="text-h2 text-center q-mt-xs">
+                        {{
+                          TEAMS.find((row) => row.Key === gameArray.HomeTeam)
+                            .City
+                        }}
+                        {{
+                          TEAMS.find((row) => row.Key === gameArray.HomeTeam)
+                            .Name
+                        }}
+                      </div>
+                    </q-card-section>
+                    <div
+                      :class="
+                        homeBetType === 'moneyline'
+                          ? 'betTypesSelected'
+                          : 'betTypes'
+                      "
+                      @click="homeBetType = 'moneyline'"
+                    >
+                      <q-card-section>
+                        <div>
+                          <span class="text-h6">
+                            Money Line {{ returnHomeMoneylineUser }}</span
+                          >
+                          <div
+                            v-if="homeCurrentMoneyline !== undefined"
+                            class="betValue"
+                          >
+                            {{ returnHomeMoneyline }}
+                          </div>
+                        </div>
+                      </q-card-section>
+                      <q-card-section class="q-pt-none">
+                        Place your wager on
+                        {{ gameArray.HomeTeam }} winning the game
+                      </q-card-section>
+                      <div v-if="homeBetType === 'moneyline'">
+                        <q-input
+                          style="max-width: 300px; margin: 0 auto 1em auto"
+                          square
+                          outlined
+                          label="ETH"
+                          type="number"
+                          v-model="homeMoneyline"
+                        ></q-input>
+                      </div>
+                    </div>
+
+                    <div
+                      :class="
+                        homeBetType === 'spread'
+                          ? 'betTypesSelected'
+                          : 'betTypes'
+                      "
+                      @click="homeBetType = 'spread'"
+                    >
+                      <q-card-section>
+                        <div>
+                          <span class="text-h6">
+                            [{{
+                              (gameArray.PointSpread > 0 ? '+' : null) +
+                              gameArray.PointSpread
+                            }}] Point Spread {{ returnHomePointSpreadUser }}
+                          </span>
+                          <div
+                            v-if="homeCurrentPointSpread !== undefined"
+                            class="betValue"
+                          >
+                            {{ returnHomePointSpread }}
+                          </div>
+                        </div>
+                      </q-card-section>
+
+                      <q-card-section class="q-pt-none">
+                        The point spread is a calculated points difference
+                        determined by oddsmakers between two teams lining up.
+                      </q-card-section>
+
+                      <div v-if="homeBetType === 'spread'">
+                        <q-input
+                          style="max-width: 300px; margin: 0 auto 1em auto"
+                          square
+                          outlined
+                          label="ETH"
+                          type="number"
+                          v-model="homeSpread"
+                        ></q-input>
+                      </div>
+                    </div>
+                    <div
+                      :class="
+                        homeBetType === 'total'
+                          ? 'betTypesSelected'
+                          : 'betTypes'
+                      "
+                      @click="homeBetType = 'total'"
+                    >
+                      <q-card-section>
+                        <div>
+                          <span class="text-h6">
+                            [{{ gameArray.OverUnder }}] Point Total
+                            {{ returnHomePointTotalUser }}
+                          </span>
+                          <div
+                            v-if="homeCurrentPointTotal !== undefined"
+                            class="betValue"
+                          >
+                            {{ returnHomePointTotal }}
+                          </div>
+                        </div>
+                      </q-card-section>
+
+                      <q-card-section class="q-pt-none">
+                        You are placing a wager based on whether or not the two
+                        teams on the court exceed or fail to meet a certain
+                        combined score.
+                      </q-card-section>
+                      <div v-if="homeBetType === 'total'">
+                        <q-radio
+                          v-model="overUnderHome"
+                          :val="99"
+                          label="Under"
+                        />
+                        <q-radio
+                          v-model="overUnderHome"
+                          :val="100"
+                          label="Over"
+                        />
+                        <q-input
+                          style="max-width: 300px; margin: 0 auto 1em auto"
+                          square
+                          outlined
+                          label="ETH"
+                          type="number"
+                          v-model="homeTotal"
+                        ></q-input>
+                      </div>
+                    </div>
+                    <div class="text-center">
+                      <q-btn
+                        @click="async () => await sendBetHome()"
+                        label="Confirm"
+                      ></q-btn>
+                    </div>
+                  </q-card>
+                </q-dialog>
+              </div>
+              <div style="float: right">
+                <div style="max-height: 15em; max-width: 15em" class="hover">
+                  <q-img
+                    fit="contain"
+                    style="max-height: 15em; max-width: 15em"
+                    :src="
+                      TEAMS.find((row) => row.TeamID === gameArray.HomeTeamID)
+                        .WikipediaLogoUrl
+                    "
+                    @click="
+                      $router.push({ path: `/teams/${gameArray.HomeTeamID}` })
+                    "
+                    :key="gameArray.HomeTeamID"
+                  />
+                  <div class="text-h3">{{ `${returnHomeOdds}%` }}</div>
+                </div>
+              </div>
             </div>
           </div>
         </q-card-section>
@@ -1062,12 +1109,21 @@ const sendBetHome = async () => {
   cursor: pointer;
 }
 .betCard {
-  border: 5px $grey-4 solid;
+  border: 10px $grey-4 solid;
   border-radius: 10px;
   color: $blue-grey-10;
   background: $grey-1;
   margin: auto;
   padding: 0.5em;
+  font-weight: 650;
+}
+.megatron {
+  border: 12px $grey-5 solid;
+  border-radius: 10px;
+  color: $blue-grey-10;
+  background: $grey-1;
+  margin: auto;
+  padding: 2em;
   font-weight: 650;
 }
 
@@ -1092,7 +1148,7 @@ const sendBetHome = async () => {
   border-radius: 12px !important;
   text-align: center;
   margin: 1em auto;
-  width: 80%;
+  width: 85%;
   background: $grey-2;
 }
 .betTypes:hover {
@@ -1120,5 +1176,6 @@ const sendBetHome = async () => {
   font-weight: 1000;
   background-color: $grey-1;
   padding: 0 0.5em;
+  font-size: large;
 }
 </style>
