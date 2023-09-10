@@ -1,5 +1,6 @@
 require('@nomicfoundation/hardhat-toolbox');
 require('dotenv').config();
+const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL;
 const GOERLI_RPC_URL = process.env.GOERLI_RPC_URL;
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL;
 const ZKEVM_RPC_URL_TEST = process.env.ZKEVM_RPC_URL_TEST;
@@ -24,6 +25,12 @@ module.exports = {
       url: SEPOLIA_RPC_URL,
       accounts: [PRIVATE_KEY], // TODO: fill the private key
     },
+    mainnet: {
+      url: MAINNET_RPC_URL,
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
+      chainId: 1,
+      allowUnlimitedContractSize: true,
+    },
     goerli: {
       url: GOERLI_RPC_URL,
       accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
@@ -34,6 +41,7 @@ module.exports = {
       url: ZKEVM_RPC_URL_TEST,
       accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
       chainId: 1442,
+      allowUnlimitedContractSize: true,
     },
   },
 };

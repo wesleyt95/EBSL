@@ -10,7 +10,8 @@ async function main() {
     process.env.POINTSPREAD_ADDRESS,
     process.env.POINTTOTAL_ADDRESS,
   ]);
-  console.log('Contract address:', await contract.getAddress());
+  contract.waitForDeployment();
+  console.log('Contract address:', contract.target);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

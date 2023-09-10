@@ -71,7 +71,7 @@ watchEffect(async () => {
       </q-card-section>
     </q-card>
     <div v-else class="text-h4 text-bold text-center">
-      {{ 'No Games Today' }}
+      {{ 'No Games Scheduled Today' }}
     </div>
   </div>
 </template>

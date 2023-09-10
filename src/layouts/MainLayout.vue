@@ -4,6 +4,9 @@ import { useWalletStore } from 'stores/web3wallet';
 import { ethers } from 'ethers';
 import { TEAMS } from '../pages/teams/nba-teams.js';
 import EssentialLink from 'components/EssentialLink.vue';
+import { copyToClipboard } from 'quasar';
+
+const admin = process.env.ADMIN_ADDRESS.toLowerCase();
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 const store = useWalletStore();
 const provider = new ethers.BrowserProvider(window.ethereum);
@@ -12,9 +15,9 @@ const userRef = ref(user);
 const chainId = store.chainID;
 const chainIdRef = ref(chainId);
 const isConnected = store.isConnected;
-const isConnectedRef = ref(store.isConnected);
+const isConnectedRef = ref(isConnected);
 
-const appChainID = process.env.CHAIN_ID;
+const appChainID = process.env.CHAIN_ID_GOERLI;
 
 const balance = ref();
 const escrow = ref();
@@ -76,6 +79,20 @@ const getSigner = async () => {
   } else {
     await provider.getSigner();
   }
+};
+const SwitchNetwork = async () => {
+  let chainId = process.env.CHAIN_ID_GOERLI;
+  await window.ethereum
+    .request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: chainId }],
+    })
+    .then(() => console.log('Successfully! Connected to the requested Network'))
+    .catch((err) => {
+      if (err.message.startsWith('Unrecognized chain ID')) {
+        addNewNetwork();
+      }
+    });
 };
 const getSearchResults = async () => {
   if (searchValue.value.length > 0) {
@@ -144,7 +161,7 @@ watchEffect(async () => {
   );
 
   if (
-    chainIdRef.value === process.env.CHAIN_ID &&
+    chainIdRef.value === process.env.CHAIN_ID_GOERLI &&
     typeof userRef.value === 'string'
   ) {
     const weiBalance = await provider.getBalance(userRef.value);
@@ -191,6 +208,12 @@ const essentialLinks = [
     icon: 'public',
     link: 'https://twitter.com/EBSLeague',
   },
+  {
+    title: 'Github',
+    caption: 'Open Source',
+    icon: 'code',
+    link: 'https://github.com/wesleyt95/EBSL',
+  },
 ];
 
 const leftDrawerOpen = ref(false);
@@ -198,20 +221,6 @@ const leftDrawerOpen = ref(false);
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;
 }
-const SwitchNetwork = async () => {
-  let chainId = process.env.CHAIN_ID;
-  await window.ethereum
-    .request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: chainId }],
-    })
-    .then(() => console.log('Successfully! Connected to the requested Network'))
-    .catch((err) => {
-      if (err.message.startsWith('Unrecognized chain ID')) {
-        addNewNetwork();
-      }
-    });
-};
 </script>
 
 <template>
@@ -240,7 +249,7 @@ const SwitchNetwork = async () => {
         <template
           v-if="
             isConnectedRef === true &&
-            userRef !== undefined &&
+            typeof userRef === 'string' &&
             chainIdRef === appChainID
           "
         >
@@ -251,22 +260,6 @@ const SwitchNetwork = async () => {
               | Balance:
               <span class="text-blue-grey-10">{{ returnETH + ' ETH' }}</span>
             </span>
-          </div>
-        </template>
-
-        <template
-          v-else-if="
-            isConnectedRef === true &&
-            chainIdRef === appChainID &&
-            userRef === undefined
-          "
-        >
-          <div>
-            <q-btn
-              @click="getSigner"
-              text-color="grey-1"
-              label="Connect Ethereum"
-            />
           </div>
         </template>
 
@@ -286,13 +279,14 @@ const SwitchNetwork = async () => {
             />
           </div>
         </template>
-        <template v-else-if="isConnected === false">
+
+        <template v-else>
           <div>
             <q-btn
-              @click="window.location.reload(true)"
+              @click="getSigner"
+              text-color="yellow-14"
               color="white"
-              text-color="black"
-              label="MetaMask Undetected"
+              label="Connect Metamask"
             />
           </div>
         </template>
@@ -303,14 +297,11 @@ const SwitchNetwork = async () => {
             v-if="selectedDate === todayFormatted"
             class="todaySign q-pa-sm"
           >
-            Today's Games: (<span class="text-red">{{
-              returnSelectedDate
-            }}</span
-            >)
+            Today's Games:
+            <span class="text-red">{{ returnSelectedDate }}</span>
           </span>
           <span v-else class="todaySign q-pa-sm">
-            (<span class="text-red">{{ returnSelectedDate }}</span
-            >)
+            <span class="text-red">{{ returnSelectedDate }}</span>
           </span>
         </div>
 
@@ -484,6 +475,14 @@ const SwitchNetwork = async () => {
           v-bind="link"
         />
       </q-list>
+      <div
+        class="text-center menuAddress fixed-bottom q-mx-sm hover"
+        @click="copyToClipboard(admin)"
+      >
+        <span class="text-red">Donations: </span>
+        <q-icon name="content_copy" />
+        <div class="menuAddress text-grey-6">{{ admin }}</div>
+      </div>
     </q-drawer>
 
     <q-page-container>
@@ -546,5 +545,8 @@ const SwitchNetwork = async () => {
   border-radius: 5px;
   border: 3px $grey-6 solid;
   font-size: 10px;
+}
+.hover:hover {
+  cursor: pointer;
 }
 </style>

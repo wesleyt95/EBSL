@@ -68,7 +68,7 @@ const returnBetType = (betType) => {
 };
 
 watchEffect(async () => {
-  if (window.ethereum.chainId === process.env.CHAIN_ID) {
+  if (window.ethereum.chainId === process.env.CHAIN_ID_GOERLI) {
     const betContract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
       contract.abi,
@@ -283,7 +283,7 @@ watchEffect(async () => {
       </q-card>
     </div>
     <q-card class="etherscanCard">
-      <q-scroll-area style="height: 20em">
+      <q-scroll-area style="height: 22em">
         <template v-if="transactionHistoryEBSL.length > 0">
           <div class="text-h6 mainSign">EBSL Transactions</div>
           <div v-for="(receipts, index) in transactionHistoryEBSL" :key="index">

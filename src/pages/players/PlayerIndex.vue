@@ -148,7 +148,7 @@ watchEffect(async () => {
           (averages.value = data.find(
             (row) => row.PlayerID === Number(router.params.id)
           )),
-          (gamesPlayed.value = averages.value.Games)
+          (gamesPlayed.value = averages.value?.Games)
         )
       )
   );
@@ -221,7 +221,7 @@ watchEffect(async () => {
           </q-card-section>
         </q-card>
 
-        <div>
+        <div v-if="regularSeason.length > 0">
           <q-table
             title="Regular Season Averages"
             :rows="[averages]"
@@ -243,14 +243,14 @@ watchEffect(async () => {
             :rows-per-page-options="[0]"
             :auto-width="true"
             virtual-scroll
-            style="height: 10em"
+            style="height: 10em; margin-top: 1em"
             no-data-label="No data available"
             :dense="true"
           />
         </div>
       </div>
     </q-card-section>
-    <q-card-section>
+    <q-card-section v-if="regularSeason.length > 0">
       <div class="q-pa-md">
         <q-table
           title="Regular Season"
@@ -275,7 +275,7 @@ watchEffect(async () => {
           :rows-per-page-options="[0]"
           :auto-width="true"
           virtual-scroll
-          style="height: 30em"
+          style="height: 30em; margin-top: 2em"
           no-data-label="No data available"
           @row-click="
             (evt, row, index) => $router.push({ path: `/games/${row.GameID}` })

@@ -23,8 +23,8 @@ contract Bet is AutomateTaskCreator {
   {
     admin = payable(msg.sender);
     moneyLineFunctionHash = _moneyLineFunctionHash;
-    pointTotalFunctionHash = _pointTotalFunctionHash;
     pointSpreadFunctionHash = _pointSpreadFunctionHash;
+    pointTotalFunctionHash = _pointTotalFunctionHash;
   }
 
   struct User {
@@ -58,6 +58,7 @@ contract Bet is AutomateTaskCreator {
     address payable[] usersArray;
     mapping(address => Transaction) receipt;
     bytes32 taskID;
+    address payable[] winners;
   }
   struct PointTotal {
     mapping(address => uint256) pointAmount;
@@ -67,6 +68,7 @@ contract Bet is AutomateTaskCreator {
     address payable[] usersArray;
     mapping(address => Transaction) receipt;
     bytes32 taskID;
+    address payable[] winners;
   }
   address[] public blockedUsers;
   mapping(address => User) public userReceipts;
@@ -173,7 +175,7 @@ contract Bet is AutomateTaskCreator {
     uint256 startTime
   ) public payable {
     require(msg.sender == tx.origin);
-    require(0 < startTime);
+    require(block.timestamp < startTime);
     require(!checkSender(msg.sender));
     require(newPointSpreadBet[gameID].receipt[msg.sender].addr != msg.sender);
     require(msg.value > 0);
@@ -241,7 +243,7 @@ contract Bet is AutomateTaskCreator {
     uint256 startTime
   ) public payable {
     require(msg.sender == tx.origin);
-    require(0 < startTime);
+    require(block.timestamp < startTime);
     require(!checkSender(msg.sender));
     require(newPointTotalBet[gameID].receipt[msg.sender].addr != msg.sender);
     require(msg.value > 0);
@@ -315,9 +317,10 @@ contract Bet is AutomateTaskCreator {
       ][i];
       uint256 msgValue = newMoneyLineBet[gameID]
       .receipt[winnerID][winningUserID].amount;
-      uint256 stake = msgValue / newMoneyLineBet[gameID].teamTotal[winnerID];
+      uint256 stake = (msgValue * 100) /
+        newMoneyLineBet[gameID].teamTotal[winnerID];
       if (!checkSender(winningUserID)) {
-        winningUserID.transfer(newMoneyLineBet[gameID].total * stake);
+        winningUserID.transfer((newMoneyLineBet[gameID].total * stake) / 100);
       }
       userReceipts[winningUserID].escrow -= msgValue;
       for (uint x = 0; x < userReceipts[winningUserID].receipts.length; x++) {
@@ -363,9 +366,8 @@ contract Bet is AutomateTaskCreator {
     uint256 homeTeamID,
     uint256 awayTeamID
   ) public onlyDedicatedMsgSender {
-    address payable[] memory winners;
+    address payable[] storage winners = newPointSpreadBet[gameID].winners;
     uint winnersPurse = 0;
-    uint winnersCount = 0;
     for (uint i = 0; i < newPointSpreadBet[gameID].usersArray.length; i++) {
       address payable currentUserID = newPointSpreadBet[gameID].usersArray[i];
       uint256 msgValue = newPointSpreadBet[gameID]
@@ -377,16 +379,14 @@ contract Bet is AutomateTaskCreator {
         (homeScore * 10) + spread > awayScore * 10 &&
         !checkSender(currentUserID)
       ) {
-        winners[winnersCount] = currentUserID;
-        winnersCount++;
+        winners.push(currentUserID);
         winnersPurse += msgValue;
       } else if (
         newPointSpreadBet[gameID].receipt[currentUserID].teamID == awayTeamID &&
         (awayScore * 10) + spread > homeScore * 10 &&
         !checkSender(currentUserID)
       ) {
-        winners[winnersCount] = currentUserID;
-        winnersCount++;
+        winners.push(currentUserID);
         winnersPurse += msgValue;
       }
       userReceipts[currentUserID].escrow -= msgValue;
@@ -403,8 +403,8 @@ contract Bet is AutomateTaskCreator {
     }
     for (uint b = 0; b < winners.length; b++) {
       uint256 msgValue = newPointSpreadBet[gameID].receipt[winners[b]].amount;
-      uint256 share = msgValue / winnersPurse;
-      winners[b].transfer(newPointSpreadBet[gameID].total * share);
+      uint256 share = (msgValue * 100) / winnersPurse;
+      winners[b].transfer((newPointSpreadBet[gameID].total * share) / 100);
     }
     _cancelTask(newPointSpreadBet[gameID].taskID);
   }
@@ -413,9 +413,8 @@ contract Bet is AutomateTaskCreator {
     uint256 gameID,
     uint256 total
   ) public onlyDedicatedMsgSender {
-    address payable[] memory winners;
+    address payable[] storage winners = newPointTotalBet[gameID].winners;
     uint winnersPurse = 0;
-    uint winnersCount = 0;
     for (uint i = 0; i < newPointTotalBet[gameID].usersArray.length; i++) {
       address payable currentUserID = newPointTotalBet[gameID].usersArray[i];
       uint256 msgValue = newPointTotalBet[gameID].receipt[currentUserID].amount;
@@ -424,16 +423,14 @@ contract Bet is AutomateTaskCreator {
         total * 10 < newPointTotalBet[gameID].pointAmount[currentUserID] &&
         !checkSender(currentUserID)
       ) {
-        winners[winnersCount] = currentUserID;
-        winnersCount++;
+        winners.push(currentUserID);
         winnersPurse += msgValue;
       } else if (
         newPointTotalBet[gameID].receipt[currentUserID].teamID == 100 &&
         total * 10 > newPointTotalBet[gameID].pointAmount[currentUserID] &&
         !checkSender(currentUserID)
       ) {
-        winners[winnersCount] = currentUserID;
-        winnersCount++;
+        winners.push(currentUserID);
         winnersPurse += msgValue;
       }
       userReceipts[currentUserID].escrow -= msgValue;
@@ -451,8 +448,8 @@ contract Bet is AutomateTaskCreator {
     }
     for (uint b = 0; b < winners.length; b++) {
       uint256 msgValue = newPointTotalBet[gameID].receipt[winners[b]].amount;
-      uint256 share = msgValue / winnersPurse;
-      winners[b].transfer(newPointTotalBet[gameID].total * share);
+      uint256 share = (msgValue * 100) / winnersPurse;
+      winners[b].transfer((newPointTotalBet[gameID].total * share) / 100);
     }
     _cancelTask(newPointTotalBet[gameID].taskID);
   }
