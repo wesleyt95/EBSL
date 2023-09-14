@@ -9,7 +9,6 @@ const provider = new ethers.BrowserProvider(window.ethereum);
 const admin = process.env.ADMIN_ADDRESS.toLowerCase();
 const transactionHistoryEBSL = ref([]);
 const userBlock = ref('');
-const depositAmount = ref(0);
 
 const blockUser = async (user) => {
   const betContract = new ethers.Contract(
