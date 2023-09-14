@@ -8,8 +8,8 @@ import { copyToClipboard } from 'quasar';
 
 const admin = process.env.ADMIN_ADDRESS.toLowerCase();
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
-const store = useWalletStore();
 const provider = new ethers.BrowserProvider(window.ethereum);
+const store = useWalletStore();
 const user = store.user;
 const userRef = ref(user);
 const chainId = store.chainID;
@@ -49,8 +49,8 @@ function getDatesArray() {
   datesArray.value = dates;
 }
 const currentAccount = computed(() => {
-  if (store.user != undefined) {
-    return store.user;
+  if (userRef.value != undefined) {
+    return userRef.value;
   } else {
     return 'Menu';
   }
@@ -81,11 +81,10 @@ const getSigner = async () => {
   }
 };
 const SwitchNetwork = async () => {
-  let chainId = process.env.CHAIN_ID_GOERLI;
   await window.ethereum
     .request({
       method: 'wallet_switchEthereumChain',
-      params: [{ chainId: chainId }],
+      params: [{ chainId: appChainID }],
     })
     .then(() => console.log('Successfully! Connected to the requested Network'))
     .catch((err) => {
@@ -208,12 +207,12 @@ const essentialLinks = [
     icon: 'public',
     link: 'https://twitter.com/EBSLeague',
   },
-  {
-    title: 'Github',
-    caption: 'Open Source',
-    icon: 'code',
-    link: 'https://github.com/wesleyt95/EBSL',
-  },
+  // {
+  //     title: 'Github',
+  //     caption: 'Open Source',
+  //     icon: 'code',
+  //     link: 'https://github.com/wesleyt95/EBSL',
+  //   },
 ];
 
 const leftDrawerOpen = ref(false);

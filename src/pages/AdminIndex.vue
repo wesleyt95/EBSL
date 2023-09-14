@@ -11,23 +11,6 @@ const transactionHistoryEBSL = ref([]);
 const userBlock = ref('');
 const depositAmount = ref(0);
 
-const logResult = async (amount) => {
-  const betContract = new ethers.Contract(
-    process.env.CONTRACT_ADDRESS,
-    contract.abi,
-    await provider.getSigner()
-  );
-  try {
-    const tx = await betContract.deposit({
-      value: ethers.parseEther(amount),
-    });
-    await tx.wait();
-    window.location.reload(true);
-    console.log(tx);
-  } catch (err) {
-    console.log(err);
-  }
-};
 const blockUser = async (user) => {
   const betContract = new ethers.Contract(
     process.env.CONTRACT_ADDRESS,
@@ -88,14 +71,18 @@ const etherscanTeamBet = (methodID, input, teamID) => {
       (spreadData > 0 ? '+' : '') +
       Number(spreadData) / 10
     );
-  } else {
-    if (Number(data) < 99 && betType === 'moneyLineBet') {
-      return TEAMS.find((row) => row.TeamID === Number(data)).Name;
-    } else if (Number(data) === 99 && betType === 'pointTotalBet') {
-      return 'Under';
-    } else if (Number(data) === 100 && betType === 'pointTotalBet') {
-      return 'Over';
+  } else if (betType === 'pointTotalBet') {
+    const totalData = ethers.Interface.from(contract.abi).decodeFunctionData(
+      betType,
+      input
+    )[4];
+    if (Number(data) === 99) {
+      return 'Under' + ' ' + Number(totalData) / 10;
+    } else if (Number(data) === 100) {
+      return 'Over' + ' ' + Number(totalData) / 10;
     }
+  } else {
+    return TEAMS.find((row) => row.TeamID === Number(data)).Name;
   }
 };
 
@@ -119,20 +106,6 @@ watchEffect(async () => {
   <div>
     <div v-if="store.user === admin">
       <div class="text-center text-h4 q-my-sm">Admin Page</div>
-      <div class="text-center q-ma-md">
-        <q-input
-          v-model="depositAmount"
-          label="Deposit"
-          filled
-          dense
-          style="width: 20em"
-          class="q-mx-auto"
-          type="number"
-        />
-        <q-btn class="q-my-md" @click="logResult(String(depositAmount))"
-          >Deposit ETH</q-btn
-        >
-      </div>
 
       <q-card class="etherscanCard">
         <q-scroll-area style="height: 40em">

@@ -505,12 +505,4 @@ contract Bet is AutomateTaskCreator {
     require(msg.sender == admin);
     blockedUsers.push(user);
   }
-
-  function deposit(
-    uint256 _amount,
-    address _token,
-    address _sponsor
-  ) public payable {
-    _depositFunds1Balance(_amount, _token, _sponsor);
-  }
 }

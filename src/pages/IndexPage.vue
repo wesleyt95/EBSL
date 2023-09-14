@@ -47,14 +47,18 @@ const etherscanTeamBet = (methodID, input, teamID) => {
       (spreadData > 0 ? '+' : '') +
       Number(spreadData) / 10
     );
-  } else {
-    if (Number(data) < 99 && betType === 'moneyLineBet') {
-      return TEAMS.find((row) => row.TeamID === Number(data)).Name;
-    } else if (Number(data) === 99 && betType === 'pointTotalBet') {
-      return 'Under';
-    } else if (Number(data) === 100 && betType === 'pointTotalBet') {
-      return 'Over';
+  } else if (betType === 'pointTotalBet') {
+    const totalData = ethers.Interface.from(contract.abi).decodeFunctionData(
+      betType,
+      input
+    )[4];
+    if (Number(data) === 99) {
+      return 'Under' + ' ' + Number(totalData) / 10;
+    } else if (Number(data) === 100) {
+      return 'Over' + ' ' + Number(totalData) / 10;
     }
+  } else {
+    return TEAMS.find((row) => row.TeamID === Number(data)).Name;
   }
 };
 const returnBetType = (betType) => {

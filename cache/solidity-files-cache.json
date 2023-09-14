@@ -8,6 +8,7 @@
       "solcConfig": {
         "version": "0.8.21",
         "settings": {
+          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
@@ -46,6 +47,7 @@
       "solcConfig": {
         "version": "0.8.21",
         "settings": {
+          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
@@ -84,6 +86,7 @@
       "solcConfig": {
         "version": "0.8.21",
         "settings": {
+          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
@@ -116,12 +119,13 @@
       ]
     },
     "C:\\Users\\Wes\\OneDrive\\Desktop\\EBSL\\contracts\\Bet.sol": {
-      "lastModificationDate": 1693262816606,
-      "contentHash": "7209d9a0306a5e8cb47b4296a1172c07",
+      "lastModificationDate": 1694717386110,
+      "contentHash": "a40c931ecab4d2f61cbfa7a1e6369f43",
       "sourceName": "contracts/Bet.sol",
       "solcConfig": {
         "version": "0.8.21",
         "settings": {
+          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
@@ -161,6 +165,7 @@
       "solcConfig": {
         "version": "0.8.21",
         "settings": {
+          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
@@ -200,6 +205,7 @@
       "solcConfig": {
         "version": "0.8.21",
         "settings": {
+          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
@@ -235,6 +241,7 @@
       "solcConfig": {
         "version": "0.8.21",
         "settings": {
+          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
@@ -270,6 +277,7 @@
       "solcConfig": {
         "version": "0.8.21",
         "settings": {
+          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
@@ -305,6 +313,7 @@
       "solcConfig": {
         "version": "0.8.21",
         "settings": {
+          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
@@ -343,6 +352,7 @@
       "solcConfig": {
         "version": "0.8.21",
         "settings": {
+          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
@@ -378,6 +388,7 @@
       "solcConfig": {
         "version": "0.8.21",
         "settings": {
+          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200

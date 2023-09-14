@@ -36,9 +36,9 @@ watchEffect(async () => {
       .json()
       .then(
         (data) =>
-          (gamesArray.value = data.data.sort(
-            (a, b) => new Date(b.date) - new Date(a.date)
-          ))
+          (gamesArray.value = data.data
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .reverse())
       )
   );
   await fetch(
@@ -50,9 +50,9 @@ watchEffect(async () => {
       .json()
       .then(
         (data) =>
-          (gamesArrayPlayoffs.value = data.data.sort(
-            (a, b) => new Date(b.date) - new Date(a.date)
-          ))
+          (gamesArrayPlayoffs.value = data.data
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .reverse())
       )
   );
   await fetch(
