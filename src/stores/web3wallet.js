@@ -7,6 +7,5 @@ export const useWalletStore = defineStore('wallet', {
         ? window.ethereum._state.accounts[0]
         : undefined,
     chainID: window.ethereum?.chainId ? window.ethereum.chainId : undefined,
-    isConnected: window.ethereum?.isConnected(),
   }),
 });

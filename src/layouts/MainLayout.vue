@@ -12,9 +12,8 @@ const provider = new ethers.BrowserProvider(window.ethereum);
 const store = useWalletStore();
 const userRef = ref(store.user);
 const chainIdRef = ref(store.chainID);
-const isConnectedRef = ref(store.isConnected);
 
-const appChainID = process.env.CHAIN_ID_GOERLI;
+const appChainID = process.env.CHAIN_ID;
 
 const balance = ref();
 const escrow = ref();
@@ -111,10 +110,21 @@ const getSearchResults = async () => {
     );
   }
 };
-window.ethereum.on('accountsChanged', (accounts) => {
+window.ethereum.on('accountsChanged', async (accounts) => {
   userRef.value = accounts[0];
   store.user = userRef.value;
-  window.location.reload(true);
+  if (chainIdRef.value === appChainID) {
+    const weiBalance = await provider.getBalance(userRef.value);
+    balance.value = ethers.formatEther(weiBalance).substring(0, 6);
+
+    const betContract = new ethers.Contract(
+      process.env.CONTRACT_ADDRESS,
+      contract.abi,
+      await provider.getSigner()
+    );
+    const value = await betContract.returnEscrow();
+    escrow.value = ethers.formatEther(value).substring(0, 6);
+  }
 });
 window.ethereum.on('chainChanged', (chainId) => {
   chainIdRef.value = chainId;
@@ -123,10 +133,6 @@ window.ethereum.on('chainChanged', (chainId) => {
 });
 
 window.ethereum.on('connect', () => {
-  if (isConnectedRef.value !== true) {
-    isConnectedRef.value = true;
-    store.isConnected = isConnectedRef.value;
-  }
   if (typeof userRef.value !== 'string') {
     userRef.value = window.ethereum._state.accounts[0];
     store.user = userRef.value;
@@ -135,28 +141,37 @@ window.ethereum.on('connect', () => {
     chainIdRef.value = window.ethereum.chainId;
     store.chainID = chainIdRef.value;
   }
-  window.location.reload(true);
 });
 window.ethereum.on('disconnect', () => {
-  isConnectedRef.value = false;
-  store.isConnected = isConnectedRef.value;
   chainIdRef.value = undefined;
   store.chainID = chainIdRef.value;
   userRef.value = undefined;
   store.user = userRef.value;
-  window.location.reload(true);
 });
 watchEffect(async () => {
   if (datesArray.value.length === 0) {
     getDatesArray();
   }
+
   await fetch(
     `https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/${selectedDate.value}?key=${process.env.SPORTSDATA_API_KEY}`
   ).then((responseData) =>
     responseData.json().then((data) => (gamesArray.value = data))
   );
 
-  if (chainIdRef.value === process.env.CHAIN_ID_GOERLI && window.ethereum) {
+  if (
+    userRef.value === undefined &&
+    window.ethereum?._state?.accounts?.length > 0
+  ) {
+    userRef.value = window.ethereum._state.accounts[0];
+    store.user = userRef.value;
+  }
+  if (chainIdRef.value === undefined && window.ethereum?.chainId) {
+    chainIdRef.value = window.ethereum.chainId;
+    store.chainID = chainIdRef.value;
+  }
+
+  if (chainIdRef.value === appChainID) {
     const weiBalance = await provider.getBalance(userRef.value);
     balance.value = ethers.formatEther(weiBalance).substring(0, 6);
 
@@ -240,11 +255,7 @@ function toggleLeftDrawer() {
           >
         </q-toolbar-title>
         <template
-          v-if="
-            isConnectedRef === true &&
-            typeof userRef === 'string' &&
-            chainIdRef === appChainID
-          "
+          v-if="typeof userRef === 'string' && chainIdRef === appChainID"
         >
           <div :key="userRef">
             <span class="menuWallet">
@@ -258,9 +269,7 @@ function toggleLeftDrawer() {
 
         <template
           v-else-if="
-            isConnectedRef === true &&
-            chainIdRef !== appChainID &&
-            typeof chainIdRef === 'string'
+            chainIdRef !== appChainID && typeof chainIdRef === 'string'
           "
         >
           <div>

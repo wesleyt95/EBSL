@@ -243,7 +243,7 @@ watchEffect(async () => {
       );
     })
   );
-  if (store.chainID === process.env.CHAIN_ID_GOERLI) {
+  if (store.chainID === process.env.CHAIN_ID) {
     if (gameTotal.value == undefined) {
       gameTotal.value = await betContractNoSigner.totalBetOnGame(
         Number(router.params.id)
@@ -273,7 +273,7 @@ watchEffect(async () => {
         gameArray.value.AwayTeamID
       );
     }
-    if (store.chainID === process.env.CHAIN_ID_GOERLI) {
+    if (store.chainID === process.env.CHAIN_ID) {
       const betContract = new ethers.Contract(
         process.env.CONTRACT_ADDRESS,
         contract.abi,

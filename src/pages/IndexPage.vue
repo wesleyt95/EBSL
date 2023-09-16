@@ -5,6 +5,8 @@ import { TEAMS } from './teams/nba-teams.js';
 import { ethers } from 'ethers';
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 const store = useWalletStore();
+const userRef = ref(store.user);
+const chainIdRef = ref(store.chainID);
 const provider = new ethers.BrowserProvider(window.ethereum);
 const transactionHistory = ref([]);
 const transactionHistoryInactive = ref([]);
@@ -70,8 +72,29 @@ const returnBetType = (betType) => {
   }
 };
 
+window.ethereum.on('accountsChanged', async () => {
+  if (chainIdRef.value === process.env.CHAIN_ID) {
+    const betContract = new ethers.Contract(
+      process.env.CONTRACT_ADDRESS,
+      contract.abi,
+      await provider.getSigner()
+    );
+    const data = await betContract.returnReceipts();
+    const receipt = data.map((tx) =>
+      JSON.stringify(tx, (_, v) => (typeof v === 'bigint' ? v.toString() : v))
+    );
+
+    transactionHistory.value = receipt.filter(
+      (tx) => JSON.parse(tx)[6] === true
+    );
+    transactionHistoryInactive.value = receipt.filter(
+      (tx) => JSON.parse(tx)[6] === false
+    );
+  }
+});
+
 watchEffect(async () => {
-  if (store.chainID === process.env.CHAIN_ID_GOERLI) {
+  if (chainIdRef.value === process.env.CHAIN_ID) {
     const betContract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
       contract.abi,
