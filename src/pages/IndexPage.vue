@@ -315,7 +315,7 @@ watchEffect(async () => {
             <a
               style="text-decoration: none"
               :href="`https://goerli.etherscan.io/tx/${receipts.hash}`"
-              ><div class="text-center receiptItem">
+              ><div class="text-center receiptItemEtherScan">
                 <div class="text-red text-weight-bold">
                   {{ receipts.from }}
                   <span class="text-grey-6">
@@ -354,7 +354,7 @@ watchEffect(async () => {
         <template v-if="transactionHistoryEBSL.length === 0">
           <q-card-section>
             <div class="text-h6 mainSign">EBSL Transactions</div>
-            <div class="receiptItem text-center">None</div>
+            <div class="receiptItemEtherScan text-center">None</div>
           </q-card-section>
         </template>
       </q-scroll-area>
@@ -405,6 +405,14 @@ watchEffect(async () => {
   color: $blue-grey-10;
   background: $grey-1;
   margin: 1em 0;
+  padding: 0.5em;
+}
+.receiptItemEtherScan {
+  border: 7px $grey-4 solid;
+  border-radius: 10px;
+  color: $blue-grey-10;
+  background: $grey-1;
+  margin: 1em 2em;
   padding: 0.5em;
 }
 .receiptItem:hover {

@@ -260,9 +260,15 @@ function toggleLeftDrawer() {
           <div :key="userRef">
             <span class="menuWallet">
               Escrow:
-              <span class="text-blue-grey-10">{{ returnEscrow + ' ETH' }}</span>
+              <span class="text-blue-grey-10"
+                >{{ returnEscrow }}
+                <span class="text-blue">{{ ' ETH' }}</span>
+              </span>
               | Balance:
-              <span class="text-blue-grey-10">{{ returnETH + ' ETH' }}</span>
+              <span class="text-blue-grey-10"
+                >{{ returnETH }}
+                <span class="text-blue">{{ ' ETH' }}</span>
+              </span>
             </span>
           </div>
         </template>
