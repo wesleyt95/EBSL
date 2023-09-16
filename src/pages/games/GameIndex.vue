@@ -1,4 +1,5 @@
 <script setup>
+import { useWalletStore } from 'stores/web3wallet';
 import { ref, watchEffect, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { ethers } from 'ethers';
@@ -7,7 +8,7 @@ const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 
 const router = useRoute();
 const provider = new ethers.BrowserProvider(window.ethereum);
-
+const store = useWalletStore();
 const betContractNoSigner = new ethers.Contract(
   process.env.CONTRACT_ADDRESS,
   contract.abi,
@@ -242,7 +243,7 @@ watchEffect(async () => {
       );
     })
   );
-  if (window.ethereum.chainId === process.env.CHAIN_ID_GOERLI) {
+  if (store.chainID === process.env.CHAIN_ID_GOERLI) {
     if (gameTotal.value == undefined) {
       gameTotal.value = await betContractNoSigner.totalBetOnGame(
         Number(router.params.id)
@@ -272,121 +273,123 @@ watchEffect(async () => {
         gameArray.value.AwayTeamID
       );
     }
-    const betContract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
-      contract.abi,
-      await provider.getSigner()
-    );
-    if (homeCurrentMoneylineUser.value == undefined) {
-      const receipt = await betContract.returnMoneyLineBetReceipt(
-        Number(router.params.id),
-        gameArray.value.HomeTeamID
+    if (store.chainID === process.env.CHAIN_ID_GOERLI) {
+      const betContract = new ethers.Contract(
+        process.env.CONTRACT_ADDRESS,
+        contract.abi,
+        await provider.getSigner()
       );
-      homeCurrentMoneylineUser.value = JSON.stringify(receipt, (_, v) =>
-        typeof v === 'bigint' ? v.toString() : v
-      );
-    }
+      if (homeCurrentMoneylineUser.value == undefined) {
+        const receipt = await betContract.returnMoneyLineBetReceipt(
+          Number(router.params.id),
+          gameArray.value.HomeTeamID
+        );
+        homeCurrentMoneylineUser.value = JSON.stringify(receipt, (_, v) =>
+          typeof v === 'bigint' ? v.toString() : v
+        );
+      }
 
-    if (awayCurrentMoneylineUser.value == undefined) {
-      const receipt = await betContract.returnMoneyLineBetReceipt(
-        Number(router.params.id),
-        gameArray.value.AwayTeamID
-      );
-      awayCurrentMoneylineUser.value = JSON.stringify(receipt, (_, v) =>
-        typeof v === 'bigint' ? v.toString() : v
-      );
-    }
+      if (awayCurrentMoneylineUser.value == undefined) {
+        const receipt = await betContract.returnMoneyLineBetReceipt(
+          Number(router.params.id),
+          gameArray.value.AwayTeamID
+        );
+        awayCurrentMoneylineUser.value = JSON.stringify(receipt, (_, v) =>
+          typeof v === 'bigint' ? v.toString() : v
+        );
+      }
 
-    if (homeCurrentMoneyline.value == undefined) {
-      const receipt = await betContract.returnMoneyLineBetTotal(
-        Number(router.params.id),
-        gameArray.value.HomeTeamID
-      );
-      homeCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
-        typeof v === 'bigint' ? v.toString() : v
-      );
-    }
+      if (homeCurrentMoneyline.value == undefined) {
+        const receipt = await betContract.returnMoneyLineBetTotal(
+          Number(router.params.id),
+          gameArray.value.HomeTeamID
+        );
+        homeCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
+          typeof v === 'bigint' ? v.toString() : v
+        );
+      }
 
-    if (awayCurrentMoneyline.value == undefined) {
-      const receipt = await betContract.returnMoneyLineBetTotal(
-        Number(router.params.id),
-        gameArray.value.AwayTeamID
-      );
-      awayCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
-        typeof v === 'bigint' ? v.toString() : v
-      );
-    }
-    if (homeCurrentPointSpreadUser.value == undefined) {
-      const receipt = await betContract.returnPointSpreadBetReceipt(
-        Number(router.params.id)
-      );
-      homeCurrentPointSpreadUser.value = JSON.stringify(receipt, (_, v) =>
-        typeof v === 'bigint' ? v.toString() : v
-      );
-    }
+      if (awayCurrentMoneyline.value == undefined) {
+        const receipt = await betContract.returnMoneyLineBetTotal(
+          Number(router.params.id),
+          gameArray.value.AwayTeamID
+        );
+        awayCurrentMoneyline.value = JSON.stringify(receipt, (_, v) =>
+          typeof v === 'bigint' ? v.toString() : v
+        );
+      }
+      if (homeCurrentPointSpreadUser.value == undefined) {
+        const receipt = await betContract.returnPointSpreadBetReceipt(
+          Number(router.params.id)
+        );
+        homeCurrentPointSpreadUser.value = JSON.stringify(receipt, (_, v) =>
+          typeof v === 'bigint' ? v.toString() : v
+        );
+      }
 
-    if (awayCurrentPointSpreadUser.value == undefined) {
-      const receipt = await betContract.returnPointSpreadBetReceipt(
-        Number(router.params.id)
-      );
-      awayCurrentPointSpreadUser.value = JSON.stringify(receipt, (_, v) =>
-        typeof v === 'bigint' ? v.toString() : v
-      );
-    }
+      if (awayCurrentPointSpreadUser.value == undefined) {
+        const receipt = await betContract.returnPointSpreadBetReceipt(
+          Number(router.params.id)
+        );
+        awayCurrentPointSpreadUser.value = JSON.stringify(receipt, (_, v) =>
+          typeof v === 'bigint' ? v.toString() : v
+        );
+      }
 
-    if (homeCurrentPointSpread.value == undefined) {
-      const receipt = await betContract.returnPointSpreadBetTotal(
-        Number(router.params.id),
-        gameArray.value.HomeTeamID
-      );
-      homeCurrentPointSpread.value = JSON.stringify(receipt, (_, v) =>
-        typeof v === 'bigint' ? v.toString() : v
-      );
-    }
+      if (homeCurrentPointSpread.value == undefined) {
+        const receipt = await betContract.returnPointSpreadBetTotal(
+          Number(router.params.id),
+          gameArray.value.HomeTeamID
+        );
+        homeCurrentPointSpread.value = JSON.stringify(receipt, (_, v) =>
+          typeof v === 'bigint' ? v.toString() : v
+        );
+      }
 
-    if (awayCurrentPointSpread.value == undefined) {
-      const receipt = await betContract.returnPointSpreadBetTotal(
-        Number(router.params.id),
-        gameArray.value.AwayTeamID
-      );
-      awayCurrentPointSpread.value = JSON.stringify(receipt, (_, v) =>
-        typeof v === 'bigint' ? v.toString() : v
-      );
-    }
-    if (homeCurrentPointTotalUser.value == undefined) {
-      const receipt = await betContract.returnPointTotalBetReceipt(
-        Number(router.params.id)
-      );
-      homeCurrentPointTotalUser.value = JSON.stringify(receipt, (_, v) =>
-        typeof v === 'bigint' ? v.toString() : v
-      );
-    }
+      if (awayCurrentPointSpread.value == undefined) {
+        const receipt = await betContract.returnPointSpreadBetTotal(
+          Number(router.params.id),
+          gameArray.value.AwayTeamID
+        );
+        awayCurrentPointSpread.value = JSON.stringify(receipt, (_, v) =>
+          typeof v === 'bigint' ? v.toString() : v
+        );
+      }
+      if (homeCurrentPointTotalUser.value == undefined) {
+        const receipt = await betContract.returnPointTotalBetReceipt(
+          Number(router.params.id)
+        );
+        homeCurrentPointTotalUser.value = JSON.stringify(receipt, (_, v) =>
+          typeof v === 'bigint' ? v.toString() : v
+        );
+      }
 
-    if (awayCurrentPointTotalUser.value == undefined) {
-      const receipt = await betContract.returnPointTotalBetReceipt(
-        Number(router.params.id)
-      );
-      awayCurrentPointTotalUser.value = JSON.stringify(receipt, (_, v) =>
-        typeof v === 'bigint' ? v.toString() : v
-      );
-    }
+      if (awayCurrentPointTotalUser.value == undefined) {
+        const receipt = await betContract.returnPointTotalBetReceipt(
+          Number(router.params.id)
+        );
+        awayCurrentPointTotalUser.value = JSON.stringify(receipt, (_, v) =>
+          typeof v === 'bigint' ? v.toString() : v
+        );
+      }
 
-    if (homeCurrentPointTotal.value == undefined) {
-      const receipt = await betContract.returnPointTotalBetTotal(
-        Number(router.params.id)
-      );
-      homeCurrentPointTotal.value = JSON.stringify(receipt, (_, v) =>
-        typeof v === 'bigint' ? v.toString() : v
-      );
-    }
+      if (homeCurrentPointTotal.value == undefined) {
+        const receipt = await betContract.returnPointTotalBetTotal(
+          Number(router.params.id)
+        );
+        homeCurrentPointTotal.value = JSON.stringify(receipt, (_, v) =>
+          typeof v === 'bigint' ? v.toString() : v
+        );
+      }
 
-    if (awayCurrentPointTotal.value == undefined) {
-      const receipt = await betContract.returnPointTotalBetTotal(
-        Number(router.params.id)
-      );
-      awayCurrentPointTotal.value = JSON.stringify(receipt, (_, v) =>
-        typeof v === 'bigint' ? v.toString() : v
-      );
+      if (awayCurrentPointTotal.value == undefined) {
+        const receipt = await betContract.returnPointTotalBetTotal(
+          Number(router.params.id)
+        );
+        awayCurrentPointTotal.value = JSON.stringify(receipt, (_, v) =>
+          typeof v === 'bigint' ? v.toString() : v
+        );
+      }
     }
   }
 });

@@ -10,12 +10,9 @@ const admin = process.env.ADMIN_ADDRESS.toLowerCase();
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 const provider = new ethers.BrowserProvider(window.ethereum);
 const store = useWalletStore();
-const user = store.user;
-const userRef = ref(user);
-const chainId = store.chainID;
-const chainIdRef = ref(chainId);
-const isConnected = store.isConnected;
-const isConnectedRef = ref(isConnected);
+const userRef = ref(store.user);
+const chainIdRef = ref(store.chainID);
+const isConnectedRef = ref(store.isConnected);
 
 const appChainID = process.env.CHAIN_ID_GOERLI;
 
@@ -159,10 +156,7 @@ watchEffect(async () => {
     responseData.json().then((data) => (gamesArray.value = data))
   );
 
-  if (
-    chainIdRef.value === process.env.CHAIN_ID_GOERLI &&
-    typeof userRef.value === 'string'
-  ) {
+  if (chainIdRef.value === process.env.CHAIN_ID_GOERLI && window.ethereum) {
     const weiBalance = await provider.getBalance(userRef.value);
     balance.value = ethers.formatEther(weiBalance).substring(0, 6);
 
@@ -283,7 +277,7 @@ function toggleLeftDrawer() {
           <div>
             <q-btn
               @click="getSigner"
-              text-color="yellow-14"
+              text-color="red"
               color="white"
               label="Connect Metamask"
             />

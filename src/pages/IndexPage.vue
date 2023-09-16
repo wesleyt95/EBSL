@@ -1,11 +1,10 @@
 <script setup>
-// import { Todo, Meta } from 'components/models';
-// import ExampleComponent from 'components/ExampleComponent.vue';
+import { useWalletStore } from 'stores/web3wallet';
 import { ref, watchEffect } from 'vue';
 import { TEAMS } from './teams/nba-teams.js';
 import { ethers } from 'ethers';
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
-
+const store = useWalletStore();
 const provider = new ethers.BrowserProvider(window.ethereum);
 const transactionHistory = ref([]);
 const transactionHistoryInactive = ref([]);
@@ -72,7 +71,7 @@ const returnBetType = (betType) => {
 };
 
 watchEffect(async () => {
-  if (window.ethereum.chainId === process.env.CHAIN_ID_GOERLI) {
+  if (store.chainID === process.env.CHAIN_ID_GOERLI) {
     const betContract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
       contract.abi,
