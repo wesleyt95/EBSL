@@ -5,7 +5,6 @@ import { TEAMS } from './teams/nba-teams.js';
 import { ethers } from 'ethers';
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 const store = useWalletStore();
-const userRef = ref(store.user);
 const chainIdRef = ref(store.chainID);
 const provider = new ethers.BrowserProvider(window.ethereum);
 const transactionHistory = ref([]);

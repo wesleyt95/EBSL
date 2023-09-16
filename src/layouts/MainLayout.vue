@@ -286,9 +286,9 @@ function toggleLeftDrawer() {
           <div>
             <q-btn
               @click="getSigner"
-              text-color="red"
+              text-color="blue"
               color="white"
-              label="Connect Metamask"
+              label="Connect MetaMask"
             />
           </div>
         </template>
