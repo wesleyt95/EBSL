@@ -538,13 +538,13 @@ const sendBetHome = async () => {
     <div>
       <q-card v-if="gameArray.DateTime" class="mainCard">
         <div class="text-center">
-          <span class="dateSign">
+          <span class="dateSign shadow-1">
             {{ new Date(gameArray.DateTime).toLocaleDateString() }}
           </span>
         </div>
 
         <q-card-section>
-          <div class="megatron">
+          <div class="megatron shadow-3">
             <div class="text-center text-h4 q-my-sm text-bold">
               <span>
                 {{
@@ -566,7 +566,7 @@ const sendBetHome = async () => {
             </div>
             <div class="row items-center justify-evenly text-center">
               <div>
-                <q-card class="betCard">
+                <q-card class="betCard shadow-5">
                   <q-card-section>
                     <div
                       style="max-height: 6em; max-width: 6em"
@@ -796,7 +796,7 @@ const sendBetHome = async () => {
                   </q-card>
                 </q-dialog>
               </div>
-              <div class="megatronStatusOuter">
+              <div class="megatronStatusOuter shadow-5">
                 <div class="row items-center">
                   <div class="col">
                     <span class="homeAwaySign">Away</span>
@@ -813,7 +813,7 @@ const sendBetHome = async () => {
                     </div>
                   </div>
                   <div
-                    class="q-ma-sm text-subtitle1 text-bold align-center megatronStatus"
+                    class="q-ma-sm text-subtitle1 text-bold align-center megatronStatus shadow-3"
                   >
                     <div v-if="gameArray.Status === 'Scheduled'">
                       {{ new Date(gameArray.DateTime).toLocaleTimeString() }}
@@ -872,7 +872,7 @@ const sendBetHome = async () => {
                 </div>
               </div>
               <div>
-                <q-card class="betCard">
+                <q-card class="betCard shadow-5">
                   <q-card-section>
                     <div
                       style="max-height: 6em; max-width: 6em"

@@ -280,7 +280,7 @@ function toggleLeftDrawer() {
         >
           <div>
             <q-btn
-              @click="SwitchNetwork"
+              @click="() => SwitchNetwork()"
               color="white"
               text-color="red"
               label="Invalid Network"
@@ -291,7 +291,7 @@ function toggleLeftDrawer() {
         <template v-else>
           <div>
             <q-btn
-              @click="getSigner"
+              @click="() => getSigner()"
               text-color="blue"
               color="white"
               label="Connect MetaMask"

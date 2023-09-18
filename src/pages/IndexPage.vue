@@ -146,7 +146,7 @@ watchEffect(async () => {
             <div class="text-h6 mainSign">Recent News</div>
             <div v-for="(news, index) in nbaNews" :key="index">
               <div
-                class="text-center receiptItem"
+                class="text-center receiptItem shadow-3"
                 @click="news.modalValue = true"
               >
                 <div class="text-blue-grey-10 text-weight-bold">
@@ -201,7 +201,7 @@ watchEffect(async () => {
                   style="text-decoration: none"
                   :to="`/games/${JSON.parse(tx)[3]}`"
                 >
-                  <div class="receiptItem">
+                  <div class="receiptItem shadow-3">
                     <div class="text-center text-red text-weight-bold">
                       {{
                         new Date(
@@ -244,7 +244,7 @@ watchEffect(async () => {
           <template v-if="transactionHistory.length === 0">
             <q-card-section>
               <div class="text-h6 mainSign">Active Transactions</div>
-              <div class="receiptItem text-center">None</div>
+              <div class="receiptItem text-center shadow-3">None</div>
             </q-card-section>
           </template>
           <template v-if="transactionHistoryInactive.length > 0">
@@ -258,7 +258,7 @@ watchEffect(async () => {
                   style="text-decoration: none"
                   :to="`/games/${JSON.parse(tx)[3]}`"
                 >
-                  <div class="receiptItem">
+                  <div class="receiptItem shadow-3">
                     <div class="text-center text-red text-weight-bold">
                       {{
                         new Date(
@@ -301,7 +301,7 @@ watchEffect(async () => {
           <template v-if="transactionHistoryInactive.length === 0">
             <q-card-section>
               <div class="text-h6 mainSign">Transaction History</div>
-              <div class="receiptItem text-center">None</div>
+              <div class="receiptItem text-center shadow-3">None</div>
             </q-card-section>
           </template>
         </q-scroll-area>
@@ -310,12 +310,14 @@ watchEffect(async () => {
     <q-card class="etherscanCard">
       <q-scroll-area style="height: 22em">
         <template v-if="transactionHistoryEBSL.length > 0">
-          <div class="text-h6 mainSign">EBSL Transactions</div>
+          <div class="text-h6 mainSign items-center">
+            <q-icon name="language" /> EBSL Transactions
+          </div>
           <div v-for="(receipts, index) in transactionHistoryEBSL" :key="index">
             <a
               style="text-decoration: none"
               :href="`https://goerli.etherscan.io/tx/${receipts.hash}`"
-              ><div class="text-center receiptItemEtherScan">
+              ><div class="text-center receiptItemEtherScan shadow-3">
                 <div class="text-red text-weight-bold">
                   {{ receipts.from }}
                   <span class="text-grey-6">
@@ -353,8 +355,10 @@ watchEffect(async () => {
         </template>
         <template v-if="transactionHistoryEBSL.length === 0">
           <q-card-section>
-            <div class="text-h6 mainSign">EBSL Transactions</div>
-            <div class="receiptItemEtherScan text-center">None</div>
+            <div class="text-h6 mainSign">
+              <q-icon name="language" /> EBSL Transactions
+            </div>
+            <div class="receiptItemEtherScan text-center shadow-3">None</div>
           </q-card-section>
         </template>
       </q-scroll-area>
