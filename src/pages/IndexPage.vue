@@ -140,7 +140,7 @@ watchEffect(async () => {
 <template>
   <q-page class="fit bg-grey-1">
     <div class="row q-my-auto">
-      <q-card class="newsCard">
+      <q-card class="newsCard shadow-6">
         <q-scroll-area style="height: 22.5em">
           <q-card-section>
             <div class="text-h6 mainSign">Recent News</div>
@@ -191,7 +191,7 @@ watchEffect(async () => {
           </q-card-section>
         </q-scroll-area>
       </q-card>
-      <q-card class="receiptCard">
+      <q-card class="receiptCard shadow-6">
         <q-scroll-area style="height: 22.5em">
           <template v-if="transactionHistory.length > 0">
             <q-card-section>
@@ -307,7 +307,7 @@ watchEffect(async () => {
         </q-scroll-area>
       </q-card>
     </div>
-    <q-card class="etherscanCard">
+    <q-card class="etherscanCard shadow-6">
       <q-scroll-area style="height: 22em">
         <template v-if="transactionHistoryEBSL.length > 0">
           <div class="text-h6 mainSign items-center">

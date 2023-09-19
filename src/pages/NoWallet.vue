@@ -3,7 +3,10 @@
     <div class="fixed-center">
       <q-card-section class="row items-center justify-center">
         <q-avatar>
-          <q-img src="/icons/ebslLogoGold.png" fit="contain" />
+          <q-img
+            src="https://media.discordapp.net/attachments/946638392958009384/1143211836725014682/04.png?width=712&height=712"
+            fit="contain"
+          />
         </q-avatar>
         <span class="text-h4 text-bold">EBSL</span>
       </q-card-section>

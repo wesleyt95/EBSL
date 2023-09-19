@@ -254,7 +254,10 @@ function toggleLeftDrawer() {
         <q-toolbar-title
           ><RouterLink style="text-decoration: none; color: white" to="/">
             <q-avatar>
-              <q-img src="/icons/ebslLogoWhite.png" fit="contain" />
+              <q-img
+                src="https://media.discordapp.net/attachments/946638392958009384/1142081959917539348/01.png?width=712&height=712"
+                fit="contain"
+              />
             </q-avatar>
             <span>EBSL</span>
           </RouterLink>
