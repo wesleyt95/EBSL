@@ -146,27 +146,27 @@ module.exports = configure(function (ctx) {
         theme_color: '#323137',
         icons: [
           {
-            src: 'https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png',
+            src: '/icons/ebslLogoGold.png',
             sizes: '128x128',
             type: 'image/png',
           },
           {
-            src: 'https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png',
+            src: '/icons/ebslLogoGold.png',
             sizes: '192x192',
             type: 'image/png',
           },
           {
-            src: 'https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png',
+            src: '/icons/ebslLogoGold.png',
             sizes: '256x256',
             type: 'image/png',
           },
           {
-            src: 'https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png',
+            src: '/icons/ebslLogoGold.png',
             sizes: '384x384',
             type: 'image/png',
           },
           {
-            src: 'https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png',
+            src: '/icons/ebslLogoGold.png',
             sizes: '512x512',
             type: 'image/png',
           },

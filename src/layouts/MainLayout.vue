@@ -254,12 +254,10 @@ function toggleLeftDrawer() {
         <q-toolbar-title
           ><RouterLink style="text-decoration: none; color: white" to="/">
             <q-avatar>
-              <q-img
-                src="https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png"
-                fit="contain"
-              /> </q-avatar
-            >EBSL</RouterLink
-          >
+              <q-img src="/icons/ebslLogoWhite.png" fit="contain" />
+            </q-avatar>
+            <span>EBSL</span>
+          </RouterLink>
         </q-toolbar-title>
         <template
           v-if="typeof userRef === 'string' && chainIdRef === appChainID"

@@ -626,10 +626,7 @@ const sendBetHome = async () => {
                   <q-card class="bg-grey-1 text-blue-grey-10">
                     <q-toolbar>
                       <q-avatar>
-                        <img
-                          fit="contain"
-                          src="https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png"
-                        />
+                        <img fit="contain" src="/icons/ebslLogoGold.png" />
                       </q-avatar>
                       <q-toolbar-title>
                         <span class="text-weight-bold">EBSL</span>
@@ -934,9 +931,7 @@ const sendBetHome = async () => {
                   <q-card class="bg-grey-1 text-blue-grey-10">
                     <q-toolbar>
                       <q-avatar>
-                        <img
-                          src="https://cdn.discordapp.com/attachments/946638392958009384/1142081959917539348/01.png"
-                        />
+                        <img src="/icons/ebslLogoGold.png" />
                       </q-avatar>
 
                       <q-toolbar-title>
