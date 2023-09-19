@@ -1,10 +1,17 @@
 <script setup>
-import { ref, watchEffect, computed } from 'vue';
+import { ref, watchEffect, computed, onBeforeMount } from 'vue';
 import { useWalletStore } from 'stores/web3wallet';
+import { useRouter } from 'vue-router';
 import { ethers } from 'ethers';
 import { TEAMS } from '../pages/teams/nba-teams.js';
 import EssentialLink from 'components/EssentialLink.vue';
 import { copyToClipboard } from 'quasar';
+const router = useRouter();
+onBeforeMount(() => {
+  if (!window.ethereum) {
+    router.push('/login');
+  }
+});
 
 const admin = process.env.ADMIN_ADDRESS.toLowerCase();
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
@@ -337,7 +344,7 @@ function toggleLeftDrawer() {
                       style="text-decoration: none"
                       :to="`/games/${game.GameID}`"
                     >
-                      <div class="gameCard">
+                      <div class="gameCard shadow-2">
                         <div>
                           {{
                             game.Status === 'Scheduled'

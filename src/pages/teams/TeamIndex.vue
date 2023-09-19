@@ -128,7 +128,7 @@ const playerColumns = [
     <q-card-section class="row">
       <div v-for="game in gamesArrayPlayoffs" :key="game.id">
         <div
-          class="gameCard"
+          class="gameCard shadow-2"
           @click="getGameID(new Date(game.date).toISOString().split('T')[0])"
         >
           <div>
