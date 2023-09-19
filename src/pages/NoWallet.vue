@@ -2,7 +2,7 @@
   <q-card class="full-height full-width">
     <div class="fixed-center">
       <q-card-section>
-        <div class="text-center text-blue ebslTitle">
+        <div class="text-center text-bold text-blue ebslTitle">
           ETHEREUM BASKETBALL SPECULATION LEAGUE
         </div>
       </q-card-section>
@@ -29,6 +29,6 @@
 </template>
 <style lang="scss" scoped>
 .ebslTitle {
-  font-size: 0.8em;
+  font-size: 0.7em;
 }
 </style>

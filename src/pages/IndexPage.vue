@@ -310,9 +310,9 @@ watchEffect(async () => {
     <q-card class="etherscanCard shadow-6">
       <q-scroll-area style="height: 22em">
         <template v-if="transactionHistoryEBSL.length > 0">
-          <div class="text-h6 mainSign items-center">
-            <q-icon name="language" class="text-light-blue-2" /> EBSL
-            Transactions
+          <div class="text-h6 mainSign row items-center justify-center">
+            <q-icon name="language" class="text-light-blue-2 q-mr-sm" />
+            <div>EBSL Transactions</div>
           </div>
           <div v-for="(receipts, index) in transactionHistoryEBSL" :key="index">
             <a
@@ -356,9 +356,9 @@ watchEffect(async () => {
         </template>
         <template v-if="transactionHistoryEBSL.length === 0">
           <q-card-section>
-            <div class="text-h6 mainSign">
-              <q-icon name="language" class="text-light-blue-2" /> EBSL
-              Transactions
+            <div class="text-h6 mainSign row items-center justify-center">
+              <q-icon name="language" class="text-light-blue-2 q-mr-sm" />
+              <div>EBSL Transactions</div>
             </div>
             <div class="receiptItemEtherScan text-center shadow-3">None</div>
           </q-card-section>
