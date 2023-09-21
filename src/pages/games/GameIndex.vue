@@ -800,7 +800,7 @@ const sendBetHome = async () => {
                   </q-card>
                 </q-dialog>
               </div>
-              <div class="megatronStatusOuter shadow-5 q-ma-sm">
+              <div class="megatronStatusOuter shadow-5 q-ma-md">
                 <div class="row items-center">
                   <div class="col">
                     <span class="homeAwaySign">Away</span>

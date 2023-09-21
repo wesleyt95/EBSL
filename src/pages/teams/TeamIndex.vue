@@ -105,8 +105,8 @@ const playerColumns = [
     />
   </h3>
   <h2 class="text-center q-mt-xs">{{ team.City }} {{ team.Name }}</h2>
-  <q-card
-    ><q-card-section>
+  <q-card>
+    <q-card-section>
       <div>
         <q-table
           title="Current Roster"
@@ -121,8 +121,10 @@ const playerColumns = [
             (evt, row, index) =>
               $router.push({ path: `/players/${row.PlayerID}` })
           "
-        /></div></q-card-section
-  ></q-card>
+        />
+      </div>
+    </q-card-section>
+  </q-card>
   <q-card v-if="gamesArrayPlayoffs.length > 0" class="text-center">
     <div class="text-h4 q-pt-md">Playoffs</div>
     <q-card-section class="row">
