@@ -177,6 +177,13 @@ watchEffect(async () => {
     chainIdRef.value = window.ethereum.chainId;
     store.chainID = chainIdRef.value;
   }
+  if (
+    chainIdRef.value !== appChainID &&
+    window.ethereum?.chainId === appChainID
+  ) {
+    chainIdRef.value = window.ethereum.chainId;
+    store.chainID = chainIdRef.value;
+  }
 
   if (chainIdRef.value === appChainID) {
     const weiBalance = await provider.getBalance(userRef.value);
