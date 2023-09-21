@@ -1,4 +1,5 @@
 <script setup>
+import { vOnClickOutside } from '@vueuse/components';
 import { useWalletStore } from 'stores/web3wallet';
 import { ref, watchEffect, computed } from 'vue';
 import { useRoute } from 'vue-router';
@@ -667,6 +668,7 @@ const sendBetHome = async () => {
                           : 'betTypes'
                       "
                       @click="awayBetType = 'moneyline'"
+                      v-on-click-outside="() => (awayBetType = null)"
                     >
                       <q-card-section>
                         <div>
@@ -705,6 +707,7 @@ const sendBetHome = async () => {
                           : 'betTypes'
                       "
                       @click="awayBetType = 'spread'"
+                      v-on-click-outside="() => (awayBetType = null)"
                     >
                       <q-card-section>
                         <div>
@@ -745,6 +748,7 @@ const sendBetHome = async () => {
                           : 'betTypes'
                       "
                       @click="awayBetType = 'total'"
+                      v-on-click-outside="() => (awayBetType = null)"
                     >
                       <q-card-section>
                         <div>
@@ -976,6 +980,7 @@ const sendBetHome = async () => {
                           : 'betTypes'
                       "
                       @click="homeBetType = 'moneyline'"
+                      v-on-click-outside="() => (homeBetType = null)"
                     >
                       <q-card-section>
                         <div>
@@ -1013,6 +1018,7 @@ const sendBetHome = async () => {
                           : 'betTypes'
                       "
                       @click="homeBetType = 'spread'"
+                      v-on-click-outside="() => (homeBetType = null)"
                     >
                       <q-card-section>
                         <div>
@@ -1054,6 +1060,7 @@ const sendBetHome = async () => {
                           : 'betTypes'
                       "
                       @click="homeBetType = 'total'"
+                      v-on-click-outside="() => (homeBetType = null)"
                     >
                       <q-card-section>
                         <div>
@@ -1157,7 +1164,7 @@ const sendBetHome = async () => {
   font-weight: 650;
 }
 .megatron {
-  border: 12px $grey-5 solid;
+  border: 12px $grey-3 solid;
   border-radius: 10px;
   color: $blue-grey-10;
   background: $grey-1;
