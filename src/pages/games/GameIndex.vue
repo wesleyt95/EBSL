@@ -1,5 +1,4 @@
 <script setup>
-import { useWalletStore } from 'stores/web3wallet';
 import { ref, watchEffect, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { ethers } from 'ethers';
@@ -8,7 +7,6 @@ const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 
 const router = useRoute();
 const provider = new ethers.BrowserProvider(window.ethereum);
-const store = useWalletStore();
 const betContractNoSigner = new ethers.Contract(
   process.env.CONTRACT_ADDRESS,
   contract.abi,
@@ -243,7 +241,7 @@ watchEffect(async () => {
       );
     })
   );
-  if (store.chainID === process.env.CHAIN_ID) {
+  if (window.ethereum.chainId === process.env.CHAIN_ID) {
     if (gameTotal.value == undefined) {
       gameTotal.value = await betContractNoSigner.totalBetOnGame(
         Number(router.params.id)
@@ -273,7 +271,7 @@ watchEffect(async () => {
         gameArray.value.AwayTeamID
       );
     }
-    if (store.chainID === process.env.CHAIN_ID) {
+    if (window.ethereum.chainId === process.env.CHAIN_ID) {
       const betContract = new ethers.Contract(
         process.env.CONTRACT_ADDRESS,
         contract.abi,
@@ -607,7 +605,11 @@ const sendBetHome = async () => {
                     <span class="text-red">{{ returnAwayPointSpread }}</span>
                   </q-card-section>
                   <q-card-section>
-                    [ {{ gameArray.OverUnder }} ] Point Total:
+                    [
+                    {{
+                      gameArray.OverUnder === null ? 'N/A' : gameArray.OverUnder
+                    }}
+                    ] Point Total:
                     <span class="text-red">{{ returnAwayPointTotal }}</span>
                   </q-card-section>
                   <q-btn
@@ -749,7 +751,11 @@ const sendBetHome = async () => {
                       <q-card-section>
                         <div>
                           <span class="text-h6">
-                            [{{ gameArray.OverUnder }}] Point Total
+                            [{{
+                              gameArray.OverUnder === null
+                                ? 'N/A'
+                                : gameArray.OverUnder
+                            }}] Point Total
                             {{ returnAwayPointTotalUser }}
                           </span>
                           <div
@@ -914,7 +920,9 @@ const sendBetHome = async () => {
                   </q-card-section>
                   <q-card-section>
                     [
-                    {{ gameArray.OverUnder }}
+                    {{
+                      gameArray.OverUnder === null ? 'N/A' : gameArray.OverUnder
+                    }}
                     ] Point Total:
                     <span class="text-red">{{ returnHomePointTotal }}</span>
                   </q-card-section>
@@ -1058,7 +1066,11 @@ const sendBetHome = async () => {
                       <q-card-section>
                         <div>
                           <span class="text-h6">
-                            [{{ gameArray.OverUnder }}] Point Total
+                            [{{
+                              gameArray.OverUnder === null
+                                ? 'N/A'
+                                : gameArray.OverUnder
+                            }}] Point Total
                             {{ returnHomePointTotalUser }}
                           </span>
                           <div

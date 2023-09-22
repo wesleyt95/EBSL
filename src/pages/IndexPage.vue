@@ -1,11 +1,8 @@
 <script setup>
-import { useWalletStore } from 'stores/web3wallet';
 import { ref, watchEffect } from 'vue';
 import { TEAMS } from './teams/nba-teams.js';
 import { ethers } from 'ethers';
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
-const store = useWalletStore();
-const chainIdRef = ref(store.chainID);
 const provider = new ethers.BrowserProvider(window.ethereum);
 const transactionHistory = ref([]);
 const transactionHistoryInactive = ref([]);
@@ -74,7 +71,7 @@ const returnBetType = (betType) => {
 };
 
 window.ethereum.on('accountsChanged', async () => {
-  if (chainIdRef.value === appChainID) {
+  if (window.ethereum.chainId === appChainID) {
     const betContract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
       contract.abi,
@@ -95,10 +92,7 @@ window.ethereum.on('accountsChanged', async () => {
 });
 
 watchEffect(async () => {
-  if (
-    chainIdRef.value === appChainID &&
-    transactionHistory.value.length === 0
-  ) {
+  if (window.ethereum.chainId === appChainID) {
     const betContract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
       contract.abi,
