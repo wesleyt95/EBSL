@@ -1,5 +1,4 @@
 <script setup>
-import { vOnClickOutside } from '@vueuse/components';
 import { useWalletStore } from 'stores/web3wallet';
 import { ref, watchEffect, computed } from 'vue';
 import { useRoute } from 'vue-router';
@@ -613,7 +612,7 @@ const sendBetHome = async () => {
                   </q-card-section>
                   <q-btn
                     @click="awayDialog = true"
-                    :disabled="Date.parse(gameArray.DateTimeUTC) === Date.now()"
+                    :disabled="Date.parse(gameArray.DateTimeUTC) < Date.now()"
                     >Place Bet</q-btn
                   >
                 </q-card>
@@ -668,7 +667,6 @@ const sendBetHome = async () => {
                           : 'betTypes'
                       "
                       @click="awayBetType = 'moneyline'"
-                      v-on-click-outside="() => (awayBetType = null)"
                     >
                       <q-card-section>
                         <div>
@@ -707,7 +705,6 @@ const sendBetHome = async () => {
                           : 'betTypes'
                       "
                       @click="awayBetType = 'spread'"
-                      v-on-click-outside="() => (awayBetType = null)"
                     >
                       <q-card-section>
                         <div>
@@ -748,7 +745,6 @@ const sendBetHome = async () => {
                           : 'betTypes'
                       "
                       @click="awayBetType = 'total'"
-                      v-on-click-outside="() => (awayBetType = null)"
                     >
                       <q-card-section>
                         <div>
@@ -924,7 +920,7 @@ const sendBetHome = async () => {
                   </q-card-section>
                   <q-btn
                     @click="homeDialog = true"
-                    :disabled="Date.parse(gameArray.DateTimeUTC) === Date.now()"
+                    :disabled="Date.parse(gameArray.DateTimeUTC) < Date.now()"
                     >Place Bet</q-btn
                   >
                 </q-card>
@@ -980,7 +976,6 @@ const sendBetHome = async () => {
                           : 'betTypes'
                       "
                       @click="homeBetType = 'moneyline'"
-                      v-on-click-outside="() => (homeBetType = null)"
                     >
                       <q-card-section>
                         <div>
@@ -1018,7 +1013,6 @@ const sendBetHome = async () => {
                           : 'betTypes'
                       "
                       @click="homeBetType = 'spread'"
-                      v-on-click-outside="() => (homeBetType = null)"
                     >
                       <q-card-section>
                         <div>
@@ -1060,7 +1054,6 @@ const sendBetHome = async () => {
                           : 'betTypes'
                       "
                       @click="homeBetType = 'total'"
-                      v-on-click-outside="() => (homeBetType = null)"
                     >
                       <q-card-section>
                         <div>

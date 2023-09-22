@@ -12,6 +12,8 @@ const transactionHistoryInactive = ref([]);
 const transactionHistoryEBSL = ref([]);
 const nbaNews = ref([]);
 
+const appChainID = process.env.CHAIN_ID;
+
 const etherscanBetType = (methodID) => {
   return ethers.Interface.from(contract.abi).getFunctionName(methodID);
 };
@@ -72,7 +74,7 @@ const returnBetType = (betType) => {
 };
 
 window.ethereum.on('accountsChanged', async () => {
-  if (chainIdRef.value === process.env.CHAIN_ID) {
+  if (chainIdRef.value === appChainID) {
     const betContract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
       contract.abi,
@@ -93,7 +95,10 @@ window.ethereum.on('accountsChanged', async () => {
 });
 
 watchEffect(async () => {
-  if (chainIdRef.value === process.env.CHAIN_ID) {
+  if (
+    chainIdRef.value === appChainID &&
+    transactionHistory.value.length === 0
+  ) {
     const betContract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
       contract.abi,
