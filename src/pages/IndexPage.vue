@@ -70,6 +70,25 @@ const returnBetType = (betType) => {
   }
 };
 
+window.ethereum.on('connect', async () => {
+  if (window.ethereum.chainId === appChainID) {
+    const betContract = new ethers.Contract(
+      process.env.CONTRACT_ADDRESS,
+      contract.abi,
+      await provider.getSigner()
+    );
+    const data = await betContract.returnReceipts();
+    const receipt = data.map((tx) =>
+      JSON.stringify(tx, (_, v) => (typeof v === 'bigint' ? v.toString() : v))
+    );
+    transactionHistory.value = receipt.filter(
+      (tx) => JSON.parse(tx)[6] === true
+    );
+    transactionHistoryInactive.value = receipt.filter(
+      (tx) => JSON.parse(tx)[6] === false
+    );
+  }
+});
 window.ethereum.on('accountsChanged', async () => {
   if (window.ethereum.chainId === appChainID) {
     const betContract = new ethers.Contract(
@@ -81,7 +100,25 @@ window.ethereum.on('accountsChanged', async () => {
     const receipt = data.map((tx) =>
       JSON.stringify(tx, (_, v) => (typeof v === 'bigint' ? v.toString() : v))
     );
-
+    transactionHistory.value = receipt.filter(
+      (tx) => JSON.parse(tx)[6] === true
+    );
+    transactionHistoryInactive.value = receipt.filter(
+      (tx) => JSON.parse(tx)[6] === false
+    );
+  }
+});
+window.ethereum.on('chainChanged', async (chainId) => {
+  if (chainId === appChainID) {
+    const betContract = new ethers.Contract(
+      process.env.CONTRACT_ADDRESS,
+      contract.abi,
+      await provider.getSigner()
+    );
+    const data = await betContract.returnReceipts();
+    const receipt = data.map((tx) =>
+      JSON.stringify(tx, (_, v) => (typeof v === 'bigint' ? v.toString() : v))
+    );
     transactionHistory.value = receipt.filter(
       (tx) => JSON.parse(tx)[6] === true
     );
