@@ -9,6 +9,12 @@ const team = TEAMS.find((row) => row.TeamID === Number(router.params.id));
 const playersArray = ref([]);
 const gamesArray = ref([]);
 const gamesArrayPlayoffs = ref([]);
+const today = new Date(Date.now());
+const year = today.getFullYear();
+const month = (today.getMonth() + 1).toString().padStart(2, '0');
+const day = today.getDate().toString().padStart(2, '0');
+const todayFormatted = ref(`${year}-${month}-${day}`);
+const selectedDate = ref(todayFormatted.value);
 
 const getGameID = async (date) => {
   await fetch(
@@ -24,6 +30,16 @@ const getGameID = async (date) => {
       });
     })
   );
+};
+const gameDate = (date) => {
+  if (date.split('T')[0] === selectedDate.value) {
+    return new Date(date).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } else {
+    return date.split('T')[0];
+  }
 };
 
 watchEffect(async () => {
@@ -134,14 +150,7 @@ const playerColumns = [
           @click="getGameID(new Date(game.date).toISOString().split('T')[0])"
         >
           <div>
-            {{
-              game.period === 0
-                ? new Date(game.date).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                : game.status
-            }}
+            {{ game.period === 0 ? gameDate(game.date) : game.status }}
           </div>
           <div>
             {{ game.visitor_team.abbreviation }}
@@ -166,14 +175,7 @@ const playerColumns = [
           @click="getGameID(new Date(game.date).toISOString().split('T')[0])"
         >
           <div>
-            {{
-              game.period === 0
-                ? new Date(game.date).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                : game.status
-            }}
+            {{ game.period === 0 ? gameDate(game.date) : game.status }}
           </div>
           <div>
             {{ game.visitor_team.abbreviation }}

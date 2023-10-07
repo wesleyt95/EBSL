@@ -14,6 +14,7 @@ onBeforeMount(() => {
 });
 
 const admin = process.env.ADMIN_ADDRESS.toLowerCase();
+const contractAddress = process.env.CONTRACT_ADDRESS;
 const contract = require('/artifacts/contracts/Bet.sol/Bet.json');
 const provider = new ethers.BrowserProvider(window.ethereum);
 const store = useWalletStore();
@@ -230,12 +231,12 @@ const essentialLinks = [
     icon: 'public',
     link: 'https://twitter.com/EBSLeague',
   },
-  // {
-  //     title: 'Github',
-  //     caption: 'Open Source',
-  //     icon: 'code',
-  //     link: 'https://github.com/wesleyt95/EBSL',
-  //   },
+  {
+    title: 'Github',
+    caption: 'Open Source',
+    icon: 'code',
+    link: 'https://github.com/wesleyt95/EBSL',
+  },
 ];
 
 const leftDrawerOpen = ref(false);
@@ -502,9 +503,9 @@ function toggleLeftDrawer() {
         class="text-center menuAddress fixed-bottom q-mx-sm hover"
         @click="copyToClipboard(admin)"
       >
-        <span class="text-red">Donations: </span>
+        <span class="text-red">Contract Address: </span>
         <q-icon name="content_copy" />
-        <div class="menuAddress text-grey-6">{{ admin }}</div>
+        <div class="menuAddress text-grey-6">{{ contractAddress }}</div>
       </div>
     </q-drawer>
 

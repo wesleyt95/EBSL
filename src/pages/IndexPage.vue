@@ -129,7 +129,10 @@ window.ethereum.on('chainChanged', async (chainId) => {
 });
 
 watchEffect(async () => {
-  if (window.ethereum.chainId === appChainID) {
+  if (
+    window.ethereum.chainId === appChainID &&
+    window.ethereum._state.accounts.length > 0
+  ) {
     const betContract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
       contract.abi,
