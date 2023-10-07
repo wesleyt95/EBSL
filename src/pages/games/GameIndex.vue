@@ -775,7 +775,7 @@ const sendBetHome = async () => {
                         {{
                           gameArray.OverUnder === null
                             ? 'a certain combined score'
-                            : gameArray.OverUnder
+                            : `${gameArray.OverUnder} points`
                         }}.
                       </q-card-section>
                       <div v-if="awayBetType === 'total'">
@@ -1096,7 +1096,7 @@ const sendBetHome = async () => {
                         {{
                           gameArray.OverUnder === null
                             ? 'a certain combined score'
-                            : gameArray.OverUnder
+                            : `${gameArray.OverUnder} points`
                         }}.
                       </q-card-section>
                       <div v-if="homeBetType === 'total'">
