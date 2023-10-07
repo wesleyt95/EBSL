@@ -727,7 +727,8 @@ const sendBetHome = async () => {
 
                       <q-card-section class="q-pt-none">
                         The point spread is a calculated points difference
-                        determined by oddsmakers between two teams lining up.
+                        determined by oddsmakers between
+                        {{ gameArray.AwayTeam }} and {{ gameArray.HomeTeam }}.
                       </q-card-section>
                       <div v-if="awayBetType === 'spread'">
                         <q-input
@@ -768,9 +769,14 @@ const sendBetHome = async () => {
                       </q-card-section>
 
                       <q-card-section class="q-pt-none">
-                        You are placing a wager based on whether or not the two
-                        teams on the court exceed or fail to meet a certain
-                        combined score.
+                        You are placing a wager based on whether or not
+                        {{ gameArray.AwayTeam }} and
+                        {{ gameArray.HomeTeam }} exceed or fail to meet
+                        {{
+                          gameArray.OverUnder === null
+                            ? 'a certain combined score'
+                            : gameArray.OverUnder
+                        }}.
                       </q-card-section>
                       <div v-if="awayBetType === 'total'">
                         <q-radio
@@ -1000,7 +1006,7 @@ const sendBetHome = async () => {
                       </q-card-section>
                       <q-card-section class="q-pt-none">
                         Place your wager on
-                        {{ gameArray.HomeTeam }} winning the game
+                        {{ gameArray.HomeTeam }} winning the game.
                       </q-card-section>
                       <div v-if="homeBetType === 'moneyline'">
                         <q-input
@@ -1041,7 +1047,8 @@ const sendBetHome = async () => {
 
                       <q-card-section class="q-pt-none">
                         The point spread is a calculated points difference
-                        determined by oddsmakers between two teams lining up.
+                        determined by oddsmakers between
+                        {{ gameArray.HomeTeam }} and {{ gameArray.AwayTeam }}.
                       </q-card-section>
 
                       <div v-if="homeBetType === 'spread'">
@@ -1083,9 +1090,14 @@ const sendBetHome = async () => {
                       </q-card-section>
 
                       <q-card-section class="q-pt-none">
-                        You are placing a wager based on whether or not the two
-                        teams on the court exceed or fail to meet a certain
-                        combined score.
+                        You are placing a wager based on whether or not
+                        {{ gameArray.HomeTeam }} and
+                        {{ gameArray.AwayTeam }} exceed or fail to meet
+                        {{
+                          gameArray.OverUnder === null
+                            ? 'a certain combined score'
+                            : gameArray.OverUnder
+                        }}.
                       </q-card-section>
                       <div v-if="homeBetType === 'total'">
                         <q-radio
